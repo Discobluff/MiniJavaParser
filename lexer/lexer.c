@@ -163,17 +163,37 @@ void lexer_free(Lexer *lex)
 	free(lex);
 }
 
-int main(void)
+int main(int argc, char* argv[])
 {
-	char* src = "10 1000 99999";
-	Lexer* lexer = lexer_create(src);
-
-	print_token(lexer_give_token(lexer), src);
-
-	while (lexer_next(lexer)) {
-		print_token(lexer_give_token(lexer), src);
-	}
-	print_token(lexer_give_token(lexer), src);
-	lexer_free(lexer);
-	return 0;
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <expression>\n", argv[0]);
+        return 1;
+    }
+    
+    // Concatenate all arguments into a single string
+    size_t total_len = 0;
+    for (int i = 1; i < argc; i++) {
+        total_len += strlen(argv[i]) + 1; // +1 for space
+    }
+    
+    char* src = malloc(total_len);
+    
+    src[0] = '\0';
+    for (int i = 1; i < argc; i++) {
+        strcat(src, argv[i]);
+        if (i < argc - 1) {
+            strcat(src, " ");
+        }
+    }
+    
+    Lexer* lexer = lexer_create(src);
+    print_token(lexer_give_token(lexer), src);
+    while (lexer_next(lexer)) {
+        print_token(lexer_give_token(lexer), src);
+    }
+    print_token(lexer_give_token(lexer), src);
+    lexer_free(lexer);
+    free(src);
+    
+    return 0;
 }
