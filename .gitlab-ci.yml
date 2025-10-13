@@ -1,0 +1,5 @@
+include:
+  - template: Discord-Notification.gitlab-ci.yml
+
+variables:
+  DISCORD_WEBHOOK: "https://discord.com/api/webhooks/1425373800509476905/d8kLDXzSYjj0BFJLpJH_sIhPitlKsJfk8BTsz--WkspGHgUXx02ai5IJFFD3o_JHS3bN"
