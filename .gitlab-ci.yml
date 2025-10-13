@@ -6,22 +6,26 @@ notify_discord:
   image: curlimages/curl:latest
   script:
     - |
-      # Message Discord avec embed riche
-      MESSAGE=$(
-        cat <<EOF
-      {
-        "embeds": [{
-          "title": "🚀 Nouveau push sur **${CI_PROJECT_NAME}**",
-          "description": "**Branch** : \`${CI_COMMIT_REF_NAME}\`
-          **Commit** : [\`${CI_COMMIT_SHORT_SHA}\`](${CI_PROJECT_URL}/commit/${CI_COMMIT_SHA})
-          **Auteur** : ${GITLAB_USER_NAME}
-          **Message** : \`\`\`${CI_COMMIT_MESSAGE}\`\`\`",
-          "color": 3447003,
-          "footer": {"text": "Projet : ${CI_PROJECT_URL}"}
-        }]
-      }
-      EOF
+      # Construction du payload JSON (sans caractères problématiques)
+      PAYLOAD=$(jq -n \
+        --arg title "🚀 Nouveau push sur **${CI_PROJECT_NAME}**" \
+        --arg desc "**Branch** : \`${CI_COMMIT_REF_NAME}\`
+        **Commit** : [\`${CI_COMMIT_SHORT_SHA}\`](${CI_PROJECT_URL}/commit/${CI_COMMIT_SHA})
+        **Auteur** : ${GITLAB_USER_NAME}
+        **Message** : \`\`\`${CI_COMMIT_MESSAGE}\`\`\`" \
+        --arg color "3447003" \
+        --arg footer "Projet : ${CI_PROJECT_URL}" \
+        '{
+          embeds: [{
+            title: $title,
+            description: $desc,
+            color: ($color | tonumber),
+            footer: { text: $footer }
+          }]
+        }'
       )
-      curl -X POST -H "Content-Type: application/json" --data "$MESSAGE" "https://discord.com/api/webhooks/1425373800509476905/d8kLDXzSYjj0BFJLpJH_sIhPitlKsJfk8BTsz--WkspGHgUXx02ai5IJFFD3o_JHS3bN"
+      # Envoi via cURL avec affichage du payload pour debug
+      echo "Payload envoyé : $PAYLOAD"
+      curl -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL"
   only:
     - pushes
