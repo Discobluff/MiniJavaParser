@@ -90,6 +90,99 @@ void lexer_next(Lexer* lex)
 		case ')':
 			lex->tok.type = TOKEN_RPAR;
 			break;
+		case '%':
+			lex->tok.type= TOKEN_BINOP_MOD;
+			break;
+		case '{':
+			lex->tok.type= TOKEN_LACC;
+			break;
+		case '}':
+			lex->tok.type= TOKEN_RACC;
+			break;
+		case ';':
+			lex-> tok.type=TOKEN_PTSVG;
+			break;
+		case '.':
+			lex-> tok.type= TOKEN_PTS;
+			break;
+		case ',':
+			lex->tok.type= TOKEN_VG;
+			break;
+		case '!':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_DIFF;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_OPP;
+				break;
+			}
+			break;
+		case '>':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_SUPEG;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_SUP;
+				break;
+			}
+			break;
+		case '<':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_INFEG;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_INF;
+				break;
+			}
+			break;
+		case '=':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_2EQUAL;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_EQ;
+				break;
+			}
+			break;
+		case '|':
+			switch (peek(lex)){
+			case '|':
+				lex->tok.type= TOKEN_BINOP_OR;
+				advance(lex);
+				break;
+			
+			default:
+				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
+				lex->tok.type = TOKEN_EOF;
+				break;
+			}
+			break;
+		case '&':
+			switch (peek(lex)){
+			case '&':
+				lex->tok.type= TOKEN_BINOP_AND;
+				advance(lex);
+				break;
+			
+			default:
+				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
+				lex->tok.type = TOKEN_EOF;
+				break;
+			}
+			break;
+
 		default:
 			fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start);
 			lex->tok.type = TOKEN_EOF;
@@ -140,6 +233,22 @@ const char* token_type_name(TokenType type)
 		case TOKEN_LPAR: return "LPAR";
 		case TOKEN_RPAR: return "RPAR";
 		case TOKEN_EOF: return "EOF";
+		case TOKEN_BINOP_AND: return "AND";
+		case TOKEN_BINOP_MOD: return "MOD";
+		case TOKEN_BINOP_OR: return "OR";
+		case TOKEN_BINOP_EQ: return "EQ";
+		case TOKEN_BINOP_2EQUAL: return "2EQUAL";
+		case TOKEN_BINOP_DIFF: return "DIFF";
+		case TOKEN_BINOP_INF: return "INF";
+		case TOKEN_BINOP_INFEG: return "INFEG";
+		case TOKEN_BINOP_SUP: return "SUP";
+		case TOKEN_BINOP_SUPEG: return "SUPEG";
+		case TOKEN_LACC: return "LACC";
+		case TOKEN_RACC: return "RACC";
+		case TOKEN_PTS: return "PTS";
+		case TOKEN_PTSVG: return "PTSVG";
+		case TOKEN_VG: return "VG";
+		case TOKEN_OPP: return "OPP";
 		default: return "UNKNOWN";
 	}
 }
