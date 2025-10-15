@@ -1,8 +1,8 @@
 build:
-	gcc -Wall -fsanitize=address -static-libasan -g lexer/lexer.c -o test
+	gcc -Wall -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O0 lexer/lexer.c -o test
 
-run: build
-	./test 1+1
+run:
+	./test
 
 clean:
 	rm -rf test

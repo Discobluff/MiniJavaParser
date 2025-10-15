@@ -20,7 +20,7 @@ typedef enum {
 } TokenType;
 
 
-// TODO: what do we do with identifiers? (put them directely in the symbol table and pass them by index?))
+// TODO: what do we do with identifiers? (put them directely in the symbol table and pass them by index?)
 /**
  * A token is a position of the start of the token and a beginning:
  * The content is recomputed on demand and casted to the right type
@@ -48,152 +48,166 @@ typedef struct {
 } Lexer;
 
 
-char peek(Lexer* lex)
+// Initialize a lexer with source code
+Lexer* lexer_init(char* src, int len)
 {
-	if (lex->pos >= lex->length) return '\0';
+	Lexer* lex = malloc(sizeof(Lexer));
+	lex->source = src;
+	lex->length = len;
+	lex->pos = 0;
+	lex->tok.type = TOKEN_EOF;
+	lex->tok.position = 0;
+	return lex;
+}
+
+// Peek at current character without consuming
+static char peek(Lexer* lex)
+{
+	if (lex->pos >= lex->length) {
+		return '\0';
+	}
 	return lex->source[lex->pos];
 }
 
-// when we have the start and the type of a token we don't need the lexer to point to that value anymore
-void lexer_pass_fodder(Lexer* lex)
+// Consume and return current character
+static char advance(Lexer* lex)
 {
-	if (lex->tok.type == TOKEN_EOF) return ;
-
-	switch (lex->tok.type)
-	{
-	case TOKEN_NUMBER:{
-		int i = lex->tok.position;
-		while(i < lex->length && isdigit(lex->source[i])) i++;
-		lex->pos = i;
-		break;
+	if (lex->pos >= lex->length) {
+		return '\0';
 	}
-	case TOKEN_EOF:
-		break;
-	default:
-		lex->pos++;
-		break;
-	}
-	return ;
+	return lex->source[lex->pos++];
 }
 
-// the type of the next token???
-bool lexer_next(Lexer* lex)
+// Skip whitespace
+static void skip_whitespace(Lexer* lex)
 {
-	while(isspace(peek(lex))) lex->pos++;
+	while (lex->pos < lex->length && isspace(peek(lex))) {
+		advance(lex);
+	}
+}
 
-	if(peek(lex) == '\0')
-	{
-		lex->tok.position = lex->length;
+// Go to next token and put it in lex->tok
+void lexer_next(Lexer* lex)
+{
+	skip_whitespace(lex);
+
+	int start = lex->pos;
+
+	if (lex->pos >= lex->length) {
 		lex->tok.type = TOKEN_EOF;
-		return false;
+		lex->tok.position = start;
+		return;
 	}
 
 	char c = peek(lex);
 
-	if (isdigit(c)) lex->tok.type = TOKEN_NUMBER;
-	else if (c == '+') lex->tok.type = TOKEN_BINOP_ADD;
-	else if (c == '-') lex->tok.type = TOKEN_BINOP_SUB;
-	else if (c == '*') lex->tok.type = TOKEN_BINOP_MULT;
-	else if (c == '/') lex->tok.type = TOKEN_BINOP_DIV;
-	else if (c == '(') lex->tok.type = TOKEN_LPAR;
-	else if (c == ')') lex->tok.type = TOKEN_RPAR;
-	else {
-		printf("Lexer error: unknown token '%c'\n", c);
-		exit(1);
-	}
-	lex->tok.position = lex->pos;
-	lexer_pass_fodder(lex);
-	return true;
-}
-
-
-Lexer* lexer_create(const char* source)
-{
-	Lexer* lex = malloc(sizeof(Lexer));
-
-	lex->pos = 0;
-	lex->length = strlen(source);
-	lex->source = malloc(lex->length + 1);
-	strcpy(lex->source, source);
-	lex->tok.position = 0;
-	lex->tok.type = TOKEN_EOF;
-	lexer_next(lex);
-
-	return lex;
-}
-
-Token lexer_give_token(Lexer* lex)
-{
-	return lex->tok;
-}
-
-// à revoir... same problem then with identifiers in the tokens...
-void print_token(Token tok, const char* source)
-{
-	printf("Token info: '");
-	if (tok.type == TOKEN_NUMBER) {
-		int pos = tok.position; int res = 0;
-		while(pos < strlen(source) && isdigit(source[pos])) {
-			res = 10*res + source[pos] - '0';
-			pos++;
+	if (isdigit(c)) {
+		while (lex->pos < lex->length && isdigit(peek(lex))) {
+			advance(lex);
 		}
-		printf("%d", res);
+		lex->tok.type = TOKEN_NUMBER;
+		lex->tok.position = start;
+		return;
 	}
-	else if (tok.type == TOKEN_BINOP_ADD)
-		printf("+");
-	else if (tok.type == TOKEN_BINOP_SUB)
-		printf("-");
-	else if (tok.type == TOKEN_BINOP_MULT)
-		printf("*");
-	else if (tok.type == TOKEN_BINOP_DIV)
-		printf("/");
-	else if (tok.type == TOKEN_RPAR)
-		printf("(");
-	else if (tok.type == TOKEN_LPAR)
-		printf(")");
-	else if (tok.type == TOKEN_EOF)
-		printf("EOF");
-	
-	printf("' @ pos: %d\n", tok.position);
+
+	advance(lex);
+	switch (c) {
+		case '+':
+			lex->tok.type = TOKEN_BINOP_ADD;
+			break;
+		case '-':
+			lex->tok.type = TOKEN_BINOP_SUB;
+			break;
+		case '*':
+			lex->tok.type = TOKEN_BINOP_MULT;
+			break;
+		case '/':
+			lex->tok.type = TOKEN_BINOP_DIV;
+			break;
+		case '(':
+			lex->tok.type = TOKEN_LPAR;
+			break;
+		case ')':
+			lex->tok.type = TOKEN_RPAR;
+			break;
+		default:
+			fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start);
+			lex->tok.type = TOKEN_EOF;
+			break;
+	}
+	lex->tok.position = start;
 }
 
-void lexer_free(Lexer *lex) 
+// Copy what the token is mached to and puts in buf
+void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 {
-	free(lex->source);
+	int start = tok.position;
+	int end = start;
+
+	if (tok.type == TOKEN_NUMBER) {
+		while (end < lex->length && isdigit(lex->source[end])) {
+			end++;
+		}
+	} else {
+		end = start + 1;
+	}
+
+	int len = end - start;
+	if (len >= bufsize) len = bufsize - 1;
+
+	for (int i = 0; i < len; i++) {
+		buf[i] = lex->source[start + i];
+	}
+	buf[len] = '\0';
+}
+
+int token_number(Lexer* lex, Token tok)
+{
+	char buf[32];
+	token_text(lex, tok, buf, sizeof(buf));
+	return atoi(buf);
+}
+
+// Get token type name for debugging
+const char* token_type_name(TokenType type)
+{
+	switch (type) {
+		case TOKEN_NUMBER: return "NUMBER";
+		case TOKEN_BINOP_ADD: return "ADD";
+		case TOKEN_BINOP_SUB: return "SUB";
+		case TOKEN_BINOP_MULT: return "MULT";
+		case TOKEN_BINOP_DIV: return "DIV";
+		case TOKEN_LPAR: return "LPAR";
+		case TOKEN_RPAR: return "RPAR";
+		case TOKEN_EOF: return "EOF";
+		default: return "UNKNOWN";
+	}
+}
+
+// Pretty print a token :=)
+void token_pprint(Token tok, Lexer* lex) // mabe source file???
+{
+	printf("Token: %-8s at pos %2d", 
+				token_type_name(tok.type), 
+				tok.position);
+	if (tok.type == TOKEN_NUMBER) {
+			printf(" (value: %d)", token_number(lex, tok));
+	}
+	printf("\n");
+}
+
+int main(void)
+{
+	char source[] = "10 + 98";
+	Lexer* lex = lexer_init(source, sizeof(source) - 1);
+
+	printf("Lexing: \"%s\"\n\n", source);
+
+	do {
+		lexer_next(lex);
+		token_pprint(lex->tok, lex);
+	} while (lex->tok.type != TOKEN_EOF);
+
 	free(lex);
-}
-
-int main(int argc, char* argv[])
-{
-    if (argc < 2) {
-        fprintf(stderr, "Usage: %s <expression>\n", argv[0]);
-        return 1;
-    }
-    
-    // Concatenate all arguments into a single string
-    size_t total_len = 0;
-    for (int i = 1; i < argc; i++) {
-        total_len += strlen(argv[i]) + 1; // +1 for space
-    }
-    
-    char* src = malloc(total_len);
-    
-    src[0] = '\0';
-    for (int i = 1; i < argc; i++) {
-        strcat(src, argv[i]);
-        if (i < argc - 1) {
-            strcat(src, " ");
-        }
-    }
-    
-    Lexer* lexer = lexer_create(src);
-    print_token(lexer_give_token(lexer), src);
-    while (lexer_next(lexer)) {
-        print_token(lexer_give_token(lexer), src);
-    }
-    print_token(lexer_give_token(lexer), src);
-    lexer_free(lexer);
-    free(src);
-    
-    return 0;
+	return 0;
 }
