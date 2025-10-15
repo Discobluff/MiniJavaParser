@@ -1,5 +1,8 @@
+CC = gcc
+CFLAGS = -Wall -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O0
+
 build:
-	gcc -Wall -fsanitize=address -fno-omit-frame-pointer -static-libasan -g -O0 lexer/lexer.c -o test
+	$(CC) $(CFLAGS) lexer/lexer.c -o test
 
 run:
 	./test
