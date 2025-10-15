@@ -4,9 +4,10 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "lexer.h"
+#include "id_kw.h"
 
 
-Token id_kw_class (Lexer* lex, int start, char **keywords) {
+Token id_kw_class (Lexer* lex, int start) {
     //this function is called afer having read an alpha
     char c = peek(lex);
     char content[32]; //maximum 31 caractères
@@ -15,27 +16,30 @@ Token id_kw_class (Lexer* lex, int start, char **keywords) {
     while(lex->pos < lex->length) {
 
         if(isalpha(c) || c == '_') {
-            content[index] = c;
+            content[index++] = c;
+            
             advance(lex);
             c = peek(lex);
-            index++;
             continue;
         }
 
         else {
-            content[index] = '\0';
-            tok.position = start;
-
-            if (content == "class") {
-                tok.type = TOKEN_CLASS;
-            }
-            else {
-                tok.type = get_keyword_token(content);
-                }
+            break;
             }
         }
-        return tok;
+    
+    content[index] = '\0';
+    tok.position = start;
+
+    if (strcmp(content, "class") == 0) {
+        tok.type = TOKEN_CLASS;
     }
+    else {
+        tok.type = get_keyword_token(content);
+        }
+    return tok;
+    
+}
     
     
 

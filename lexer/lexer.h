@@ -1,3 +1,6 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 typedef enum {
 	TOKEN_NUMBER,
 
@@ -5,12 +8,35 @@ typedef enum {
 	TOKEN_BINOP_SUB,
 	TOKEN_BINOP_MULT,
 	TOKEN_BINOP_DIV,
+	TOKEN_BINOP_MOD,
+	TOKEN_BINOP_OR,
+	TOKEN_BINOP_AND,
+	TOKEN_BINOP_EQ,
+	TOKEN_BINOP_2EQUAL,
+	TOKEN_BINOP_DIFF,
+
+	TOKEN_BINOP_INF,
+	TOKEN_BINOP_SUP,
+	TOKEN_BINOP_INFEG,
+	TOKEN_BINOP_SUPEG,
 	
 	TOKEN_LPAR,
 	TOKEN_RPAR,
     TOKEN_CLASS,
     TOKEN_KEYWORD,
     TOKEN_ID,
+
+	TOKEN_LACC,
+	TOKEN_RACC,
+
+	TOKEN_PTSVG,
+	TOKEN_VG,
+
+	TOKEN_OPP,
+	TOKEN_PTS,
+
+
+
 	TOKEN_EOF,
 
     TOKEN_BOOLEAN,
@@ -62,18 +88,17 @@ typedef struct {
 } Lexer;
 
 
-const char *keywords[] = {"boolean", "else", "extends", "false", "for", "if",
-"instanceof", "int", "new", "null", "public", "return", "static",
-"this", "true", "void" };
 
 
 
 Lexer* lexer_init(char* src, int len);
-static char peek(Lexer* lex);
-static char advance(Lexer* lex);
-static void skip_whitespace(Lexer* lex);
+char peek(Lexer* lex);
+char advance(Lexer* lex);
+void skip_whitespace(Lexer* lex);
 void lexer_next(Lexer* lex);
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
 const char* token_type_name(TokenType type);
 void token_pprint(Token tok, Lexer* lex);
+
+#endif

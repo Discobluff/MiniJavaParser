@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "lexer.h"
-
+#include "id_kw.h"
 
 
 
@@ -21,7 +21,7 @@ Lexer* lexer_init(char* src, int len)
 }
 
 // Peek at current character without consuming
-static char peek(Lexer* lex)
+ char peek(Lexer* lex)
 {
 	if (lex->pos >= lex->length) {
 		return '\0';
@@ -30,7 +30,7 @@ static char peek(Lexer* lex)
 }
 
 // Consume and return current character
-static char advance(Lexer* lex)
+char advance(Lexer* lex)
 {
 	if (lex->pos >= lex->length) {
 		return '\0';
@@ -39,7 +39,7 @@ static char advance(Lexer* lex)
 }
 
 // Skip whitespace
-static void skip_whitespace(Lexer* lex)
+void skip_whitespace(Lexer* lex)
 {
 	while (lex->pos < lex->length && isspace(peek(lex))) {
 		advance(lex);
@@ -70,6 +70,12 @@ void lexer_next(Lexer* lex)
 		return;
 	}
 
+	if (isalpha(c)) {
+		Token tok = id_kw_class(lex, start);
+		lex->tok = tok;
+		return ;
+	}
+
 	advance(lex);
 	switch (c) {
 		case '+':
@@ -90,6 +96,99 @@ void lexer_next(Lexer* lex)
 		case ')':
 			lex->tok.type = TOKEN_RPAR;
 			break;
+		case '%':
+			lex->tok.type= TOKEN_BINOP_MOD;
+			break;
+		case '{':
+			lex->tok.type= TOKEN_LACC;
+			break;
+		case '}':
+			lex->tok.type= TOKEN_RACC;
+			break;
+		case ';':
+			lex-> tok.type=TOKEN_PTSVG;
+			break;
+		case '.':
+			lex-> tok.type= TOKEN_PTS;
+			break;
+		case ',':
+			lex->tok.type= TOKEN_VG;
+			break;
+		case '!':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_DIFF;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_OPP;
+				break;
+			}
+			break;
+		case '>':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_SUPEG;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_SUP;
+				break;
+			}
+			break;
+		case '<':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_INFEG;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_INF;
+				break;
+			}
+			break;
+		case '=':
+			switch (peek(lex)){
+			case '=':
+				lex->tok.type= TOKEN_BINOP_2EQUAL;
+				advance(lex);
+				break;
+			
+			default:
+				lex->tok.type=TOKEN_BINOP_EQ;
+				break;
+			}
+			break;
+		case '|':
+			switch (peek(lex)){
+			case '|':
+				lex->tok.type= TOKEN_BINOP_OR;
+				advance(lex);
+				break;
+			
+			default:
+				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
+				lex->tok.type = TOKEN_EOF;
+				break;
+			}
+			break;
+		case '&':
+			switch (peek(lex)){
+			case '&':
+				lex->tok.type= TOKEN_BINOP_AND;
+				advance(lex);
+				break;
+			
+			default:
+				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
+				lex->tok.type = TOKEN_EOF;
+				break;
+			}
+			break;
+
 		default:
 			fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start);
 			lex->tok.type = TOKEN_EOF;
@@ -140,6 +239,41 @@ const char* token_type_name(TokenType type)
 		case TOKEN_LPAR: return "LPAR";
 		case TOKEN_RPAR: return "RPAR";
 		case TOKEN_EOF: return "EOF";
+		case TOKEN_BINOP_AND: return "AND";
+		case TOKEN_BINOP_MOD: return "MOD";
+		case TOKEN_BINOP_OR: return "OR";
+		case TOKEN_BINOP_EQ: return "EQ";
+		case TOKEN_BINOP_2EQUAL: return "2EQUAL";
+		case TOKEN_BINOP_DIFF: return "DIFF";
+		case TOKEN_BINOP_INF: return "INF";
+		case TOKEN_BINOP_INFEG: return "INFEG";
+		case TOKEN_BINOP_SUP: return "SUP";
+		case TOKEN_BINOP_SUPEG: return "SUPEG";
+		case TOKEN_LACC: return "LACC";
+		case TOKEN_RACC: return "RACC";
+		case TOKEN_PTS: return "PTS";
+		case TOKEN_PTSVG: return "PTSVG";
+		case TOKEN_VG: return "VG";
+		case TOKEN_OPP: return "OPP";
+
+		case TOKEN_BOOLEAN:    return "BOOLEAN";
+        case TOKEN_ELSE:       return "ELSE";
+        case TOKEN_EXTENDS:    return "EXTENDS";
+        case TOKEN_FALSE:      return "FALSE";
+        case TOKEN_FOR:        return "FOR";
+        case TOKEN_IF:         return "IF";
+        case TOKEN_INSTANCEOF: return "INSTANCEOF";
+        case TOKEN_INT:        return "INT";
+        case TOKEN_NEW:        return "NEW";
+        case TOKEN_NULL:       return "NULL";
+        case TOKEN_PUBLIC:     return "PUBLIC";
+        case TOKEN_RETURN:     return "RETURN";
+        case TOKEN_STATIC:     return "STATIC";
+        case TOKEN_THIS:       return "THIS";
+        case TOKEN_TRUE:       return "TRUE";
+        case TOKEN_VOID:       return "VOID";
+        case TOKEN_ID: return "IDENTIFIER";
+        
 		default: return "UNKNOWN";
 	}
 }
