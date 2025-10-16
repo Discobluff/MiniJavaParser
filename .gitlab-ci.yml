@@ -1,0 +1,20 @@
+variables:
+  BUILD: "false"
+
+default:
+  image: gibson-registry.telecomnancy.univ-lorraine.fr/tptd/2425/devops/cicd-lab/cicd-lab-dartoy9u:latest
+stages:
+  - image-build
+
+build:
+  stage: image-build
+  rules:
+    - if: $BUILD == "true"
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}"
