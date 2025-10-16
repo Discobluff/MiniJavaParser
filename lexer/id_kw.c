@@ -15,7 +15,7 @@ Token id_kw_class (Lexer* lex, int start) {
     Token tok;
     while(lex->pos < lex->length) {
 
-        if(isalpha(c) || c == '_') {
+        if(isalpha(c) || c == '_' || isdigit(c)) {
             content[index++] = c;
             
             advance(lex);
