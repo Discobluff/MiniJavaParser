@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "lexer.h"
 #include "id_kw.h"
-
+#include "string_lex.h"
 
 
 // Initialize a lexer with source code
@@ -61,6 +61,7 @@ void lexer_next(Lexer* lex)
 
 	char c = peek(lex);
 
+	/* -------- On lit un Nombre ---------*/
 	if (isdigit(c)) {
 		while (lex->pos < lex->length && isdigit(peek(lex))) {
 			advance(lex);
@@ -70,12 +71,26 @@ void lexer_next(Lexer* lex)
 		return;
 	}
 
+	/* ---------On lit une lettre --------*/
 	if (isalpha(c)) {
 		Token tok = id_kw_class(lex, start);
 		lex->tok = tok;
 		return ;
 	}
 
+	/* ---------On lit un string ---------*/
+	if (c == '\"') {
+		if (good_string(lex)) {
+			lex->tok.type = TOKEN_STR;
+			lex->tok.position = start;
+		}
+		else {
+			lex->tok.type = TOKEN_EOF; //pour arrêter la fonction main qui lit le code source
+
+		}
+		return ;
+		
+	}
 	advance(lex);
 	switch (c) {
 		case '+':
@@ -256,6 +271,8 @@ const char* token_type_name(TokenType type)
 		case TOKEN_VG: return "VG";
 		case TOKEN_OPP: return "OPP";
 
+		case TOKEN_STR : return "STRING";
+
 		case TOKEN_BOOLEAN:    return "BOOLEAN";
         case TOKEN_ELSE:       return "ELSE";
         case TOKEN_EXTENDS:    return "EXTENDS";
@@ -299,7 +316,7 @@ int main(int argc, char** argv)
 	char* source = argv[1];
 	Lexer* lex = lexer_init(source, strlen(source));
 
-	printf("Lexing: \"%s\"\n\n", source);
+	printf("Lexing: $$%s$$\n\n", source);
 
 	do {
 		lexer_next(lex);

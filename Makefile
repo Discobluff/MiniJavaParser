@@ -11,7 +11,7 @@ run:
 LEXER_DIR = lexer
 
 # Source and object files for the lexer module
-LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c
+LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c
 LEXER_OBJS = $(LEXER_SRCS:.c=.o)
 
 # Default target (build everything)

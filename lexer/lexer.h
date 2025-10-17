@@ -35,7 +35,7 @@ typedef enum {
 	TOKEN_OPP,
 	TOKEN_PTS,
 
-
+	TOKEN_STR,
 
 	TOKEN_EOF,
 
