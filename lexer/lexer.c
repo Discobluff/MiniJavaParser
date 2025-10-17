@@ -289,23 +289,3 @@ void token_pprint(Token tok, Lexer* lex) // mabe source file???
 	}
 	printf("\n");
 }
-
-int main(int argc, char** argv)
-{
-	if (argc < 2) {
-		printf("Usage: %s <source-file>\n", argv[0]);
-		return 1;
-	}
-	char* source = argv[1];
-	Lexer* lex = lexer_init(source, strlen(source));
-
-	printf("Lexing: \"%s\"\n\n", source);
-
-	do {
-		lexer_next(lex);
-		token_pprint(lex->tok, lex);
-	} while (lex->tok.type != TOKEN_EOF);
-
-	free(lex);
-	return 0;
-}
