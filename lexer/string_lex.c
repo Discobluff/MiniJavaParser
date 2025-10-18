@@ -28,7 +28,7 @@ bool good_string(Lexer* lex) {
             advance(lex); 
             c = peek(lex);
             if (strchr("n\\\"r\'0", c) == NULL) {
-                
+
                 //c n'est pas dans [n, \, ", ', 0]
                 char msg[46];
                 sprintf(msg, "Undefined escape character : %c \n", c);
@@ -55,4 +55,31 @@ bool good_string(Lexer* lex) {
 
 
     return false;
+}
+
+bool good_comment(Lexer* lex) {
+    //on vient de lire le * du /*
+    advance(lex);
+        const char *end = strstr(lex->source + lex->pos, "*/");  // Cherche la fin
+
+        if (!end) {
+            char msg[46];
+            sprintf(msg, "End of file before end of comment");
+            error_print(lex, msg);
+            return false;
+        } else {
+
+            lex->pos = (end + 2 - lex->source); // pos arrive juste après le /
+            return true;
+        }
+    
+}
+
+void find_next_newline_or_eof(Lexer *lex) {
+    //lex->pos se trouve juste après le //
+    int i = lex->pos;
+    while (lex->source[++lex->pos] != '\0') {     // Parcourt jusqu'à la fin de la chaîne
+        if (lex->source[lex->pos] == '\n')      // Trouve un saut de ligne ?
+            break;           
+    }
 }

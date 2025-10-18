@@ -36,6 +36,7 @@ typedef enum {
 	TOKEN_PTS,
 
 	TOKEN_STR,
+	TOKEN_COMMENT,
 
 	TOKEN_EOF,
 

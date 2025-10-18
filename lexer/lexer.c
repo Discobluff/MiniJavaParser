@@ -86,7 +86,7 @@ void lexer_next(Lexer* lex)
 			lex->tok.position = start;
 		}
 		else {
-			lex->tok.type = TOKEN_EOF; //pour arrêter la fonction main qui lit le code source
+			exit(0); //pour arrêter la fonction main qui lit le code source
 
 		}
 		return ;
@@ -102,9 +102,6 @@ void lexer_next(Lexer* lex)
 			break;
 		case '*':
 			lex->tok.type = TOKEN_BINOP_MULT;
-			break;
-		case '/':
-			lex->tok.type = TOKEN_BINOP_DIV;
 			break;
 		case '(':
 			lex->tok.type = TOKEN_LPAR;
@@ -206,6 +203,28 @@ void lexer_next(Lexer* lex)
 				sprintf(msg, "Unexepected character '%c'. Did you mean && ?", c);
 				error_print(lex, msg);
 
+				exit(0);
+			}
+			}
+			break;
+		case '/' :
+
+			switch(peek(lex)) {
+			case '/' :
+				find_next_newline_or_eof(lex);
+				lex->tok.type = TOKEN_COMMENT;
+				break ;
+			
+			case '*' : 
+				if (good_comment(lex)) {
+					lex->tok.type = TOKEN_COMMENT;
+					break;
+				}
+				else {
+					exit(0);
+				}
+			default : {
+				lex->tok.type = TOKEN_BINOP_DIV;
 				exit(0);
 			}
 			}
