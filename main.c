@@ -1,4 +1,5 @@
 #include "lexer/lexer.h"
+#include "error/print_error.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -37,11 +38,11 @@ int main(int argc, char** argv)
     
     // Initialize lexer with file contents
     Lexer* lex = lexer_init(source, bytes_read);
-    printf("Lexing file: \"%s\"\n\n", filename);
+    // printf("Lexing file: \"%s\"\n\n", filename);
     
     do {
         lexer_next(lex);
-        token_pprint(lex->tok, lex);
+        // error_under_token(source, lex->tok, "err test");
     } while (lex->tok.type != TOKEN_EOF);
     
     free(source);

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include "lexer.h"
 #include "id_kw.h"
-
+#include "error/print_error.h"
 
 
 // Initialize a lexer with source code
@@ -169,10 +169,13 @@ void lexer_next(Lexer* lex)
 				advance(lex);
 				break;
 			
-			default:
-				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
-				lex->tok.type = TOKEN_EOF;
-				break;
+			default: {
+				char msg[27];
+				sprintf(msg, "Unexepected character '%c'", c);
+				error_print(lex, msg);
+
+				exit(0);
+			}
 			}
 			break;
 		case '&':
@@ -182,22 +185,28 @@ void lexer_next(Lexer* lex)
 				advance(lex);
 				break;
 			
-			default:
-				fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start+1);
-				lex->tok.type = TOKEN_EOF;
-				break;
+			default: {
+				char msg[27];
+				sprintf(msg, "Unexepected character '%c'", c);
+				error_print(lex, msg);
+
+				exit(0);
+			}
 			}
 			break;
 
-		default:
-			fprintf(stderr, "Unexpected character '%c' at position %d\n", c, start);
-			lex->tok.type = TOKEN_EOF;
-			break;
+		default: {
+			char msg[27];
+			sprintf(msg, "Unexepected character '%c'", c);
+			error_print(lex, msg);
+
+			exit(0);
+		}
 	}
 	lex->tok.position = start;
 }
 
-// Copy what the token is mached to and puts in buf
+// Copy what the token is mached to and puts in buf (should only be used for identifiers and numbers)
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 {
 	int start = tok.position;
@@ -207,7 +216,12 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 		while (end < lex->length && isdigit(lex->source[end])) {
 			end++;
 		}
-	} else {
+	} else if (tok.type == TOKEN_NUMBER) {
+		while (end < lex->length && isalnum(lex->source[end])) {
+			end++;
+		}
+	}
+	else {
 		end = start + 1;
 	}
 
@@ -274,14 +288,14 @@ const char* token_type_name(TokenType type)
         case TOKEN_VOID:       return "VOID";
         case TOKEN_ID: return "IDENTIFIER";
         
-		default: return "UNKNOWN";
+		default: return "UNKNOWN"; // shouldn't ever be used...
 	}
 }
 
 // Pretty print a token :=)
 void token_pprint(Token tok, Lexer* lex) // mabe source file???
 {
-	printf("Token: %-8s at pos %2d", 
+	printf("Token: %-10s at pos %2d", 
 				token_type_name(tok.type), 
 				tok.position);
 	if (tok.type == TOKEN_NUMBER) {
