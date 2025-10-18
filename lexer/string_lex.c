@@ -5,9 +5,13 @@
 #include <stdio.h>
 #include "lexer.h"
 #include "string_lex.h"
+#include "../error/print_error.h"
+
 
 bool good_string(Lexer* lex) {
     //on vient de lire " dans le lexeur
+
+
     advance(lex);
     char c; 
 
@@ -15,15 +19,20 @@ bool good_string(Lexer* lex) {
         c = peek(lex);
         if (c == '\\') {
             if (lex->pos == lex->length - 1) {
-                printf("Syntax error : end of file before end of string at pos %d\n", lex->pos);
+                char msg[46];
+                sprintf(msg, "End of file before end of string");
+                error_print(lex, msg);
                 return false;
             }
 
             advance(lex); 
             c = peek(lex);
             if (strchr("n\\\"r\'0", c) == NULL) {
-                //c n'est aucun de ces caractères
-                printf("Syntax error : undefined escape character : %c \n", c);
+                
+                //c n'est pas dans [n, \, ", ', 0]
+                char msg[46];
+                sprintf(msg, "Undefined escape character : %c \n", c);
+                error_print(lex, msg);
                 return false;
             }
             
@@ -39,7 +48,11 @@ bool good_string(Lexer* lex) {
 
 
     }
-    printf("Syntax Error : end of file before end of string pos %d\n", lex->pos);
+    char msg[46];
+    sprintf(msg, "End of file before end of string");
+    error_print(lex, msg);
     lex->tok.position = lex->pos;
+
+
     return false;
 }
