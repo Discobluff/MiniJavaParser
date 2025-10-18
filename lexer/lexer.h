@@ -90,7 +90,6 @@ typedef struct {
 
 
 
-
 Lexer* lexer_init(char* src, int len);
 char peek(Lexer* lex);
 char advance(Lexer* lex);
@@ -100,5 +99,6 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
 const char* token_type_name(TokenType type);
 void token_pprint(Token tok, Lexer* lex);
+void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 
 #endif
