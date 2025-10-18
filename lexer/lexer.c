@@ -171,7 +171,7 @@ void lexer_next(Lexer* lex)
 			
 			default: {
 				char msg[27];
-				sprintf(msg, "Unexepected character '%c'", c);
+				sprintf(msg, "Unexepected character '%c'. Did you mean || ?", c);
 				error_print(lex, msg);
 
 				exit(0);
@@ -187,7 +187,7 @@ void lexer_next(Lexer* lex)
 			
 			default: {
 				char msg[27];
-				sprintf(msg, "Unexepected character '%c'", c);
+				sprintf(msg, "Unexepected character '%c'. Did you mean && ?", c);
 				error_print(lex, msg);
 
 				exit(0);
