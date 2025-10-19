@@ -5,6 +5,8 @@ default:
   image: gibson-registry.telecomnancy.univ-lorraine.fr/tptd/2425/devops/cicd-lab/cicd-lab-dartoy9u:latest
 stages:
   - image-build
+  - compilation
+  - test
 
 build:
   stage: image-build
@@ -18,3 +20,21 @@ build:
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
       --destination "${CI_REGISTRY_IMAGE}"
+
+compile:  
+  stage: compilation
+  rules:
+    - if: $BUILD == "false"  
+  script:
+    - make all
+  artifacts:
+    paths:
+      - lexer_test
+
+positive_tests_lexer:
+  allow_failure: false
+  rules:
+    - if: $BUILD == "false"
+  stage: test  
+  script:
+    - for file in tests/success/*; do ./lexer_test "$file"; done

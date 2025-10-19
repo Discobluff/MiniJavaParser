@@ -5,3 +5,5 @@
 !*.h
 !Makefile
 !.*
+!*.java
+testsX

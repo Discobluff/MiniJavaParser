@@ -184,10 +184,10 @@ void lexer_next(Lexer* lex)
 			
 			default: {
 				char msg[46];
-				sprintf(msg, "Unexepected character '%c'. Did you mean || ?", c);
+				sprintf(msg, "Unexpected character '%c'. Did you mean || ?", c);
 				error_print(lex, msg);
 
-				exit(0);
+				exit(1);
 			}
 			}
 			break;
@@ -200,10 +200,10 @@ void lexer_next(Lexer* lex)
 			
 			default: {
 				char msg[46];
-				sprintf(msg, "Unexepected character '%c'. Did you mean && ?", c);
+				sprintf(msg, "Unexpected character '%c'. Did you mean && ?", c);
 				error_print(lex, msg);
 
-				exit(0);
+				exit(1);
 			}
 			}
 			break;
@@ -232,10 +232,10 @@ void lexer_next(Lexer* lex)
 
 		default: {
 			char msg[27];
-			sprintf(msg, "Unexepected character '%c'", c);
+			sprintf(msg, "Unexpected character '%c'", c);
 			error_print(lex, msg);
 
-			exit(0);
+			exit(1);
 		}
 	}
 	lex->tok.position = start;
