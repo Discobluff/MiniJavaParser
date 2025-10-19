@@ -2,7 +2,7 @@ variables:
   BUILD: "false"
 
 default:
-  image: gibson-registry.telecomnancy.univ-lorraine.fr/projets/2526/PCL/projet/FISE-groupe-10:latest
+  image: gibson-registry.telecomnancy.univ-lorraine.fr/projets/2526/pcl/projet/fise-groupe-10:latest
 stages:
   - image-build
   - compilation
