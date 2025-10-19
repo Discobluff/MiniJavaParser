@@ -2,7 +2,7 @@ variables:
   BUILD: "false"
 
 default:
-  image: gibson-registry.telecomnancy.univ-lorraine.fr/tptd/2425/devops/cicd-lab/cicd-lab-dartoy9u:latest
+  image: gibson-registry.telecomnancy.univ-lorraine.fr/projets/2526/PCL/projet/FISE-groupe-10:latest
 stages:
   - image-build
   - compilation
