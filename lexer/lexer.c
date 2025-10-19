@@ -208,7 +208,6 @@ void lexer_next(Lexer* lex)
 			}
 			break;
 		case '/' :
-
 			switch(peek(lex)) {
 			case '/' :
 				find_next_newline_or_eof(lex);
@@ -225,7 +224,7 @@ void lexer_next(Lexer* lex)
 				}
 			default : {
 				lex->tok.type = TOKEN_BINOP_DIV;
-				exit(0);
+				break;
 			}
 			}
 			break;
