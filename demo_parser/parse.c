@@ -5,7 +5,6 @@
 #include "backend_parser.h"
 
 
-
 bool should_reduce(Rule rule, Token lookahead)
 {
 	switch (rule) {
@@ -35,13 +34,11 @@ bool should_reduce(Rule rule, Token lookahead)
 		case ADD:
 		case MULT:
 		case UNARY:
+		case C_O_P:
 		case POSTFIX_EXPR:
 		case PRIMARY:
 			return false;
-		
-		case C_O_P:
-			return true;
-
+			
 		default:
 			return false;
 	}
@@ -300,7 +297,6 @@ AST* reduce_rule(Rule rule, ASTStack* ast_stk)
 		}
 		
 		case UNARY: {
-			printf("unitary here\n");
 			if (ast_stk->top >= 2) {
 				AST* operand = ast_stack_pop(ast_stk);
 				AST* top = ast_stack_peek(ast_stk);
@@ -318,26 +314,7 @@ AST* reduce_rule(Rule rule, ASTStack* ast_stk)
 			return NULL;
 		}
 		
-		case C_O_P: {
-			if (ast_stk->top > 0) {
-				AST* operand = ast_stack_pop(ast_stk);
-				
-				while (ast_stk->top > 0) {
-					AST* top = ast_stack_peek(ast_stk);
-					
-					if (top && top->type == UNARY_OP && top->data.unary.operand == NULL) {
-						AST* op = ast_stack_pop(ast_stk);
-						op->data.unary.operand = operand;
-						operand = op;
-					} else {
-						break;
-					}
-				}
-				
-				return operand;
-			}
-			return NULL;
-		}
+		case C_O_P:
 		case POSTFIX_EXPR:
 		case PRIMARY:
 			if (ast_stk->top > 0) {

@@ -46,18 +46,19 @@ void print_parser(Stack* stk)
 
 ASTStack* ast_stack_init()
 {
-	ASTStack* astk = malloc(sizeof(ASTStack));
-	astk->top = 0;
-	return astk;
+    ASTStack* stk = malloc(sizeof(ASTStack));
+    stk->top = 0;
+    return stk;
 }
 
-void ast_stack_push(ASTStack* stk, AST* value)
+void ast_stack_push(ASTStack* stk, AST* node)
 {
-	if(stk->top < PARSER_STACK_SIZE) {
-		stk->items[stk->top] = value;
+	if (node == NULL) return;
+
+	if (stk->top < PARSER_STACK_SIZE) {
+		stk->items[stk->top] = node;
 		stk->top++;
-	}
-	else {
+	} else {
 		parser_error("PARSER INTERNAL AST STACK OVERFLOW!");
 		exit(1);
 	}
@@ -65,12 +66,9 @@ void ast_stack_push(ASTStack* stk, AST* value)
 
 AST* ast_stack_pop(ASTStack* stk)
 {
-	if(stk->top > 0)
+	if (stk->top > 0)
 		return stk->items[--stk->top];
-	else {
-		parser_error("PARSER INTERNAL AST STACK UNDERFLOW!");
-		exit(1);
-	}
+	return NULL;
 }
 
 AST* ast_stack_peek(ASTStack* stk)

@@ -49,7 +49,7 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 
 # Run the program with a test file
 test: lexer_test
-	./lexer_test test.java
+	./lexer_test arith.test
 
 # Clean build artifacts
 clean:
