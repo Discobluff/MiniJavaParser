@@ -1,5 +1,7 @@
 #include "lexer/lexer.h"
 #include "error/print_error.h"
+#include "demo_parser/parse.h"
+#include "ast/ast.h"
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -39,13 +41,23 @@ int main(int argc, char** argv)
     
     // Initialize lexer with file contents
     Lexer* lex = lexer_init(source, bytes_read);
-    // printf("Lexing file: \"%s\"\n\n", filename);
+    printf("Lexing file: \"%s\"\n\n", filename);
     
     do {
         lexer_next(lex);
-        // error_under_token(source, lex->tok, "err test");
+        token_pprint(lex->tok, lex);
     } while (lex->tok.type != TOKEN_EOF);
     
+
+    // lex = lexer_init(source, bytes_read);
+
+    // lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
+    // AST* ast = parse_main(lex);
+
+    // print_ast(ast, 0);
+    
+    // free_ast(ast);
+
     free(source);
     free(lex);
     return 0;

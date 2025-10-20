@@ -1,4 +1,5 @@
 #include "lexer/lexer.h"
+#include "demo_parser/parse.h"	// TODO: change when implementation change
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -99,4 +100,9 @@ void error_under_token(char* src, Token tok, const char* message)
 	for(int i=1; i<token_size; i++)
 		fprintf(stderr, "~");
 	fprintf(stderr, "\x1B[0m\n\n");
+}
+
+void parser_error(const char* message)
+{
+	fprintf(stderr, "\x1B[31m%s\x1B[0m\n", message);
 }
