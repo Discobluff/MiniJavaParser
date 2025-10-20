@@ -1,8 +1,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "lexer/lexer.h"
-#include "ast/ast.h"
+#include "backend_parser.h"
 
 /**
  * implémentation pour la sous-grammaire:
@@ -32,40 +31,6 @@
 
 	(renommée à partir de celle d'Hugo (celle qui est partagée dans le drive))
  */
-
-#define PARSER_STACK_SIZE 256
-
-typedef enum {
-	ADD,
-	ADD_SUITE,
-	MULT,
-	MULT_SUITE,
-	UNARY,
-	C_O_P,
-	POSTFIX_EXPR,
-	POSTFIX_TAIL,
-	PRIMARY
-} Rule;
-
-// Node in the parser stack: either a rule (non-terminal) or token (terminal)
-typedef struct {
-	enum {RULE, TOKEN} type;
-	union {
-		Token token;
-		Rule rule;
-	};
-} NUT;
-
-typedef struct {
-	NUT items[PARSER_STACK_SIZE];
-	int top;
-} Stack;
-
-typedef struct {
-	AST* items[PARSER_STACK_SIZE];
-    int top;
-} ASTStack;
-
 AST* parse_main(Lexer* lex);
 
 #endif
