@@ -118,6 +118,12 @@ void lexer_next(Lexer* lex)
 		case '}':
 			lex->tok.type= TOKEN_RACC;
 			break;
+		case '[':
+			lex->tok.type = TOKEN_LCRO;
+			break;
+		case ']':
+			lex->tok.type = TOKEN_RCRO;
+			break;
 		case ';':
 			lex-> tok.type=TOKEN_PTSVG;
 			break;
@@ -299,6 +305,8 @@ const char* token_type_name(TokenType type)
 		case TOKEN_BINOP_SUPEG: return "SUPEG";
 		case TOKEN_LACC: return "LACC";
 		case TOKEN_RACC: return "RACC";
+		case TOKEN_LCRO: return "LCRO";
+		case TOKEN_RCRO: return "RCRO";
 		case TOKEN_PTS: return "PTS";
 		case TOKEN_PTSVG: return "PTSVG";
 		case TOKEN_VG: return "VG";

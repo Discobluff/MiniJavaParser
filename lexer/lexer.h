@@ -28,6 +28,8 @@ typedef enum {
 
 	TOKEN_LACC,
 	TOKEN_RACC,
+	TOKEN_LCRO,
+	TOKEN_RCRO,
 
 	TOKEN_PTSVG,
 	TOKEN_VG,
