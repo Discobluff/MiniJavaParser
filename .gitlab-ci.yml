@@ -37,15 +37,11 @@ positive_tests_lexer:
     - if: $BUILD == "false"
   stage: test  
   script:
-    - for file in tests/success/*; do ./lexer_test "$file"; done
+    - make successTests
 
 negative_tests_lexer:
   rules:
     - if: $BUILD == "false"
   stage: test  
   script:
-    - for file in tests/fail/*; do 
-      if ./lexer_test "$file"; then 
-        exit 1; 
-      fi; 
-      done
+    - make failTests
