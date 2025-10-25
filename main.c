@@ -41,22 +41,22 @@ int main(int argc, char** argv)
     
     // Initialize lexer with file contents
     Lexer* lex = lexer_init(source, bytes_read);
-    // printf("Lexing file: \"%s\"\n\n", filename);
-    
-    // do {
-    //     lexer_next(lex);
-    //     token_pprint(lex->tok, lex);
-    // } while (lex->tok.type != TOKEN_EOF);
+    printf("Lexing file: \"%s\"\n\n", filename);
+
+    do {
+        lexer_next(lex);
+        token_pprint(lex->tok, lex);
+    } while (lex->tok.type != TOKEN_EOF);
     
 
-    // lex = lexer_init(source, bytes_read);
+    lex = lexer_init(source, bytes_read);
 
-    lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
-    AST* ast = parse_refonte_main(lex);
+    // lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
+    // AST* ast = parse_refonte_main(lex);
 
-    print_ast(ast, 0);
+    // print_ast(ast, 0);
     
-    free_ast(ast);
+    // free_ast(ast);
 
     free(source);
     free(lex);

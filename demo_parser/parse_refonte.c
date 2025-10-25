@@ -29,7 +29,7 @@ static const size_t REDUCTION_TABLE[] =
 	[ADD_SUITE] 	= FOLLOW_ALL & ~FOLLOW_ADDOP,	// Reduce unless we see + or -
 	[MULT_SUITE] 	= FOLLOW_ALL & ~FOLLOW_MULTOP,	// Reduce unless we see * / %
 	[POSTFIX_TAIL] 	= FOLLOW_ALL,					// Always reduce
-	[UNARY] 		= FOLLOW_ALL & ~FOLLOW_UNOP,
+	[UNARY] 		= FOLLOW_NONE,					// Never reduce on lookahead
 	[C_O_P] 		= FOLLOW_NONE,
 	[POSTFIX_EXPR] 	= FOLLOW_NONE,
 	[PRIMARY] 		= FOLLOW_NONE,
@@ -39,30 +39,30 @@ static const size_t REDUCTION_TABLE[] =
 
 static size_t classify_token(TokenType type)
 {
-    switch (type) {
-        case TOKEN_BINOP_ADD:
-        case TOKEN_BINOP_SUB:
-            return FOLLOW_ADDOP;
-        
-        case TOKEN_BINOP_MULT:
-        case TOKEN_BINOP_DIV:
-        case TOKEN_BINOP_MOD:
-            return FOLLOW_MULTOP;
-        
-        case TOKEN_EOF:
-            return FOLLOW_EOF;
+	switch (type) {
+		case TOKEN_BINOP_ADD:
+		case TOKEN_BINOP_SUB:
+			return FOLLOW_ADDOP;
+		
+		case TOKEN_BINOP_MULT:
+		case TOKEN_BINOP_DIV:
+		case TOKEN_BINOP_MOD:
+			return FOLLOW_MULTOP;
+		
+		case TOKEN_EOF:
+			return FOLLOW_EOF;
 
 		case TOKEN_OPP:
 			return FOLLOW_UNOP;
 
-        default:
-            return FOLLOW_NONE;
-    }
+		default:
+			return FOLLOW_NONE;
+	}
 }
 
 static bool should_reduce(Rule rule, Token lookahead)
 {
-    size_t lookahead_class = classify_token(lookahead.type);
+	size_t lookahead_class = classify_token(lookahead.type);
 	return (REDUCTION_TABLE[rule] & lookahead_class) != 0;
 }
 
@@ -282,7 +282,7 @@ static void reduce_binary(ASTStack* ast_stk, const char* rule_name)
 	return ;
 }
 
-static void reduce_unary(ASTStack* ast_stk, const char* rule_name)
+static void reduce_unary(ASTStack* ast_stk)
 {
 	if (ast_stk->top < 1)
 		return ;
@@ -330,16 +330,16 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 			break ;
 			
 		case UNARY:
-			reduce_unary(ast_stk, token_type_name(rule));
 			break ;
 			
+		case POSTFIX_EXPR: 
 		case C_O_P:
-		case POSTFIX_EXPR:
 		case PRIMARY:
 			// ast_stack_pop(ast_stk);
-			break;
-			
+		break;
+		
 		case POSTFIX_TAIL:
+			reduce_unary(ast_stk);
 			break;
 			
 		case ADD:
@@ -372,8 +372,8 @@ AST* parse_refonte_main(Lexer* lex)
 						// stack_push(stk, curr); 
 						// printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
 						// curr = stack_pop(stk);
+						reduce_rule(curr.rule, astk);
 					// debug remove
-					reduce_rule(curr.rule, astk);
 						// printf("produced stack\n"); print_ast_parser(astk); printf("\n");
 				} else {
 					int consume = rule_handler(stk, curr.rule, lex);
