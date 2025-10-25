@@ -218,7 +218,7 @@ static int rule_handler(Stack* stk, Rule rule, Lexer* lex)
 // Uses a token from the semantic stack (not from the lexer) they could be different (cf unary_op)
 static AST* create_token_ast(Token token, Lexer* lex)
 {
-	printf("Creating AST for token type: %d\n", token.type);
+	// printf("Creating AST for token type: %d\n", token.type);
 
 	switch (token.type) {
 		case TOKEN_NUMBER:
@@ -312,13 +312,13 @@ static void reduce_unary(ASTStack* ast_stk, const char* rule_name)
 static void reduce_rule(Rule rule, ASTStack* ast_stk)
 {
 	const RuleSpec* spec = &RULE_SPECS[rule];
-	printf("reducing %s\n", spec->name); // print_ast_parser(ast_stk); printf("\n");
+	// printf("reducing %s\n", spec->name); // print_ast_parser(ast_stk); printf("\n");
 
-	// if (ast_stk->top < spec->min_ast_nodes) {
-	// 	parser_error("Cannot reduce %s: need %zu AST nodes, have %zu",
-	// 				spec->name, spec->min_ast_nodes, ast_stk->top);
-	// 	return ;
-	// }
+	if (ast_stk->top < spec->min_ast_nodes) {
+		// parser_error("Cannot reduce %s: need %zu AST nodes, have %zu",
+		// 			spec->name, spec->min_ast_nodes, ast_stk->top);
+		return ;
+	}
 
 	switch (rule) {
 		case ADD_SUITE:
@@ -362,7 +362,7 @@ AST* parse_refonte_main(Lexer* lex)
 	stack_push(stk, (NUT){.type = RULE, .rule = ADD});
 
 	while (stk->top > 0) {
-		printf("==================== NEW ITERATION ===================\n"); print_parser(stk); printf("\n");
+		// printf("==================== NEW ITERATION ===================\n"); print_parser(stk); printf("\n");
 		NUT curr = stack_pop(stk);
 
 		switch (curr.type) {
@@ -370,11 +370,11 @@ AST* parse_refonte_main(Lexer* lex)
 				if (should_reduce(curr.rule, lex->tok)) {
 					// debug remove
 						// stack_push(stk, curr); 
-						printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
+						// printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
 						// curr = stack_pop(stk);
 					// debug remove
 					reduce_rule(curr.rule, astk);
-						printf("produced stack\n"); print_ast_parser(astk); printf("\n");
+						// printf("produced stack\n"); print_ast_parser(astk); printf("\n");
 				} else {
 					int consume = rule_handler(stk, curr.rule, lex);
 					for(int i=0; i<consume; i++)
