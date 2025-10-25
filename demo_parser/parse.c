@@ -140,7 +140,7 @@ bool rule_handler(Stack* stk, Rule rule, Lexer* lex)
 			case TOKEN_BINOP_ADD:
 			case TOKEN_OPP:
 				stack_push(stk, (NUT){.rule = UNARY, .type = RULE});
-				stack_push(stk, (NUT){.token = tmpchange(lex->tok), .type = TOKEN}); // will not work for sub bc of conflict with '-' (unary)
+				stack_push(stk, (NUT){.token = tmpchange(lex->tok), .type = TOKEN});
 				move_lexer = true;
 				break;
 			case NUMBER:
@@ -348,7 +348,6 @@ AST* parse_main(Lexer* lex)
 	while (stk->top > 0) {
 		
 		NUT curr = stack_pop(stk);
-		
 		switch (curr.type) {
 			case RULE:
 				if (should_reduce(curr.rule, lex->tok)) {
@@ -368,5 +367,7 @@ AST* parse_main(Lexer* lex)
 		}
 	}
 	print_ast_parser(astk);
+
+	free(stk); free(astk);
 	return ast_stack_pop(astk); 
 }

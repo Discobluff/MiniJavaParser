@@ -1,6 +1,6 @@
 #include "lexer/lexer.h"
 #include "error/print_error.h"
-#include "demo_parser/parse.h"
+#include "demo_parser/parse_refonte.h"
 #include "ast/ast.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     // lex = lexer_init(source, bytes_read);
 
     lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
-    AST* ast = parse_main(lex);
+    AST* ast = parse_refonte_main(lex);
 
     print_ast(ast, 0);
     

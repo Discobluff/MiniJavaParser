@@ -59,6 +59,8 @@ typedef enum {
     TOKEN_TRUE,
     TOKEN_VOID,
 
+	TOKEN_UNOP_ADD,
+	TOKEN_UNOP_SUB,
 } TokenType;
 
 
