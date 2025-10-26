@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "backend_parser.h"
-#include "parse_refonte.h"
+#include "parse.h"
 
 
 static const RuleSpec RULE_SPECS[] =
@@ -33,7 +33,7 @@ static const size_t REDUCTION_TABLE[] =
 	[C_O_P] 		= FOLLOW_NONE,
 	[POSTFIX_EXPR] 	= FOLLOW_NONE,
 	[PRIMARY] 		= FOLLOW_NONE,
-	[MULT] 			= FOLLOW_ALL & ~FOLLOW_MULTOP & ~FOLLOW_ADDOP,
+	[MULT] 			= FOLLOW_ALL & ~FOLLOW_MULTOP & ~FOLLOW_ADDOP & ~FOLLOW_UNOP,
 };
 
 
@@ -107,7 +107,7 @@ static Expansion expand_rule(Rule rule, Token lookahead)
 
 	switch (rule) {
 		case ADD:
-			if (is_primary_token(lookahead.type) || is_binary_prefix(lookahead.type)) {
+			if (is_primary_token(lookahead.type) || is_binary_prefix(lookahead.type) || lookahead.type == TOKEN_OPP) {
 				exp.items[0] = (NUT){.rule = ADD_SUITE, .type = RULE};
 				exp.items[1] = (NUT){.rule = MULT, .type = RULE};
 				exp.count = 2;
@@ -126,7 +126,7 @@ static Expansion expand_rule(Rule rule, Token lookahead)
 			break;
 			
 		case MULT:
-			if (is_binary_prefix(lookahead.type) || is_primary_token(lookahead.type)) {
+			if (is_binary_prefix(lookahead.type) || is_primary_token(lookahead.type) || lookahead.type == TOKEN_OPP) {
 				exp.items[0] = (NUT){.rule = MULT_SUITE, .type = RULE};
 				exp.items[1] = (NUT){.rule = UNARY, .type = RULE};
 				exp.count = 2;
@@ -353,7 +353,7 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 	}
 }
 
-AST* parse_refonte_main(Lexer* lex)
+AST* parse_main(Lexer* lex)
 {
 	Stack* stk = stack_init();
 	ASTStack* astk = ast_stack_init();
@@ -362,7 +362,7 @@ AST* parse_refonte_main(Lexer* lex)
 	stack_push(stk, (NUT){.type = RULE, .rule = ADD});
 
 	while (stk->top > 0) {
-		// printf("==================== NEW ITERATION ===================\n"); print_parser(stk); printf("\n");
+		// printf("==================== NEW ITERATION ===================\n"); print_parser(stk); printf("\n"); token_pprint(lex->tok, lex); printf("\n");
 		NUT curr = stack_pop(stk);
 
 		switch (curr.type) {
@@ -372,7 +372,7 @@ AST* parse_refonte_main(Lexer* lex)
 						// stack_push(stk, curr); 
 						// printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
 						// curr = stack_pop(stk);
-						reduce_rule(curr.rule, astk);
+					reduce_rule(curr.rule, astk);
 					// debug remove
 						// printf("produced stack\n"); print_ast_parser(astk); printf("\n");
 				} else {

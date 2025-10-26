@@ -1,6 +1,6 @@
 #include "lexer/lexer.h"
 #include "error/print_error.h"
-#include "demo_parser/parse_refonte.h"
+#include "parser/parse.h"
 #include "ast/ast.h"
 #include <stdlib.h>
 #include <stdio.h>

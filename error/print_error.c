@@ -1,5 +1,5 @@
 #include "lexer/lexer.h"
-#include "demo_parser/parse.h"	// TODO: change when implementation change
+#include "parser/parse.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

@@ -12,7 +12,7 @@ TEST_DIR = test_parser
 
 # Source files
 PARSER_SRCS = $(PARSER_DIR)/backend_parser.c \
-              $(PARSER_DIR)/parse_refonte.c \
+              $(PARSER_DIR)/parse.c \
 
 AST_SRCS = $(AST_DIR)/ast.c
 
@@ -32,23 +32,23 @@ ALL_OBJS = $(PARSER_OBJS) $(AST_OBJS) $(ERROR_OBJS) $(LEXER_OBJS)
 
 # Test files
 TEST_BACKEND_SRC = $(TEST_DIR)/test_backend_parser.c
-TEST_REFONTE_SRC = $(TEST_DIR)/test_parse.c
+TEST_SRC = $(TEST_DIR)/test_parse.c
 
 TEST_BACKEND_OBJ = $(TEST_BACKEND_SRC:.c=.o)
-TEST_REFONTE_OBJ = $(TEST_REFONTE_SRC:.c=.o)
+TEST_OBJ = $(TEST_SRC:.c=.o)
 
 TEST_BACKEND_EXEC = $(TEST_DIR)/test_backend_parser
-TEST_REFONTE_EXEC = $(TEST_DIR)/test_parse_refonte
+TEST_EXEC = $(TEST_DIR)/test_parse
 
 # Default target
-all: $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
+all: $(TEST_BACKEND_EXEC) $(TEST_EXEC)
 
 # Build backend test executable
 $(TEST_BACKEND_EXEC): $(ALL_OBJS) $(TEST_BACKEND_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Build refonte test executable
-$(TEST_REFONTE_EXEC): $(ALL_OBJS) $(TEST_REFONTE_OBJ)
+$(TEST_EXEC): $(ALL_OBJS) $(TEST_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compile object files
@@ -56,7 +56,7 @@ $(TEST_REFONTE_EXEC): $(ALL_OBJS) $(TEST_REFONTE_OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run all tests
-test: $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
+test: $(TEST_BACKEND_EXEC) $(TEST_EXEC)
 	@echo "\n=========================================="
 	@echo "Running Backend Parser Tests"
 	@echo "==========================================\n"
@@ -64,7 +64,7 @@ test: $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
 	@echo "\n=========================================="
 	@echo "Running Parse Refonte Tests"
 	@echo "==========================================\n"
-	./$(TEST_REFONTE_EXEC)
+	./$(TEST_EXEC)
 
 # Run individual tests (compile if needed)
 test-backend: $(TEST_BACKEND_EXEC)
@@ -73,14 +73,14 @@ test-backend: $(TEST_BACKEND_EXEC)
 	@echo "==========================================\n"
 	./$(TEST_BACKEND_EXEC)
 
-test-refonte: $(TEST_REFONTE_EXEC)
+test-refonte: $(TEST_EXEC)
 	@echo "\n=========================================="
 	@echo "Running Parse Refonte Tests"
 	@echo "==========================================\n"
-	./$(TEST_REFONTE_EXEC)
+	./$(TEST_EXEC)
 
 # Run tests with valgrind for memory leak detection
-memcheck: $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
+memcheck: $(TEST_BACKEND_EXEC) $(TEST_EXEC)
 	@echo "\n=========================================="
 	@echo "Memory Check: Backend Parser Tests"
 	@echo "==========================================\n"
@@ -88,19 +88,19 @@ memcheck: $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
 	@echo "\n=========================================="
 	@echo "Memory Check: Parse Refonte Tests"
 	@echo "==========================================\n"
-	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_REFONTE_EXEC)
+	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_EXEC)
 
 # Individual memory checks
 memcheck-backend: $(TEST_BACKEND_EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_BACKEND_EXEC)
 
-memcheck-refonte: $(TEST_REFONTE_EXEC)
-	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_REFONTE_EXEC)
+memcheck-refonte: $(TEST_EXEC)
+	valgrind --leak-check=full --show-leak-kinds=all ./$(TEST_EXEC)
 
 # Clean build artifacts
 clean:
-	rm -f $(ALL_OBJS) $(TEST_BACKEND_OBJ) $(TEST_REFONTE_OBJ)
-	rm -f $(TEST_BACKEND_EXEC) $(TEST_REFONTE_EXEC)
+	rm -f $(ALL_OBJS) $(TEST_BACKEND_OBJ) $(TEST_OBJ)
+	rm -f $(TEST_BACKEND_EXEC) $(TEST_EXEC)
 	rm -f $(PARSER_DIR)/*.o
 	rm -f $(AST_DIR)/*.o
 	rm -f $(ERROR_DIR)/*.o
@@ -118,7 +118,7 @@ show:
 	@echo "LEXER_SRCS: $(LEXER_SRCS)"
 	@echo "ALL_OBJS: $(ALL_OBJS)"
 	@echo "TEST_BACKEND_EXEC: $(TEST_BACKEND_EXEC)"
-	@echo "TEST_REFONTE_EXEC: $(TEST_REFONTE_EXEC)"
+	@echo "TEST_EXEC: $(TEST_EXEC)"
 
 # Phony targets
 .PHONY: all test test-backend test-refonte memcheck memcheck-backend memcheck-refonte clean rebuild show
