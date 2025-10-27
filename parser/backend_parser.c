@@ -42,6 +42,7 @@ void print_parser(Stack* stk)
 			printf("  [TOKEN] %s\n", token_type_name(nut.token.type));
 		}
 	}
+	printf("End Parser Stack\n");
 }
 
 ASTStack* ast_stack_init()
@@ -80,11 +81,11 @@ AST* ast_stack_peek(ASTStack* stk)
 
 void print_ast_parser(ASTStack* stk)
 {
-	printf("Parser Stack (top -> bottom):\n");
-	for (int i = stk->top - 1; i >= 0; i--) {
-		AST* ast = stk->items[i];
-		print_ast(ast, 0);
+	printf("Parser AST Stack (top -> bottom):\n");
+	for (int i = (int)stk->top - 1; i > 0; i--) {
+		print_ast(stk->items[i], 0);
 		printf("\n");
 	}
-	printf("End Parser Stack\n");
+	print_ast(stk->items[0], 0);
+	printf("End AST Parser Stack\n\n");
 }

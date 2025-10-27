@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
 	AST* items[PARSER_STACK_SIZE];
-    int top;
+    size_t top;
 } ASTStack;
 
 

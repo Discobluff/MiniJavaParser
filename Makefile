@@ -6,7 +6,7 @@ LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
 LEXER_DIR = lexer
 ERROR_DIR = error
 AST_DIR = ast
-PARSER_DIR = demo_parser
+PARSER_DIR = parser
 
 # Source and object files for the lexer module
 LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c

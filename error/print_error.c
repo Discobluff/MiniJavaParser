@@ -1,5 +1,6 @@
 #include "lexer/lexer.h"
-#include "demo_parser/parse.h"	// TODO: change when implementation change
+#include "parser/parse.h"
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -42,10 +43,10 @@ void error_print(Lexer* lex, const char* message)
 	fprintf(stderr, "\x1B[31m^\x1B[0m\n");
 }
 
-void error_under_token(char* src, Token tok, const char* message)
+void error_under_token(char* src, Token tok, const char* message, ...)
 {
 	int len = strlen(src);
-
+	
 	Lexer* lex = lexer_init(src, len);
 
 	lex->pos = tok.position;
@@ -79,7 +80,13 @@ void error_under_token(char* src, Token tok, const char* message)
 
 	char buf[32];
 	token_text(lex, tok, buf, sizeof(buf));
-	fprintf(stderr, "\x1B[31mError\x1B[0m at line %d, column %d: \x1B[31m\"%s\"\x1B[0m\n", line_num, col, message);
+
+	va_list args;
+	va_start(args, message);
+	fprintf(stderr, "\x1B[31mError\x1B[0m at line %d, column %d: \x1B[31m\"", line_num, col);
+		fprintf(stderr, message, args);
+	fprintf(stderr, "\"\x1B[0m\n");
+	va_end(args);
 
 	fprintf(stderr, "  | ");
 	for (int i = line_start; i < line_end; i++) {
@@ -102,7 +109,13 @@ void error_under_token(char* src, Token tok, const char* message)
 	fprintf(stderr, "\x1B[0m\n\n");
 }
 
-void parser_error(const char* message)
+void parser_error(const char* message, ...)
 {
-	fprintf(stderr, "\x1B[31m%s\x1B[0m\n", message);
+	
+	va_list args;
+	va_start(args, message);
+	fprintf(stderr, "\x1B[31m");
+		fprintf(stderr, message, args);
+	fprintf(stderr, "\x1B[0m\n");
+	va_end(args);
 }
