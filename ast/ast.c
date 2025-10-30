@@ -40,6 +40,57 @@ AST* create_variable_node(char* name, int size)
 	return node;
 }
 
+
+AST* create_dot_node (AST* expr, AST* id) {
+	AST *node = malloc(sizeof(AST));
+	node->type = DOT;
+	node->data.dotast.expr = expr;
+	node->data.dotast.id = id;
+	return node;
+}
+
+
+AST* create_affect_node (AST* id, AST* value) {
+	AST *node = malloc(sizeof(AST));
+	node->type = AFFECT;
+	node->data.affectast.id = id;
+	node->data.affectast.value = value;
+	return node;
+}
+
+
+AST* create_funcall_node (AST* id, int nb_arguments) {
+	AST* node = malloc(sizeof(AST));
+	node->type = FUNC_CALL;
+	node->data.funcallast.id = id;
+	node->data.funcallast.nb_arguments = nb_arguments;
+	node->data.funcallast.func_arguments = malloc(nb_arguments * sizeof(AST*));
+	return node;
+}
+
+AST* create_cast_node (Type type, AST* expr) {
+	AST *node = malloc(sizeof(AST));
+	node->type = CAST;
+	node->data.castast.type = type;
+	node->data.castast.expr = expr;
+	return node;
+}
+
+AST* create_instof_node (Type type, AST* expr) {
+	AST *node = malloc(sizeof(AST));
+	node->type = INSTANCEOF;
+	node->data.instofast.type = type;
+	node->data.instofast.expr = expr;
+	return node;
+}
+
+AST* create_param_node (Type type, char* id) {
+	AST *node = malloc(sizeof(AST));
+	node->type = PARAM;
+	node->data.paramast.type = type;
+	node->data.paramast.id = id;
+	return node;
+}
 // Evaluate
 size_t evaluate(AST *node) 
 {
@@ -123,6 +174,31 @@ void free_ast(AST *node)
 			free(node->data.variable);
 			break;
 		
+		case DOT:
+			free_ast(node->data.dotast.expr);
+			free_ast(node->data.dotast.id);
+			break;
+
+		case AFFECT:	
+			free_ast(node->data.affectast.id);
+			free_ast(node->data.affectast.value);	
+			break;
+
+		case FUNC_CALL :
+			free_ast(node->data.funcallast.id);
+			for (int i=0; i < node->data.funcallast.nb_arguments ; i++) 
+				free_ast(node->data.funcallast.func_arguments[i]);
+			break;
+
+		case CAST :
+			free_ast(node->data.castast.expr);
+
+		case INSTANCEOF :
+			free_ast(node->data.instofast.expr);	
+	
+		case PARAM :
+			free_ast(node->data.paramast.id);
+
 		case NUMBER:
 		default:
 			break;
