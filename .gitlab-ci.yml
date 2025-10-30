@@ -49,3 +49,11 @@ negative_tests_lexer:
         exit 1; 
       fi; 
       done
+
+tests_backend_parser:
+  rules:
+  - if: $BUILD == "false"
+  stage: test
+  script:
+    - cd parser
+    - make test
