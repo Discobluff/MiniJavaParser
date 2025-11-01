@@ -25,10 +25,11 @@ typedef enum {
 	PARAM,
 
 	/*For Stmt rule*/
-	DECSTMT, 	//type ident;
+	DECLSTMT, 	//type ident;
 	DEF,		// type ident = expr
 	OPT,		// if (stmt) {stmt} else {stmt}
 	FOR, 		// for(expr;expr;expr)
+	RETURN,
 
 	/*For Method*/
 	METHOD,

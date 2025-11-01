@@ -286,23 +286,28 @@ void free_ast(AST *node)
 
 		case CAST :
 			free_ast(node->data.castast.expr);
+			break;
 
 		case INSTANCEOF :
 			free_ast(node->data.instofast.expr);	
+			break
 	
 		case PARAM :
 			free_ast(node->data.paramast.id);
+			break
 
 		case NUMBER:
 		default:
 			break;
 
-		case DECSTMT:
-			free_ast(node->data.decstmtast.id);
+		case DECLSTMT:
+			free_ast(node->data.declstmtast.id);
+			break
 
 		case DEF:
 			free_ast(node->data.defast.id);
 			free_ast(node->data.defast.expr);
+			break
 		
 		case OPT:
 			free_ast(node->data.optast.expr);
@@ -312,6 +317,7 @@ void free_ast(AST *node)
 
 		case RETURN:
 			free_ast(node->data.returnast.expr);
+			break;
 		
 		case FOR:
 			for (int i=0; i < node->data.forast.nb_expr; i++) 
@@ -336,6 +342,7 @@ void free_ast(AST *node)
 		
 		case DECL:
 			free_ast(node->data.declast.id);
+			break;
 
 		case CLASS:
 			free_ast(node->data.classast.id);
