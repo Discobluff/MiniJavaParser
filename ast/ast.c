@@ -94,7 +94,7 @@ AST* create_param_node (Type type, char* id) {
 
 AST* create_declstmt_node (Type type, char* id){
 	AST *node = malloc(sizeof(AST));
-	node-> type = DECSTMT;
+	node-> type = DECLSTMT;
 	node->data.declstmtast.type=type;
 	node->data.declstmtast.id=id;
 	return node;
