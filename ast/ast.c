@@ -290,11 +290,11 @@ void free_ast(AST *node)
 
 		case INSTANCEOF :
 			free_ast(node->data.instofast.expr);	
-			break
+			break;
 	
 		case PARAM :
 			free_ast(node->data.paramast.id);
-			break
+			break;
 
 		case NUMBER:
 		default:
@@ -302,12 +302,12 @@ void free_ast(AST *node)
 
 		case DECLSTMT:
 			free_ast(node->data.declstmtast.id);
-			break
+			break;
 
 		case DEF:
 			free_ast(node->data.defast.id);
 			free_ast(node->data.defast.expr);
-			break
+			break;
 		
 		case OPT:
 			free_ast(node->data.optast.expr);
