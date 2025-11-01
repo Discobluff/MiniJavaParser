@@ -43,7 +43,7 @@ typedef enum {
 	CLASS,
 
 	/*For File*/
-	FILE,
+	FILES,
 
 } ASTtype;
 

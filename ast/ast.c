@@ -176,7 +176,7 @@ AST* create_class_node(char *id, char *id1, int nb_decl){
 
 AST* create_file_node( int nb_class, AST* class_main){
 	AST *node=malloc(sizeof(AST));
-	node->type=FILE;
+	node->type=FILES;
 	node->data.fileast.nb_class=nb_class;
 	node->data.fileast.fileclass=malloc(nb_class *sizeof(AST));
 	node->data.fileast.class_main=class_main;
@@ -344,7 +344,7 @@ void free_ast(AST *node)
 				free_ast(node->data.classast.classdecl[i]);
 			break;
 
-		case FILE:
+		case FILES:
 			free_ast(node->data.fileast.class_main);
 			for (int i=0; i < node->data.fileast.nb_class; i++) 
 				free_ast(node->data.fileast.fileclass[i]);
