@@ -91,6 +91,100 @@ AST* create_param_node (Type type, char* id) {
 	node->data.paramast.id = id;
 	return node;
 }
+
+AST* create_declstmt_node (Type type, char* id){
+	AST *node = malloc(sizeof(AST));
+	node-> type = DECSTMT;
+	node->data.declstmtast.type=type;
+	node->data.declstmtast.id=id;
+	return node;
+}
+
+AST* create_def_node(Type type, AST* id, AST* expr){
+	AST *node = malloc(sizeof(AST));
+	node->type = DEF;
+	node->data.defast.type= type;
+	node->data.defast.id = id;
+	node->data.defast.expr = expr;
+	return node;
+}
+
+AST* create_opt_node(AST* expr, int nb_stmt){
+	AST *node= malloc(sizeof(AST));
+	node->type=OPT;
+	node->data.optast.expr =expr;
+	node->data.optast.nb_stmt=nb_stmt;
+	node->data.optast.stmt= malloc(nb_stmt*sizeof(AST)); 
+	return node;
+}
+
+AST* create_return_node(AST *expr){
+	AST *node=malloc(sizeof(AST));
+	node->type=RETURN;
+	node->data.returnast.expr =expr;
+	return node;
+}
+
+AST* create_for_node(int nb_expr){
+	AST *node=malloc(sizeof(AST));
+	node->type=FOR;
+	node->data.forast.nb_expr=nb_expr;
+	node->data.forast.forexpr=malloc(nb_expr* sizeof(AST));
+	return node;
+}
+
+AST* create_method_node(Type type, AST* id, int nb_param, int nb_stmt){
+	AST *node=malloc(sizeof(AST));
+	node->type=METHOD;
+	node->data.methodast.type=type;
+	node->data.methodast.id= id;
+	node->data.methodast.nb_param=nb_param;
+	node->data.methodast.methodparam=malloc(nb_param *sizeof(AST));
+	node->data.methodast.nb_stmt=nb_stmt;
+	node->data.methodast.methodstmt=malloc(nb_stmt *sizeof(AST));
+	return node;
+}
+
+AST* create_cons_node(AST *id, int nb_param, int nb_stmt){
+	AST *node=malloc(sizeof(AST));
+	node->type=CONS;
+	node->data.consast.id= id;
+	node->data.consast.nb_param=nb_param;
+	node->data.consast.consparam=malloc(nb_param *sizeof(AST));
+	node->data.consast.nb_stmt=nb_stmt;
+	node->data.consast.consstmt=malloc(nb_stmt *sizeof(AST));
+	return node;
+}
+
+AST* create_decl_node(Type type, char* id){
+	AST *node=malloc(sizeof(AST));
+	node->type=DECL;
+	node->data.declast.type=type;
+	node->data.declast.id=id;
+	return node;
+}
+
+AST* create_class_node(char *id, char *id1, int nb_decl){
+	AST *node=malloc(sizeof(AST));
+	node->type=CLASS;
+	node->data.classast.id=id;
+	node->data.classast.id1=id1;
+	node->data.classast.nb_decl=nb_decl;
+	node->data.classast.classdecl=malloc(nb_decl *sizeof(AST));
+	return node;
+}
+
+AST* create_file_node( int nb_class, AST* class_main){
+	AST *node=malloc(sizeof(AST));
+	node->type=FILE;
+	node->data.fileast.nb_class=nb_class;
+	node->data.fileast.fileclass=malloc(nb_class *sizeof(AST));
+	node->data.fileast.class_main=class_main;
+	return node;
+}
+
+
+
 // Evaluate
 size_t evaluate(AST *node) 
 {
@@ -202,6 +296,60 @@ void free_ast(AST *node)
 		case NUMBER:
 		default:
 			break;
+
+		case DECSTMT:
+			free_ast(node->data.decstmtast.id);
+
+		case DEF:
+			free_ast(node->data.defast.id);
+			free_ast(node->data.defast.expr);
+		
+		case OPT:
+			free_ast(node->data.optast.expr);
+			for (int i=0; i < node->data.optast.nb_stmt; i++) 
+				free_ast(node->data.optast.stmt[i]);
+			break;
+
+		case RETURN:
+			free_ast(node->data.returnast.expr);
+		
+		case FOR:
+			for (int i=0; i < node->data.forast.nb_expr; i++) 
+				free_ast(node->data.forast.forexpr[i]);
+			break;
+
+		case METHOD:
+			free_ast(node->data.methodast.id);
+			for (int i=0; i < node->data.methodast.nb_param; i++) 
+				free_ast(node->data.methodast.methodparam[i]);
+			for (int i=0; i < node -> data.methodast.nb_stmt; i++)
+				free_ast(node->data.methodast.methodstmt[i]);
+			break;
+		
+		case CONS:
+			free_ast(node->data.consast.id);
+			for (int i=0; i < node->data.consast.nb_param; i++) 
+				free_ast(node->data.consast.consparam[i]);
+			for (int i=0; i < node -> data.consast.nb_stmt; i++)
+				free_ast(node->data.consast.consstmt[i]);
+			break;
+		
+		case DECL:
+			free_ast(node->data.declast.id);
+
+		case CLASS:
+			free_ast(node->data.classast.id);
+			free_ast(node->data.classast.id1);
+			for (int i=0; i < node->data.classast.nb_decl; i++) 
+				free_ast(node->data.classast.classdecl[i]);
+			break;
+
+		case FILE:
+			free_ast(node->data.fileast.class_main);
+			for (int i=0; i < node->data.fileast.nb_class; i++) 
+				free_ast(node->data.fileast.fileclass[i]);
+			break;
+
 	}
 	free(node);
 }

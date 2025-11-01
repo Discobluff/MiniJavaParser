@@ -24,6 +24,27 @@ typedef enum {
 	/* For Params*/
 	PARAM,
 
+	/*For Stmt rule*/
+	DECSTMT, 	//type ident;
+	DEF,		// type ident = expr
+	OPT,		// if (stmt) {stmt} else {stmt}
+	FOR, 		// for(expr;expr;expr)
+
+	/*For Method*/
+	METHOD,
+
+	/*For Constructor*/
+	CONS,
+
+	/*For Decl*/
+	DECL,
+
+	/*For Class*/
+	CLASS,
+
+	/*For File*/
+	FILE,
+
 } ASTtype;
 
 
@@ -77,6 +98,67 @@ typedef struct {
 	char* id; //not an AST : just name of the parameter for the moment
 } ParamAST;
 
+typedef struct{
+	Type type;
+	char* id; //not an AST: just name of the ident for the moment
+}DeclstmtAST;
+
+typedef struct{
+	Type type;
+	AST* expr;
+	AST* id;
+}DefAST;
+
+typedef struct{
+	AST* expr;
+	int nb_stmt;
+	AST** stmt;
+}OptAST;
+
+typedef struct{
+	AST* expr;
+}ReturnAST;
+
+typedef struct{
+	int nb_expr;
+	AST** forexpr;
+}ForAST;
+
+typedef struct{
+	Type type;
+	AST* id;
+	int nb_param;
+	int nb_stmt;
+	AST** methodparam;
+	AST** methodstmt;
+}MethodAST;
+
+typedef struct{
+	AST* id;
+	int nb_param;
+	int nb_stmt;
+	AST** consparam;
+	AST** consstmt;
+}ConsAST;
+
+typedef struct{
+	Type type;
+	char* id; 	//not an AST: just name of the ident for the moment
+}DeclAST;
+
+typedef struct{
+	char* id;
+	char* id1;
+	int nb_decl;
+	AST** classdecl;
+}ClassAST;
+
+typedef struct{
+	int nb_class;
+	AST** fileclass;
+	AST* class_main;
+}FileAST;
+
 
 struct AST {
 	ASTtype type;
@@ -91,6 +173,16 @@ struct AST {
 		CastAST castast;
 		InstOfAST instofast;
 		ParamAST paramast;
+		DeclstmtAST declstmtast;
+		DefAST defast;
+		OptAST optast;
+		ForAST forast;
+		ReturnAST returnast;
+		MethodAST methodast;
+		ConsAST consast;
+		DeclAST declast;
+		ClassAST classast;
+		FileAST fileast;
 	} data;
 };
 
