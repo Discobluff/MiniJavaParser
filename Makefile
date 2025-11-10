@@ -51,6 +51,18 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 test: lexer_test
 	./lexer_test arith.test
 
+successTests: lexer_test
+	@for file in tests/success/*; do echo "Running $$file"; ./lexer_test $$file; done
+
+failTests: lexer_test
+	@for file in tests/fail/*; do \
+		echo "Running $$file"; \
+		if ./lexer_test $$file; then \
+			echo "Test $$file unexpectedly succeeded"; \
+			exit 1; \
+		fi; \
+	done
+
 # Clean build artifacts
 clean:
 	rm -f $(LEXER_DIR)/*.o main.o lexer_test $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
