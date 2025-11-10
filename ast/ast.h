@@ -192,6 +192,24 @@ AST* create_number_node(size_t value);
 AST* create_binary_op_node(char op, AST* left, AST* right);
 AST* create_unary_op_node(char op, AST* operand);
 AST* create_variable_node(char* name, int size);
+AST* create_dot_node (AST* expr, AST* id);
+AST* create_affect_node (AST* id, AST* value);
+AST* create_funcall_node (AST* id, int nb_arguments);
+AST* create_cast_node (Type type, AST* expr);
+AST* create_instof_node (Type type, AST* expr);
+AST* create_param_node (Type type, char* id);
+AST* create_declstmt_node (Type type, char* id);
+AST* create_def_node(Type type, AST* id, AST* expr);
+AST* create_opt_node(AST* expr, int nb_stmt);
+AST* create_return_node(AST *expr);
+AST* create_for_node(int nb_expr);
+AST* create_method_node(Type type, AST* id, int nb_param, int nb_stmt);
+AST* create_cons_node(AST *id, int nb_param, int nb_stmt);
+AST* create_decl_node(Type type, char* id);
+AST* create_class_node(char *id, char *id1, int nb_decl);
+AST* create_file_node( int nb_class, AST* class_main);
+
+
 
 size_t evaluate(AST *node);
 void print_ast(AST *node, int depth);
