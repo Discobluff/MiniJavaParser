@@ -314,6 +314,7 @@ const char* token_type_name(TokenType type)
 
 		case TOKEN_STR : return "STRING";
 
+		case TOKEN_CLASS: return "CLASS";
 		case TOKEN_BOOLEAN:    return "BOOLEAN";
         case TOKEN_ELSE:       return "ELSE";
         case TOKEN_EXTENDS:    return "EXTENDS";
