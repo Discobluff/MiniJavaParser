@@ -18,6 +18,7 @@ Lexer* lexer_init(char* src, int len)
 	lex->pos = 0;
 	lex->tok.type = TOKEN_EOF;
 	lex->tok.position = 0;
+	lexer_next(lex);
 	return lex;
 }
 
