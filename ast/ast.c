@@ -296,7 +296,7 @@ void free_ast(AST *node)
 			break;
 	
 		case PARAM :
-			free_ast(node->data.paramast.id);
+			// free_ast(node->data.paramast.id);
 			break;
 
 		case NUMBER:
@@ -304,7 +304,7 @@ void free_ast(AST *node)
 			break;
 
 		case DECLSTMT:
-			free_ast(node->data.declstmtast.id);
+			// free_ast(node->data.declstmtast.id);
 			break;
 
 		case DEF:
@@ -344,12 +344,12 @@ void free_ast(AST *node)
 			break;
 		
 		case DECL:
-			free_ast(node->data.declast.id);
+			// free_ast(node->data.declast.id);
 			break;
 
 		case CLASS:
-			free_ast(node->data.classast.id);
-			free_ast(node->data.classast.id1);
+			// free_ast(node->data.classast.id);
+			// free_ast(node->data.classast.id1);
 			for (int i=0; i < node->data.classast.nb_decl; i++) 
 				free_ast(node->data.classast.classdecl[i]);
 			break;

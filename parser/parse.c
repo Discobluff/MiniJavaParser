@@ -322,11 +322,11 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 
 	switch (rule) {
 		case ADD_SUITE:
-			reduce_binary(ast_stk, token_type_name(rule));
+			reduce_binary(ast_stk, RULE_SPECS[rule].name);
 			break ;
 			
 		case MULT_SUITE:
-			reduce_binary(ast_stk, token_type_name(rule));
+			reduce_binary(ast_stk, RULE_SPECS[rule].name);
 			break ;
 			
 		case UNARY:
@@ -348,7 +348,7 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 			break;
 
 		default:
-			parser_error("Unknown rule in reduce: %d", token_type_name(rule));
+			parser_error("Unknown rule in reduce: %s", RULE_SPECS[rule].name);
 			return ;
 	}
 }

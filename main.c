@@ -43,15 +43,14 @@ int main(int argc, char** argv)
     Lexer* lex = lexer_init(source, bytes_read);
     printf("Lexing file: \"%s\"\n\n", filename);
 
-    do {
-        lexer_next(lex);
+    while (lex->tok.type != TOKEN_EOF) {
         token_pprint(lex->tok, lex);
-    } while (lex->tok.type != TOKEN_EOF);
+        lexer_next(lex);
+    }
     
 
     // lex = lexer_init(source, bytes_read);
 
-    // lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
     // AST* ast = parse_main(lex);
 
     // print_ast(ast, 0);

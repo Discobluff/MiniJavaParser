@@ -1,9 +1,11 @@
 class Main {
-    class
+    static
     /* 
     ok
     */
-   1-1 class main 
+   void main(){
+
+   }
 }
 
 daccord
