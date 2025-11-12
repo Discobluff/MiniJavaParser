@@ -5,14 +5,33 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int debug_lexer = 0,
+    debug_parser = 0;
+
 int main(int argc, char** argv)
 {
     if (argc < 2) {
-        printf("Usage: %s <source-file>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <source-file> [--debug-lexer] [--debug-parser]\n", argv[0]);
         return 1;
     }
-    
-    const char* filename = argv[1];
+
+    const char* filename = NULL;
+
+    // Parse arguments in any order
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--debug-lexer") == 0) {
+            debug_lexer = 1;
+        } else if (strcmp(argv[i], "--debug-parser") == 0) {
+            debug_parser = 1;
+        } else if (argv[i][0] != '-') {
+            filename = argv[i];
+        }
+    }
+
+    if (!filename) {
+        fprintf(stderr, "Error: No source file specified\n");
+        return 1;
+    }
     
     // Open the file
     FILE* file = fopen(filename, "r");
@@ -40,22 +59,24 @@ int main(int argc, char** argv)
     fclose(file);
     
     // Initialize lexer with file contents
+    
     Lexer* lex = lexer_init(source, bytes_read);
-    printf("Lexing file: \"%s\"\n\n", filename);
+    
+    if(debug_lexer) {
+        printf("Lexing file: \"%s\"\n\n", filename);
 
-    while (lex->tok.type != TOKEN_EOF) {
-        token_pprint(lex->tok, lex);
-        lexer_next(lex);
+        while (lex->tok.type != TOKEN_EOF) {
+            token_pprint(lex->tok, lex);
+            lexer_next(lex);
+        }
+        lex = lexer_init(source, bytes_read);
     }
+
+    AST* ast = parse_main(lex);
+
+    if (debug_parser) print_ast(ast, 0);
     
-
-    // lex = lexer_init(source, bytes_read);
-
-    // AST* ast = parse_main(lex);
-
-    // print_ast(ast, 0);
-    
-    // free_ast(ast);
+    free_ast(ast);
 
     free(source);
     free(lex);
