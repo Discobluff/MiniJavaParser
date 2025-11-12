@@ -193,7 +193,7 @@ static Expansion expand_rule(Rule rule, Token lookahead)
 	return exp;
 }
 
-static int rule_handler(Stack* stk, Rule rule, Lexer* lex)
+static void rule_handler(Stack* stk, Rule rule, Lexer* lex)
 {
 	Expansion exp = expand_rule(rule, lex->tok);
 
@@ -203,16 +203,12 @@ static int rule_handler(Stack* stk, Rule rule, Lexer* lex)
 		exit(1);
 	}
 
-	int consume_token = false;
 
 	for (int i = 0; i < exp.count; i++) {
 		stack_push(stk, exp.items[i]);
-		if (exp.items[i].type == TOKEN) {
-			consume_token++;
-		}
 	}
 
-	return consume_token;
+	return;
 }
 
 // Uses a token from the semantic stack (not from the lexer) they could be different (cf unary_op)
@@ -353,7 +349,7 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 	}
 }
 
-AST* parse_main(Lexer* lex)
+AST* parse_main(Lexer* lex, int debug)
 {
 	Stack* stk = stack_init();
 	ASTStack* astk = ast_stack_init();
@@ -362,23 +358,29 @@ AST* parse_main(Lexer* lex)
 	stack_push(stk, (NUT){.type = RULE, .rule = ADD});
 
 	while (stk->top > 0) {
-		// printf("==================== NEW ITERATION ===================\n"); print_parser(stk); printf("\n"); token_pprint(lex->tok, lex); printf("\n");
+		if (debug) {
+			printf("==================== NEW ITERATION ===================\n"); 
+			print_parser(stk);
+			printf("\n");
+			token_pprint(lex->tok, lex);
+			printf("\n");
+		}
 		NUT curr = stack_pop(stk);
 
 		switch (curr.type) {
 			case RULE: {
 				if (should_reduce(curr.rule, lex->tok)) {
-					// debug remove
-						// stack_push(stk, curr); 
-						// printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
-						// curr = stack_pop(stk);
+					if (debug) {
+						printf("reducing on AST stack\n"); print_ast_parser(astk); printf("\n");
+					}
 					reduce_rule(curr.rule, astk);
-					// debug remove
-						// printf("produced stack\n"); print_ast_parser(astk); printf("\n");
+					if (debug) {
+						printf("produced stack\n"); 
+						print_ast_parser(astk); 
+						printf("\n");
+					}
 				} else {
-					int consume = rule_handler(stk, curr.rule, lex);
-					for(int i=0; i<consume; i++)
-						lexer_next(lex);
+					rule_handler(stk, curr.rule, lex);
 				}
 				break;
 			}
@@ -386,6 +388,7 @@ AST* parse_main(Lexer* lex)
 				AST* node = create_token_ast(curr.token, lex);
 				if (node)
 					ast_stack_push(astk, node);
+				lexer_next(lex);
 				break;
 			}
 		}

@@ -55,6 +55,6 @@ typedef struct {
 
 	(renommée à partir de celle d'Hugo (celle qui est partagée dans le drive))
  */
-AST* parse_main(Lexer* lex);
+AST* parse_main(Lexer* lex, int debug);
 
 #endif

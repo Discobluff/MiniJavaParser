@@ -30,7 +30,7 @@ typedef struct {
 
 typedef struct {
 	NUT items[PARSER_STACK_SIZE];
-	int top;
+	size_t top;
 } Stack;
 
 typedef struct {
