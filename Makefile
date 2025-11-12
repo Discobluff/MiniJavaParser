@@ -18,14 +18,16 @@ AST_OBJS = $(AST_SRCS:.c=.o)
 PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/backend_parser.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
+TARGET = main
+
 MAIN_OBJ = main.o
 
 # Default target
-all: lexer_test
+all: $(TARGET)
 
 # Build the executable
-lexer_test: $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
-	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o lexer_test
+$(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET)
 
 # Compile main.c
 main.o: main.c
@@ -48,16 +50,16 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run the program with a test file
-test: lexer_test
-	./lexer_test arith.test
+test: $(TARGET)
+	./$(TARGET) arith.test
 
-successTests: lexer_test
-	@for file in tests/success/*; do echo "Running $$file"; ./lexer_test $$file; done
+successTests: $(TARGET)
+	@for file in tests/success/*; do echo "Running $$file"; ./$(TARGET) $$file; done
 
-failTests: lexer_test
+failTests: $(TARGET)
 	@for file in tests/fail/*; do \
 		echo "Running $$file"; \
-		if ./lexer_test $$file; then \
+		if ./$(TARGET) $$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
 			exit 1; \
 		fi; \
@@ -65,7 +67,7 @@ failTests: lexer_test
 
 # Clean build artifacts
 clean:
-	rm -f $(LEXER_DIR)/*.o main.o lexer_test $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
+	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
 
 # Rebuild everything
 rebuild: clean all

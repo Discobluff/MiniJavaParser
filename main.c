@@ -49,7 +49,7 @@ int main(int argc, char** argv)
     } while (lex->tok.type != TOKEN_EOF);
     
 
-    lex = lexer_init(source, bytes_read);
+    // lex = lexer_init(source, bytes_read);
 
     // lexer_next(lex);            // c'est stupide d'avoir à faire ceci ¯\_(ツ)_/¯
     // AST* ast = parse_main(lex);
