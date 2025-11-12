@@ -29,7 +29,7 @@ compile:
     - make all
   artifacts:
     paths:
-      - lexer_test
+      - main
 
 positive_tests_lexer:
   allow_failure: false
