@@ -4,6 +4,7 @@
 #include "ast/ast.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int debug_lexer = 0,
     debug_parser = 0;
