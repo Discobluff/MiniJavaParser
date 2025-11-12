@@ -77,7 +77,6 @@ bool good_comment(Lexer* lex) {
 
 void find_next_newline_or_eof(Lexer *lex) {
     //lex->pos se trouve juste après le //
-    int i = lex->pos;
     while (lex->source[++lex->pos] != '\0') {     // Parcourt jusqu'à la fin de la chaîne
         if (lex->source[lex->pos] == '\n')      // Trouve un saut de ligne ?
             break;           

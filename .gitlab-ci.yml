@@ -33,6 +33,8 @@ compile:
 
 positive_tests_lexer:
   allow_failure: false
+  needs:
+    - job: compile
   rules:
     - if: $BUILD == "false"
   stage: test  
@@ -40,6 +42,9 @@ positive_tests_lexer:
     - make successTests
 
 negative_tests_lexer:
+  allow_failure: false
+  needs:
+    - job: compile
   rules:
     - if: $BUILD == "false"
   stage: test  
