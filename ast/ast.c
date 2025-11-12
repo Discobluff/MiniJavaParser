@@ -246,6 +246,9 @@ void print_ast(AST *node, int depth)
 		case VARIABLE:
 			printf("Variable: %s\n", node->data.variable);
 			break;
+		
+		default:
+			break;
 	}
 }
 
