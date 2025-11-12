@@ -50,8 +50,17 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run the program with a test file
-test: $(TARGET)
+run: $(TARGET)
 	./$(TARGET) arith.test
+
+debugAll: all
+	./$(TARGET) --debug-lexer --debug-parser tests/success/arith.java
+
+debugLexer: all
+	./$(TARGET) --debug-lexer tests/success/arith.java
+
+debugParser: all
+	./$(TARGET) --debug-parser tests/success/arith.java
 
 successTests: $(TARGET)
 	@for file in tests/success/*; do echo "Running $$file"; ./$(TARGET) $$file; done
