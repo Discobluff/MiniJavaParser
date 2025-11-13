@@ -96,12 +96,12 @@ typedef struct {
 
 typedef struct {
 	Type type;
-	char* id; //not an AST : just name of the parameter for the moment
+	char* id;
 } ParamAST;
 
 typedef struct{
 	Type type;
-	char* id; //not an AST: just name of the ident for the moment
+	char* id;
 }DeclstmtAST;
 
 typedef struct{
@@ -144,7 +144,7 @@ typedef struct{
 
 typedef struct{
 	Type type;
-	char* id; 	//not an AST: just name of the ident for the moment
+	char* id;
 }DeclAST;
 
 typedef struct{
