@@ -257,7 +257,7 @@ static void reduce_binary(ASTStack* ast_stk, const char* rule_name)
 
 	if (!acc || acc->type != BINARY_OP) {
 		parser_error("Expected binary operator in %s reduction", rule_name);
-		return ;
+		exit(1);
 	}
 
 	while (acc && acc->type == BINARY_OP) {
@@ -345,7 +345,7 @@ static void reduce_rule(Rule rule, ASTStack* ast_stk)
 
 		default:
 			parser_error("Unknown rule in reduce: %s", RULE_SPECS[rule].name);
-			return ;
+			exit(1);
 	}
 }
 
@@ -396,6 +396,7 @@ AST* parse_main(Lexer* lex, int debug)
 
 	if (astk->top != 1) {
 		parser_error("Parse finished with %lu AST nodes (expected 1)", astk->top);
+		exit(1);
 	}
 
 	AST* result = ast_stack_pop(astk);

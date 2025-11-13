@@ -67,11 +67,9 @@ debugParser: all
 successTests: $(TARGET)
 	@for file in tests/success/*; do \
 		echo "Running $$file"; \
-		if ! ./$(TARGET) $$file; then \
+		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
 			exit 1; \
-		else \
-			echo "iu"; \
 		fi; \
 	done
 	
@@ -79,7 +77,7 @@ successTests: $(TARGET)
 failTests: $(TARGET)
 	@for file in tests/fail/*; do \
 		echo "Running $$file"; \
-		if ./$(TARGET) $$file; then \
+		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
 			exit 1; \
 		fi; \
