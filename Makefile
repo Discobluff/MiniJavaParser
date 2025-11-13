@@ -22,6 +22,8 @@ TARGET = main
 
 MAIN_OBJ = main.o
 
+file ?= tests/success/op.java
+
 # Default target
 all: $(TARGET)
 
@@ -51,19 +53,28 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 
 # Run the program with a test file
 run: $(TARGET)
-	./$(TARGET) arith.test
+	./$(TARGET) $(file)
 
 debugAll: all
-	./$(TARGET) --debug-lexer --debug-parser tests/success/arith.java
+	./$(TARGET) --debug-lexer --debug-parser $(file)
 
 debugLexer: all
-	./$(TARGET) --debug-lexer tests/success/arith.java
+	./$(TARGET) --debug-lexer $(file)
 
 debugParser: all
-	./$(TARGET) --debug-parser tests/success/arith.java
+	./$(TARGET) --debug-parser $(file)
 
 successTests: $(TARGET)
-	@for file in tests/success/*; do echo "Running $$file"; ./$(TARGET) $$file; done
+	@for file in tests/success/*; do \
+		echo "Running $$file"; \
+		if ! ./$(TARGET) $$file; then \
+			echo "Test $$file unexpectedly failed"; \
+			exit 1; \
+		else \
+			echo "iu"; \
+		fi; \
+	done
+	
 
 failTests: $(TARGET)
 	@for file in tests/fail/*; do \
