@@ -73,7 +73,7 @@ int main(int argc, char** argv)
         lex = lexer_init(source, bytes_read);
     }
 
-    AST* ast = parse_main(lex);
+    AST* ast = parse_main(lex, debug_parser);
 
     if (debug_parser) print_ast(ast, 0);
     
