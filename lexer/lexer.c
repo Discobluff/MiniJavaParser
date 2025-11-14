@@ -340,6 +340,12 @@ const char* token_type_name(TokenType type)
 	}
 }
 
+// The normies hate us.
+Token lexer_giveToken(Lexer* lex)
+{
+	return lex->tok;
+}
+
 // Pretty print a token :=)
 void token_pprint(Token tok, Lexer* lex) // mabe source file???
 {
