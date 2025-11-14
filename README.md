@@ -13,7 +13,10 @@ make rebuild      # Clean and rebuild
 ## Usage
 
 ```bash
-./main <source-file> [--debug-lexer] [--debug-parser]
+make run [file=<source-file>]           # Run with default file or with source file
+make debugLexer [file=<source-file>] 
+make debugParser [file=<source-file>]
+make debugAll [file=<source-file>]
 ```
 
 **Arguments:**
