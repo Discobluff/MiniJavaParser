@@ -218,12 +218,14 @@ void lexer_next(Lexer* lex)
 			switch(peek(lex)) {
 			case '/' :
 				find_next_newline_or_eof(lex);
-				lex->tok.type = TOKEN_COMMENT;
+				//lex->tok.type = TOKEN_COMMENT;
+				lexer_next(lex);
 				break ;
 			
 			case '*' : 
 				if (good_comment(lex)) {
-					lex->tok.type = TOKEN_COMMENT;
+					//lex->tok.type = TOKEN_COMMENT;
+					lexer_next(lex);
 					break;
 				}
 				else {
