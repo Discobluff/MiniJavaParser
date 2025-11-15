@@ -26,7 +26,7 @@ typedef enum {
 typedef struct {
 	enum {RULE, TOKEN} type;
 	union {
-		Token token;
+		TokenType token;
 		Rule rule;
 	};
 } NUT;

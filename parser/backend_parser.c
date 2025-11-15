@@ -39,7 +39,7 @@ void print_parser(Stack* stk)
 		if (nut.type == RULE) {
 			printf("  [RULE] %d\n", nut.rule);
 		} else {
-			printf("  [TOKEN] %s\n", token_type_name(nut.token.type));
+			printf("  [TOKEN] %s\n", token_type_name(nut.token));
 		}
 	}
 	printf("End Parser Stack\n");

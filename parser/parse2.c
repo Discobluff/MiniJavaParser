@@ -8,6 +8,8 @@
 
 
 ASTStack* astk;
+Stack* stk;
+
 
 static void action_suite_binop(void)
 {
@@ -97,17 +99,17 @@ static void init_prod_table(void)
 	prod_table[MULT_SUITE][TOKEN_BINOP_MULT]	= (Production) {.exp = {.items = {{.token = TOKEN_BINOP_MULT, .type = TOKEN}, {.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 3}, .action = action_stub};
 	prod_table[MULT_SUITE][TOKEN_BINOP_DIV]		= (Production) {.exp = {.items = {{.token = TOKEN_BINOP_DIV, .type = TOKEN},  {.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 3}, .action = action_stub};
 	prod_table[MULT_SUITE][TOKEN_BINOP_MOD]		= (Production) {.exp = {.items = {{.token = TOKEN_BINOP_MOD, .type = TOKEN},  {.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 3}, .action = action_stub};
-	prod_table[MULT_SUITE][TOKEN_BINOP_ADD]		= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_binop};
-	prod_table[MULT_SUITE][TOKEN_BINOP_SUB]		= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_binop};
-	prod_table[MULT_SUITE][TOKEN_EOF]			= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_binop};
+	prod_table[MULT_SUITE][TOKEN_BINOP_ADD]		= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
+	prod_table[MULT_SUITE][TOKEN_BINOP_SUB]		= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
+	prod_table[MULT_SUITE][TOKEN_EOF]			= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
 
 	// UNARY productions
-	prod_table[UNARY][TOKEN_NUMBER]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_suite_unop};
-	prod_table[UNARY][TOKEN_TRUE]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_suite_unop};
-	prod_table[UNARY][TOKEN_FALSE]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_suite_unop};
-	prod_table[UNARY][TOKEN_BINOP_ADD]	= (Production) {.exp = {.items = {{.token = TOKEN_BINOP_ADD, .type = TOKEN}, {.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
-	prod_table[UNARY][TOKEN_BINOP_SUB]	= (Production) {.exp = {.items = {{.token = TOKEN_BINOP_SUB, .type = TOKEN}, {.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
-	prod_table[UNARY][TOKEN_OPP]		= (Production) {.exp = {.items = {{.token = TOKEN_OPP, .type = TOKEN},  	 {.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
+	prod_table[UNARY][TOKEN_NUMBER]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_stub};
+	prod_table[UNARY][TOKEN_TRUE]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_stub};
+	prod_table[UNARY][TOKEN_FALSE]		= (Production) {.exp = {.items = {{.rule = C_O_P, .type = RULE}}, .count = 1}, .action = action_stub};
+	prod_table[UNARY][TOKEN_BINOP_ADD]	= (Production) {.exp = {.items = {{.token = TOKEN_UNOP_ADD, .type = TOKEN}, {.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
+	prod_table[UNARY][TOKEN_BINOP_SUB]	= (Production) {.exp = {.items = {{.token = TOKEN_UNOP_SUB, .type = TOKEN}, {.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
+	prod_table[UNARY][TOKEN_OPP]		= (Production) {.exp = {.items = {{.token = TOKEN_OPP, .type = TOKEN},  	{.rule = UNARY, .type = RULE}}, .count = 2}, .action = action_stub};
 
 	// C_O_P productions
 	prod_table[C_O_P][TOKEN_NUMBER]	= (Production) {.exp = {.items = {{.rule = POSTFIX_EXPR, .type = RULE}}, .count = 1}, .action = NULL};
@@ -120,12 +122,12 @@ static void init_prod_table(void)
 	prod_table[POSTFIX_EXPR][TOKEN_FALSE]	= (Production) {.exp = {.items = {{.rule = PRIMARY, .type = RULE}, {.rule = POSTFIX_TAIL, .type = RULE}}, .count = 2}, .action = NULL};
 
 	// POSTFIX_TAIL productions
-	prod_table[POSTFIX_TAIL][TOKEN_BINOP_MULT]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
-	prod_table[POSTFIX_TAIL][TOKEN_BINOP_DIV]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
-	prod_table[POSTFIX_TAIL][TOKEN_BINOP_MOD]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
-	prod_table[POSTFIX_TAIL][TOKEN_BINOP_ADD]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
-	prod_table[POSTFIX_TAIL][TOKEN_BINOP_SUB]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
-	prod_table[POSTFIX_TAIL][TOKEN_EOF]			= (Production) {.exp = {.items = {}, .count = 0}, .action = action_stub};
+	prod_table[POSTFIX_TAIL][TOKEN_BINOP_MULT]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+	prod_table[POSTFIX_TAIL][TOKEN_BINOP_DIV]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+	prod_table[POSTFIX_TAIL][TOKEN_BINOP_MOD]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+	prod_table[POSTFIX_TAIL][TOKEN_BINOP_ADD]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+	prod_table[POSTFIX_TAIL][TOKEN_BINOP_SUB]	= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+	prod_table[POSTFIX_TAIL][TOKEN_EOF]			= (Production) {.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
 	
 	// PRIMARY productions
 	prod_table[PRIMARY][TOKEN_NUMBER]	= (Production) {.exp = {.items = {{.token = TOKEN_NUMBER,.type = TOKEN}}, .count = 1}, .action = NULL};
@@ -156,6 +158,10 @@ static AST* create_ast_token(Token token, Lexer* lex)
 			return create_binary_op_node('%', NULL, NULL);
 		case TOKEN_OPP:
 			return create_unary_op_node('!', NULL);
+		case TOKEN_UNOP_ADD:
+			return create_unary_op_node('+', NULL);
+		case TOKEN_UNOP_SUB:
+			return create_unary_op_node('-', NULL);
 		default:
 			return NULL;
 	}
@@ -166,8 +172,8 @@ AST* parse_main(Lexer* lex, int debug)
 {
 	init_prod_table();
 
-	Stack* stk = stack_init();
-	astk = ast_stack_init(); 	// the astk is global now ...
+	stk = stack_init();
+	astk = ast_stack_init(); 	// the astk is global now deal wif it ...
 
 	stack_push(stk, (NUT){.type = RULE, .rule = ADD});
 
@@ -206,17 +212,17 @@ AST* parse_main(Lexer* lex, int debug)
 				break;
 			}
 			case TOKEN: {
-				if (curr.token.type == TOKEN_EOF && curr.token.type == current_token.type)
+				if (curr.token == TOKEN_EOF && curr.token == current_token.type)
 					break;
 
-				if (curr.token.type == current_token.type) {
-					AST* token_node = create_ast_token(current_token, lex);
+				if (token_type_equality(curr.token, current_token)) { 
+					AST* token_node = create_ast_token((Token){.position = current_token.position, .type = curr.token}, lex);
 					if (token_node) {
 						ast_stack_push(astk, token_node);
 					}
 					lexer_next(lex);
 				} else {
-					parser_error("Expected token %d, got %d", curr.token.type, current_token.type);
+					parser_error("Expected token %d, got %d", curr.token, current_token.type);
 					exit(1);
 				}
 				break;

@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -356,4 +355,20 @@ void token_pprint(Token tok, Lexer* lex) // mabe source file???
 			printf(" (value: %d)", token_number(lex, tok));
 	}
 	printf("\n");
+}
+
+/**
+ * this exists because the unop and binop versions of + and - are the "same" thing from a synthax perspective
+ */
+bool token_type_equality(TokenType tok1, Token tok2)
+{
+	switch (tok1)
+	{
+	default:
+		return tok1 == tok2.type;
+	case TOKEN_UNOP_SUB:
+		return tok2.type == TOKEN_BINOP_SUB || tok2.type == TOKEN_UNOP_SUB;
+	case TOKEN_UNOP_ADD:
+		return tok2.type == TOKEN_BINOP_ADD || tok2.type == TOKEN_UNOP_ADD;
+	}
 }

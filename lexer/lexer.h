@@ -1,6 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#include <stdbool.h>
+
 typedef enum {
 	TOKEN_NUMBER,
 
@@ -59,6 +61,9 @@ typedef enum {
     TOKEN_TRUE,
     TOKEN_VOID,
 
+	TOKEN_UNOP_SUB,
+	TOKEN_UNOP_ADD,
+
 	// leave at the end
 	TOKENTYPE_SIZE, 
 } TokenType;
@@ -114,5 +119,6 @@ void token_pprint(Token tok, Lexer* lex);
 
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
+bool token_type_equality(TokenType tok1, Token tok2);
 
 #endif
