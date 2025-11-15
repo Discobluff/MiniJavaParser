@@ -15,7 +15,7 @@ ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
 AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse2.c $(PARSER_DIR)/backend_parser.c
+PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/backend_parser.c $(PARSER_DIR)/actions/actions.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 TARGET = main
@@ -85,7 +85,7 @@ failTests: $(TARGET)
 
 # Clean build artifacts
 clean:
-	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
+	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o $(PARSER_DIR)/actions/*.o
 
 # Rebuild everything
 rebuild: clean all
