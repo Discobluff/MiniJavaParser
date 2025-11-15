@@ -16,7 +16,10 @@ typedef enum {
 	C_O_P,
 	POSTFIX_EXPR,
 	POSTFIX_TAIL,
-	PRIMARY
+	PRIMARY,
+
+	// leave at the end
+	RULE_SIZE
 } Rule;
 
 // Node in the parser stack: either a rule (non-terminal) or token (terminal)

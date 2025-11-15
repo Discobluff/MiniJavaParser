@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g -O0 -I.
+CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
 
 # Directories
@@ -15,7 +15,7 @@ ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
 AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/backend_parser.c
+PARSER_SRCS = $(PARSER_DIR)/parse2.c $(PARSER_DIR)/backend_parser.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 TARGET = main
