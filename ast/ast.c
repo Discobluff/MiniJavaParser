@@ -183,7 +183,24 @@ AST* create_file_node( int nb_class, AST* class_main){
 	return node;
 }
 
+int max(int a, int b){
+	return a > b ? a : b;
+}
 
+//depth
+int depth(AST *ast){
+	switch (ast->type){
+		case NUMBER:
+		case VARIABLE:
+			return 0;
+		case UNARY_OP:
+			return 1 + depth(ast->data.unary.operand);
+		case BINARY_OP:
+			return 1 + max(depth(ast->data.binary.left),depth(ast->data.binary.right));
+		default:
+			return -1;
+	}
+}
 
 // Evaluate
 size_t evaluate(AST *node) 

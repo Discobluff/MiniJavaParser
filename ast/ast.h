@@ -209,6 +209,7 @@ AST* create_decl_node(Type type, char* id);
 AST* create_class_node(char *id, char *id1, int nb_decl);
 AST* create_file_node( int nb_class, AST* class_main);
 
+int depth(AST *ast);
 
 
 size_t evaluate(AST *node);

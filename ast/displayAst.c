@@ -152,6 +152,7 @@ void mainloop(AST *ast){
     int offsetX = 0;
     int offsetY = 50;
     double scale = 1;
+    int astDepth = depth(ast);
     while (running){
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
@@ -182,7 +183,7 @@ void mainloop(AST *ast){
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
-        displayAST(ast, font, scale, offsetX, offsetY, 0, 3, 0, 0, WIDTH/2, -1, false);
+        displayAST(ast, font, scale, offsetX, offsetY, 0, astDepth, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
     exit(0);
@@ -194,6 +195,6 @@ int main(void){
     AST *op2 = create_unary_op_node('-', create_number_node(63));
     AST *op3 = create_binary_op_node('-', op1, op2);
     AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
-    mainloop(op4);
+    mainloop(op3);
     return 0;
 }
