@@ -8,7 +8,8 @@ SDL_Renderer *ren;
 
 #define WIDTH 700
 #define HEIGHT 500
-#define GAP_VERT 50
+#define GAP_HOR 50
+#define GAP_VER 100
 #define MOVE_ARROW 25
 #define PADDING 5
 
@@ -82,13 +83,19 @@ void drawRectangle( int x, int y, int length, int height, SDL_Color color){
 }
 
 
-void displayNode(char *text, int x, int y, SDL_Color color, TTF_Font *fontText){
+int displayNode(char *text, int x, int y, SDL_Color color, TTF_Font *fontText, int xPere, int yPere, bool drawLine){
     SDL_Texture *textureText = createText(text, color, fontText);    
     int l1, h1;
     SDL_QueryTexture(textureText, NULL, NULL, &l1, &h1);
     drawTexture(textureText,x-l1/2,y-h1/2,l1,h1);
     SDL_DestroyTexture(textureText);
     drawRectangle(x - PADDING - l1/2, y - PADDING - h1/2, l1 + 2*PADDING, h1 + 2*PADDING, (SDL_Color){0,0,0,255});
+    if (drawLine) {
+        SDL_SetRenderDrawColor(ren, 0, 0, 0, 255);
+        SDL_RenderDrawLine(ren, x, y - h1 / 2 - PADDING, xPere, yPere);
+    }
+    //Return the next y to draw the next line
+    return y+h1/2+PADDING;
 }
 
 char *itoa(int i){
@@ -104,27 +111,22 @@ char *ctoce(char c){
     return str;
 }
 
-void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int numColumn){
+void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, int xPere, int yPere, bool drawLine){
     if (ast == NULL) {
         return;
     }
-    int x;
-    if (depth == 0){
-        x = WIDTH/2;
-    }
-    else{
-        x = WIDTH/2 -  depth * GAP_VERT + numColumn * GAP_VERT * 2 << (2 - depth) + offsetX;
-    }
-    int y = GAP_VERT * depth + offsetY;
+    int gap = 2 << (depthMax - depth);
+    int x = xPere - GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn + offsetX;
+    int y = GAP_VER * depth + offsetY;
     SDL_Color color = {0, 0, 0, 255};
     switch (ast->type){
         case (NUMBER):
-            displayNode(itoa(ast->data.number), x, y, color, font);
+            displayNode(itoa(ast->data.number), x, y, color, font, xPere, yPere, drawLine);
             break;
         case (BINARY_OP):
-            displayNode(ctoce(ast->data.binary.op), x, y, color, font);
-            displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, numColumn);
-            displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, numColumn+1);
+            int newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere, yPere, drawLine);
+            displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x, newY, true);
+            displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x, newY, true);
             break;
         case (UNARY_OP):
             break;
@@ -174,7 +176,7 @@ void mainloop(AST *ast){
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
-        displayAST(ast, font, scale, offsetX, offsetY, 0, 0);
+        displayAST(ast, font, scale, offsetX, offsetY, 0, 2, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
     exit(0);
