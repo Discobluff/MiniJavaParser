@@ -153,13 +153,39 @@ void mainloop(AST *ast){
     int offsetY = 50;
     double scale = 1;
     int astDepth = depth(ast);
+    bool mouseMoving = false;
+    int xMouse;
+    int yMouse;
     while (running){
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
-            if (event.type == SDL_KEYDOWN){
-                switch (event.key.keysym.sym){
+            switch (event.type){
+                case SDL_QUIT:
+                    running = false;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if (event.button.button == SDL_BUTTON_LEFT) {
+                        mouseMoving = true;
+                        SDL_GetMouseState(&xMouse, &yMouse);
+                    }
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    if (event.button.button == SDL_BUTTON_LEFT) {
+                        mouseMoving = false;
+                    }
+                    break;
+                case SDL_MOUSEMOTION:
+                    if (mouseMoving){
+                        int newX;
+                        int newY; 
+                        SDL_GetMouseState(&newX, &newY);
+                        offsetX += newX - xMouse;
+                        offsetY += newY - yMouse;
+                        xMouse = newX;
+                        yMouse = newY;
+                    }
+                    break;
+                case SDL_KEYDOWN:{
+                    switch (event.key.keysym.sym){
                     case (SDLK_q):
                         running = false;
                         break;
@@ -176,10 +202,13 @@ void mainloop(AST *ast){
                         offsetY -= MOVE_ARROW;
                         break;
                     default:
-                        break;                  
+                        break;    
+                    }
+                    break;
                 }
+                default:
+                    break;
             }
-
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
@@ -194,7 +223,7 @@ int main(void){
     // AST *op2 = create_binary_op_node('/', create_number_node(3), create_number_node(9));
     AST *op2 = create_unary_op_node('-', create_number_node(63));
     AST *op3 = create_binary_op_node('-', op1, op2);
-    AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
+    // AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
     mainloop(op3);
     return 0;
 }
