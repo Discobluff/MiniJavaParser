@@ -44,7 +44,7 @@ displayAst: ast/ast.o ast/displayAst.o
 
 # Generic rule for compiling lexer .c -> .o
 $(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c $(LEXER_DIR)/%.h
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 # Generic rule for compiling errors .c -> .o
 $(ERROR_DIR)/%.o: $(ERROR_DIR)/%.c $(ERROR_DIR)/%.h
