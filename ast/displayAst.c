@@ -84,7 +84,7 @@ void drawRectangle( int x, int y, int length, int height, SDL_Color color){
 
 
 int displayNode(char *text, int x, int y, SDL_Color color, TTF_Font *fontText, int xPere, int yPere, bool drawLine){
-    SDL_Texture *textureText = createText(text, color, fontText);    
+    SDL_Texture *textureText = createText(text, color, fontText);
     int l1, h1;
     SDL_QueryTexture(textureText, NULL, NULL, &l1, &h1);
     drawTexture(textureText,x-l1/2,y-h1/2,l1,h1);
@@ -112,6 +112,7 @@ char *ctoce(char c){
 }
 
 void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, int xPere, int yPere, bool drawLine){
+    // yPere is useful to draw the lines between the nodes
     if (ast == NULL) {
         return;
     }
@@ -121,16 +122,21 @@ void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY
     SDL_Color color = {0, 0, 0, 255};
     switch (ast->type){
         case (NUMBER):
-            displayNode(itoa(ast->data.number), x, y, color, font, xPere, yPere, drawLine);
+            displayNode(itoa(ast->data.number), x, y, color, font, xPere + offsetX, yPere, drawLine);
             break;
-        case (BINARY_OP):
-            int newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere, yPere, drawLine);
-            displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x, newY, true);
-            displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x, newY, true);
+        case (BINARY_OP):{
+            int newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+            displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+            displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
             break;
-        case (UNARY_OP):
+        }
+        case (UNARY_OP):{
+            int newY = displayNode(ctoce(ast->data.unary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+            displayAST(ast->data.unary.operand, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 0, x-offsetX, newY, true);
             break;
+        }
         case (VARIABLE):
+            displayNode(ast->data.variable, x, y, color, font, xPere, yPere, drawLine);
             break;
         default:
             break;
@@ -176,7 +182,7 @@ void mainloop(AST *ast){
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
-        displayAST(ast, font, scale, offsetX, offsetY, 0, 2, 0, 0, WIDTH/2, -1, false);
+        displayAST(ast, font, scale, offsetX, offsetY, 0, 3, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
     exit(0);
@@ -184,7 +190,10 @@ void mainloop(AST *ast){
 
 int main(void){
     AST *op1 = create_binary_op_node('*', create_number_node(54),create_number_node(32));
-    AST *op2 = create_binary_op_node('+',op1,create_number_node(12));
-    mainloop(op2);
+    // AST *op2 = create_binary_op_node('/', create_number_node(3), create_number_node(9));
+    AST *op2 = create_unary_op_node('-', create_number_node(63));
+    AST *op3 = create_binary_op_node('-', op1, op2);
+    AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
+    mainloop(op4);
     return 0;
 }
