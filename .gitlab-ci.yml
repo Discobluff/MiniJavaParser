@@ -13,7 +13,7 @@ build:
   rules:
     - if: $BUILD == "true"
   image:
-    name: gcr.io/kaniko-project/executor:latest
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   script:
     - /kaniko/executor
