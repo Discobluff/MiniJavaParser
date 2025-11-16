@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
+LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Directories
 LEXER_DIR = lexer
@@ -35,9 +36,15 @@ $(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
 main.o: main.c
 	$(CC) $(CFLAGS) -c main.c -o main.o
 
+runDisplayAst: displayAst
+	./displayAst
+
+displayAst: ast/ast.o ast/displayAst.o
+	$(CC) $(LDFLAGS) ast/ast.o ast/displayAst.o -o $@ $(LDFLAGS_SDL)
+
 # Generic rule for compiling lexer .c -> .o
 $(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c $(LEXER_DIR)/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $^ -o $@
 
 # Generic rule for compiling errors .c -> .o
 $(ERROR_DIR)/%.o: $(ERROR_DIR)/%.c $(ERROR_DIR)/%.h
