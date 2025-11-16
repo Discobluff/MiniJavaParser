@@ -23,7 +23,7 @@ TARGET = main
 
 MAIN_OBJ = main.o
 
-file ?= tests/success/op.java
+file ?= tests/implemented/success/op.java
 
 # Default target
 all: $(TARGET)
@@ -72,7 +72,7 @@ debugParser: all
 	./$(TARGET) --debug-parser $(file)
 
 successTests: $(TARGET)
-	@for file in tests/success/*; do \
+	@for file in tests/implemented/success/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
@@ -82,7 +82,7 @@ successTests: $(TARGET)
 	
 
 failTests: $(TARGET)
-	@for file in tests/fail/*; do \
+	@for file in tests/implemented/fail/*; do \
 		echo "Running $$file"; \
 		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
