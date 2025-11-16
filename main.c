@@ -2,12 +2,14 @@
 #include "error/print_error.h"
 #include "parser/parse.h"
 #include "ast/ast.h"
+#include "ast/displayAst.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 int debug_lexer = 0,
-    debug_parser = 0;
+    debug_parser = 0,
+    show_ast = 0;
 
 int main(int argc, char** argv)
 {
@@ -24,6 +26,8 @@ int main(int argc, char** argv)
             debug_lexer = 1;
         } else if (strcmp(argv[i], "--debug-parser") == 0) {
             debug_parser = 1;
+        } else if (strcmp(argv[i], "--show-ast") == 0) {
+            show_ast = 1;
         } else if (argv[i][0] != '-') {
             filename = argv[i];
         }
@@ -77,6 +81,8 @@ int main(int argc, char** argv)
 
     if (debug_parser) print_ast(ast, 0);
     
+    if (show_ast) mainloop(ast);
+
     free_ast(ast);
 
     free(source);

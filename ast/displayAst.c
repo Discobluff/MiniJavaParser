@@ -218,12 +218,12 @@ void mainloop(AST *ast){
     exit(0);
 }
 
-int main(void){
-    AST *op1 = create_binary_op_node('*', create_number_node(54),create_number_node(32));
-    // AST *op2 = create_binary_op_node('/', create_number_node(3), create_number_node(9));
-    AST *op2 = create_unary_op_node('-', create_number_node(63));
-    AST *op3 = create_binary_op_node('-', op1, op2);
-    // AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
-    mainloop(op3);
-    return 0;
-}
+// int main(void){
+//     AST *op1 = create_binary_op_node('*', create_number_node(54),create_number_node(32));
+//     // AST *op2 = create_binary_op_node('/', create_number_node(3), create_number_node(9));
+//     AST *op2 = create_unary_op_node('-', create_number_node(63));
+//     AST *op3 = create_binary_op_node('-', op1, op2);
+//     // AST *op4 = create_binary_op_node('+',op3,create_number_node(12));
+//     mainloop(op3);
+//     return 0;
+// }
