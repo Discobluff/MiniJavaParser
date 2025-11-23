@@ -187,16 +187,52 @@ int max(int a, int b){
 	return a > b ? a : b;
 }
 
-//depth
+int maxList(AST **astList, int len){
+	int res = -1;
+	for (int i=0; i<len; i++){
+		res = max(res, depth(astList[i]));
+	}
+	return res;
+}
+
 int depth(AST *ast){
 	switch (ast->type){
 		case NUMBER:
 		case VARIABLE:
+		case PARAM:
+		case DECLSTMT:
+		case DECL:
 			return 0;
 		case UNARY_OP:
 			return 1 + depth(ast->data.unary.operand);
 		case BINARY_OP:
 			return 1 + max(depth(ast->data.binary.left),depth(ast->data.binary.right));
+		case DOT:
+			return 1 + max(depth(ast->data.dotast.id),depth(ast->data.dotast.expr));
+		case AFFECT:
+			return 1 + max(depth(ast->data.affectast.id),depth(ast->data.affectast.value));
+		case FUNC_CALL:
+			return 1 + max(depth(ast->data.funcallast.id),maxList(ast->data.funcallast.func_arguments, ast->data.funcallast.nb_arguments));
+		case CAST:
+			return 1 + depth(ast->data.castast.expr);
+		case INSTANCEOF:
+			return 1 + depth(ast->data.instofast.expr);
+		case DEF:
+			return 1 + max(depth(ast->data.defast.expr),depth(ast->data.defast.id));
+		case OPT:
+			return 1 + max(depth(ast->data.optast.expr),maxList(ast->data.optast.stmt, ast->data.optast.nb_stmt));
+		case RETURN:
+			return 1 + depth(ast->data.returnast.expr);
+		case FOR:
+			return 1 + maxList(ast->data.forast.forexpr, ast->data.forast.nb_expr);
+		case METHOD:
+			return 1 + max(max(depth(ast->data.methodast.id),maxList(ast->data.methodast.methodparam, ast->data.methodast.nb_param)),maxList(ast->data.methodast.methodstmt, ast->data.methodast.nb_stmt));
+		case CONS:
+			return 1 + max(max(depth(ast->data.consast.id),maxList(ast->data.consast.consparam, ast->data.consast.nb_param)),maxList(ast->data.consast.consstmt, ast->data.consast.nb_stmt));
+		case CLASS:
+		return 1 + maxList(ast->data.classast.classdecl, ast->data.classast.nb_decl);
+		case FILES:
+			return 1 + max(depth(ast->data.fileast.class_main),maxList(ast->data.fileast.fileclass, ast->data.fileast.nb_class));
 		default:
 			return -1;
 	}
