@@ -211,6 +211,7 @@ AST* create_file_node( int nb_class, AST* class_main);
 
 int depth(AST *ast);
 
+int max(int a, int b);
 
 size_t evaluate(AST *node);
 void print_ast(AST *node, int depth);

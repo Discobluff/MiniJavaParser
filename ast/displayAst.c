@@ -12,6 +12,12 @@ SDL_Renderer *ren;
 #define GAP_VER 100
 #define MOVE_ARROW 25
 #define PADDING 5
+#define ZOOM_IN_MAX 5
+#define ZOOM_OUT_MAX 0.01
+#define DEFAULT_FONT_SIZE 16
+#define FONT_PATH "ast/font.ttf"
+#define FONT_SIZE_MIN 8
+#define DEFAULT_OFFSET_Y 50
 
 void destroyWindow(void){
     SDL_DestroyWindow(win);
@@ -48,20 +54,21 @@ void createRenderer(void){
     atexit(&destroyRenderer);
 }
 
-TTF_Font *createFont(char *path, int size){
+void initTTF(void){
     if (TTF_Init() == -1) {
         printf("TTF could not initialize! TTF_Error: %s\n", TTF_GetError());
         exit(1);
     }
     atexit(&TTF_Quit);
+}
 
+TTF_Font *createFont(char *path, int size){
     TTF_Font *newFont = TTF_OpenFont(path, size);
     if (!newFont) {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
         exit(1);
-    }    
+    }
     return newFont;
-
 }
 
 void drawTexture(SDL_Texture *texture, float x, float y, float length, float height){
@@ -116,9 +123,9 @@ void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY
     if (ast == NULL) {
         return;
     }
-    int gap = 2 << (depthMax - depth);
-    int x = xPere - GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn + offsetX;
-    int y = GAP_VER * depth + offsetY;
+    int gap = (2 << (depthMax - depth))*scale*scale;
+    int x = xPere - GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn + offsetX*scale;
+    int y = scale*(GAP_VER * depth + offsetY);
     SDL_Color color = {0, 0, 0, 255};
     switch (ast->type){
         case (NUMBER):
@@ -146,11 +153,12 @@ void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY
 void mainloop(AST *ast){
     createWindow("AST", 50,50,WIDTH,HEIGHT);
     createRenderer();
-    TTF_Font *font = createFont("ast/font.ttf", 16);
+    initTTF();
+    TTF_Font *font = createFont(FONT_PATH, DEFAULT_FONT_SIZE);
     SDL_Event event;
     bool running = true;
     int offsetX = 0;
-    int offsetY = 50;
+    int offsetY = DEFAULT_OFFSET_Y;
     double scale = 1;
     int astDepth = depth(ast);
     bool mouseMoving = false;
@@ -161,6 +169,14 @@ void mainloop(AST *ast){
             switch (event.type){
                 case SDL_QUIT:
                     running = false;
+                    break;
+                case SDL_MOUSEWHEEL:
+                    if (event.wheel.y > 0 && scale < ZOOM_IN_MAX) { // Scroll up
+                        scale *= 1.1;
+                    } else if (event.wheel.y < 0 && scale > ZOOM_OUT_MAX) { // Scroll down
+                        scale /= 1.1;
+                    }
+                    font = createFont(FONT_PATH, max(FONT_SIZE_MIN,(int)(DEFAULT_FONT_SIZE*scale)));
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
@@ -186,23 +202,28 @@ void mainloop(AST *ast){
                     break;
                 case SDL_KEYDOWN:{
                     switch (event.key.keysym.sym){
-                    case (SDLK_q):
-                        running = false;
-                        break;
-                    case (SDLK_LEFT):
-                        offsetX += MOVE_ARROW;
-                        break;
-                    case (SDLK_RIGHT):
-                        offsetX -= MOVE_ARROW;
-                        break;
-                    case (SDLK_UP):
-                        offsetY += MOVE_ARROW;
-                        break;
-                    case (SDLK_DOWN):
-                        offsetY -= MOVE_ARROW;
-                        break;
-                    default:
-                        break;    
+                        case (SDLK_q):
+                            running = false;
+                            break;
+                        case (SDLK_LEFT):
+                            offsetX += MOVE_ARROW;
+                            break;
+                        case (SDLK_RIGHT):
+                            offsetX -= MOVE_ARROW;
+                            break;
+                        case (SDLK_UP):
+                            offsetY += MOVE_ARROW;
+                            break;
+                        case (SDLK_DOWN):
+                            offsetY -= MOVE_ARROW;
+                            break;
+                        case (SDLK_r): //Reset
+                            offsetX = 0;
+                            offsetY = DEFAULT_OFFSET_Y;
+                            scale = 1;
+                            font = createFont(FONT_PATH, DEFAULT_FONT_SIZE);
+                        default:
+                            break;
                     }
                     break;
                 }
@@ -215,6 +236,7 @@ void mainloop(AST *ast){
         displayAST(ast, font, scale, offsetX, offsetY, 0, astDepth, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
+    TTF_CloseFont(font);
     exit(0);
 }
 
