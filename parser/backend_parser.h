@@ -78,4 +78,4 @@ AST* ast_stack_pop(ASTStack* stk);
 AST* ast_stack_peek(ASTStack* stk);
 void print_ast_parser(ASTStack* stk);
 
-#endif#ifndef BACKEND_PARSER_H
+#endif
