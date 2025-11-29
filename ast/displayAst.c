@@ -83,14 +83,14 @@ SDL_Texture *createText(char *text, SDL_Color col, TTF_Font *fontText){
     return textTexture;
 }
 
-void drawRectangle( int x, int y, int length, int height, SDL_Color color){
+void drawRectangle(double x, double y, int length, int height, SDL_Color color){
     SDL_Rect rect = {x, y, length, height};
     SDL_SetRenderDrawColor(ren, color.r,color.g, color.b,color.a);
     SDL_RenderDrawRect(ren, &rect);
 }
 
 
-int displayNode(char *text, int x, int y, SDL_Color color, TTF_Font *fontText, int xPere, int yPere, bool drawLine){
+double displayNode(char *text, double x, double y, SDL_Color color, TTF_Font *fontText, double xPere, double yPere, bool drawLine){
     SDL_Texture *textureText = createText(text, color, fontText);
     int l1, h1;
     SDL_QueryTexture(textureText, NULL, NULL, &l1, &h1);
@@ -118,27 +118,27 @@ char *ctoce(char c){
     return str;
 }
 
-void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, int xPere, int yPere, bool drawLine){
+void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, double xPere, double yPere, bool drawLine){
     // yPere is useful to draw the lines between the nodes
     if (ast == NULL) {
         return;
     }
-    int gap = (2 << (depthMax - depth))*scale*scale;
-    int x = xPere - GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn + offsetX*scale;
-    int y = scale*(GAP_VER * depth + offsetY);
+    double gap = (2 << (depthMax - depth))*scale*scale;
+    double x = xPere + (- GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn) + offsetX;
+    double y = scale*(GAP_VER * depth) + offsetY;
     SDL_Color color = {0, 0, 0, 255};
     switch (ast->type){
         case (NUMBER):
             displayNode(itoa(ast->data.number), x, y, color, font, xPere + offsetX, yPere, drawLine);
             break;
         case (BINARY_OP):{
-            int newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+            double newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
             displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
             displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
             break;
         }
         case (UNARY_OP):{
-            int newY = displayNode(ctoce(ast->data.unary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+            double newY = displayNode(ctoce(ast->data.unary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
             displayAST(ast->data.unary.operand, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 0, x-offsetX, newY, true);
             break;
         }
@@ -176,7 +176,6 @@ void mainloop(AST *ast){
                     } else if (event.wheel.y < 0 && scale > ZOOM_OUT_MAX) { // Scroll down
                         scale /= 1.1;
                     }
-                    font = createFont(FONT_PATH, max(FONT_SIZE_MIN,(int)(DEFAULT_FONT_SIZE*scale)));
                     break;
                 case SDL_MOUSEBUTTONDOWN:
                     if (event.button.button == SDL_BUTTON_LEFT) {
@@ -194,8 +193,8 @@ void mainloop(AST *ast){
                         int newX;
                         int newY; 
                         SDL_GetMouseState(&newX, &newY);
-                        offsetX += newX - xMouse;
-                        offsetY += newY - yMouse;
+                        offsetX += (newX - xMouse)/scale;
+                        offsetY += (newY - yMouse)/scale;
                         xMouse = newX;
                         yMouse = newY;
                     }
@@ -221,7 +220,6 @@ void mainloop(AST *ast){
                             offsetX = 0;
                             offsetY = DEFAULT_OFFSET_Y;
                             scale = 1;
-                            font = createFont(FONT_PATH, DEFAULT_FONT_SIZE);
                         default:
                             break;
                     }
@@ -233,7 +231,7 @@ void mainloop(AST *ast){
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
-        displayAST(ast, font, scale, offsetX, offsetY, 0, astDepth, 0, 0, WIDTH/2, -1, false);
+        displayAST(ast, font, scale, offsetX*scale, offsetY*scale, 0, astDepth, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
     TTF_CloseFont(font);
