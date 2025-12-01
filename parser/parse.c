@@ -15,6 +15,155 @@ static Production prod_table[RULE_SIZE][TOKENTYPE_SIZE];
 // table of Productions indexed by non-terminals (Rule) and tokens (TokenType) santa maria madre de dios
 static void init_prod_table(void)
 {
+
+	// FILE productions
+	prod_table[FIL][TOKEN_CLASS] = (Production){.exp = {.items = {{.rule = CLASS_LIST, .type = RULE}}, .count = 1}, .action = action_stub};
+	prod_table[FIL][TOKEN_EOF]   = (Production){.exp = {.items = {{.rule = CLASS_LIST, .type = RULE}}, .count = 1}, .action = action_stub};
+
+	// CLASS_LIST productions
+	prod_table[CLASS_LIST][TOKEN_CLASS] = (Production){.exp = {.items = {{.rule = CLASSE, .type = RULE}, {.rule = CLASS_LIST, .type= RULE}}, .count=2}, .action=action_stub};
+	prod_table[CLASS_LIST][TOKEN_EOF]   = (Production){.exp = {.items = {}, .count = 0}, .action = action_suite_unop};
+
+	// CLASS productions
+	prod_table[CLASSE][TOKEN_CLASS]    = (Production){.exp = {.items = {{.rule = TOKEN_CLASS, .type = TOKEN}, {.rule = TOKEN_ID, .type=TOKEN}, {.rule = EXTENDS_OPT, .type = RULE}, {.rule=TOKEN_LACC, .type=TOKEN}, {.rule = DECL_LIST, .type=RULE},{.rule=TOKEN_RACC, .type=TOKEN}}, .count=6}, .action=action_stub};
+	
+	// EXTENDS_OPT productions
+	prod_table[EXTENDS_OPT][TOKEN_LACC] = (Production){.exp = {.items = {}, .count=0}, .action=action_suite_unop};
+	prod_table[EXTENDS_OPT][TOKEN_EXTENDS] = (Production){.exp = {.items={{.rule =TOKEN_EXTENDS, .type=TOKEN}, {.rule= TOKEN_ID, .type=TOKEN}}, .count=2 }, .action=action_stub};
+
+	//DECL_LIST productions
+	prod_table[DECL_LIST][TOKEN_ID]  = (Production){.exp = {.items={{.rule=DECL, .type=RULE},{.rule=DECL_LIST, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[DECL_LIST][TOKEN_RACC] = (Production){.exp = {.items = {}, .count=0}, .action= action_suite_unop};
+	prod_table[DECL_LIST][TOKEN_LPAR] = (Production){.exp = {.items={{.rule=DECL, .type=RULE}, {.rule=DECL_LIST, .type=RULE}}, .count=2}, .action=action_stub};
+
+	//DECL productions
+	prod_table[DECL][TOKEN_ID] = (Production){.exp = {.items={{.rule=TOKEN_ID, .type=TOKEN},{.rule=DECL_LIST, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[DECL][TOKEN_LPAR] = (Production){.exp = {.items={{.rule =METHODE, .type=RULE}}, .count=1}, .action=action_stub};
+
+	//DECL_IDENT productions
+	prod_table[DECL_IDENT][TOKEN_LPAR] = (Production){.exp = {.items = {{.rule = CONST_TAIL, .type=TOKEN}}, .count=1}, .action=action_stub};
+	prod_table[DECL_IDENT][TOKEN_BOOLEAN] = (Production){.exp = {.items = {{.rule = TYPE_DEF, .type=RULE}, {.rule = TOKEN_ID, .type = TOKEN}, {.rule = TOKEN_PTSVG, .type=TOKEN}}, .count=3}, .action=action_stub};
+	prod_table[DECL_IDENT][TOKEN_INT] = (Production){.exp = {.items = {{.rule = TYPE_DEF, .type= RULE}, {.rule = TOKEN_ID, .type = TOKEN}, {.rule = TOKEN_PTSVG, .type = TOKEN}}, .count=3}, .action= action_stub};
+	prod_table[DECL_IDENT][TOKEN_VOID] = (Production){.exp = {.items = {{.rule=TYPE_DEF, .type= RULE}, {.rule= TOKEN_ID, .type=TOKEN}, {.rule= TOKEN_PTSVG, .type=TOKEN}}, .count=3}, .action=action_stub};
+
+	//CONST_TAIL productions
+	prod_table[CONST_TAIL][TOKEN_LPAR] = (Production){.exp = {.items = {{.rule=TOKEN_LPAR, .type=TOKEN}, {.rule=PARAMS_OPT, .type=RULE}, {.rule=TOKEN_RPAR, .type= TOKEN}, {.rule=TOKEN_LACC, .type=TOKEN}, {.rule=STMT_LIST, .type=RULE}, {.rule=TOKEN_RACC, .type=TOKEN}}, .count=6}, .action=action_stub};
+
+	//METHODE productions
+	prod_table[METHODE][TOKEN_LPAR]  = (Production){.exp = {.items = {{.rule=TOKEN_LPAR, .type= TOKEN}, {.rule=TYPE, .type=RULE}, {.rule = TOKEN_RPAR, .type=RULE}, {.rule=CONST, .type=RULE}}, .count=4}, .action=action_stub};
+
+	//CONST productions
+	prod_table[CONST][TOKEN_ID] = (Production){.exp = {.items = {{.rule=TOKEN_ID, .type = TOKEN}, {.rule= CONST_TAIL, .type=RULE}}, .count=2}, .action=action_stub};
+
+	//PARAMS_OPT productions
+	prod_table[PARAMS_OPT][TOKEN_ID] = (Production){.exp = {.items = {{.rule=PARAMS, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[PARAMS_OPT][TOKEN_RPAR] = (Production){.exp = {.items = {}, .count=0}, .action=action_suite_unop};
+	prod_table[PARAMS_OPT][TOKEN_BOOLEAN] = (Production){.exp = {.items = {{.rule = PARAMS, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[PARAMS_OPT][TOKEN_INT] =  (Production){.exp = {.items = {{.rule=PARAMS, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[PARAMS_OPT][TOKEN_VOID]  = (Production){.exp = {.items = {{.rule = PARAMS, .type=RULE}}, .count=1}, .action= action_stub};
+
+	//PARAMS productions
+	prod_table[PARAMS][TOKEN_ID] = (Production){.exp = {.items = {{.rule = TYPE, .type=RULE}, {.rule=TOKEN_ID, .type=TOKEN}, {.rule=PARAMS2, .type=RULE}}, .count=3}, .action=action_stub};
+	prod_table[PARAMS][TOKEN_BOOLEAN] = (Production){.exp = {.items = {{.rule = TYPE, .type=RULE}, {.rule=TOKEN_ID, .type=TOKEN}, {.rule=PARAMS2, .type=RULE}}, .count = 3}, .action=action_stub};
+	prod_table[PARAMS][TOKEN_INT] = (Production){.exp = {.items = {{.rule= TYPE, .type=RULE},{.rule=TOKEN_ID, .type=TOKEN}, {.rule=PARAMS2, .type=RULE}}, .count=3}, .action=action_stub};
+	prod_table[PARAMS][TOKEN_VOID] = (Production){.exp = {.items = {{.rule=TYPE, .type=RULE}, {.rule=TOKEN_ID, .type=TOKEN}, {.rule=PARAMS2, .type=RULE}}, .count=3}, .action=action_stub};
+
+	//PARAMS2 productions
+	prod_table[PARAMS2][TOKEN_RPAR] = (Production){.exp = {.items = {}, .count=0}, .action=action_suite_unop};
+	prod_table[PARAMS2][TOKEN_VG] = (Production){.exp = {.items={{.rule=TOKEN_VG, .type=TOKEN}, {.rule=PARAMS, .type=RULE}}, .count=2}, .action=action_stub};
+
+	//TYPE productions
+	prod_table[TYPE][TOKEN_ID] = (Production){.exp = {.items={{.rule = TOKEN_ID, .type=TOKEN}}, .count=1}, .action=action_stub};
+	prod_table[TYPE][TOKEN_BOOLEAN] = (Production) {.exp = {.items={{.rule=TYPE_DEF, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[TYPE][TOKEN_INT] = (Production){.exp = {.items={{.rule = TYPE_DEF, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[TYPE][TOKEN_VOID] = (Production){.exp = {.items = {{.rule=TYPE_DEF, .type=RULE}}, .count=1}, .action=action_stub};
+
+	//TYPE_DEF productions
+	prod_table[TYPE_DEF][TOKEN_BOOLEAN] = (Production) {.exp = {.items={{.rule=TOKEN_BOOLEAN, .type=TOKEN}}, .count=1}, .action=action_stub};
+	prod_table[TYPE_DEF][TOKEN_INT] = (Production) {.exp = {.items={{.rule=TOKEN_INT, .type=TOKEN}}, .count=1}, .action=action_stub};
+	prod_table[TYPE_DEF][TOKEN_VOID] = (Production) {.exp = {.items={{.rule=TOKEN_VOID, .type=TOKEN}}, .count=1}, .action=action_stub};
+
+	//EXPR_OPT productions
+	prod_table[EXPR_OPT][TOKEN_ID] = (Production) {.exp = {.items={{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[EXPR_OPT][TOKEN_PTSVG] = (Production) {.exp = {.items ={}, .count=0}, .action=action_suite_unop};
+	prod_table[EXPR_OPT][TOKEN_LPAR] = (Production) {.exp = {.items={{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[EXPR_OPT][TOKEN_RPAR] = ( Production) {.exp = {.items={}, .count=0}, .action=action_suite_unop};
+	prod_table[EXPR_OPT][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[EXPR_OPT][TOKEN_OPP] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[EXPR_OPT][TOKEN_INT] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; // différence int et integer ?
+	prod_table[EXPR_OPT][TOKEN_STR] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_TRUE] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_THIS] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_NULL] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+	prod_table[EXPR_OPT][TOKEN_NEW] = (Production) {.exp = {.items = {{.rule=EXPR, .type=RULE}}, .count=1}, .action=action_stub}; 
+
+	//EXPR productions
+	prod_table[EXPR][TOKEN_ID] = (Production) {.exp = {.items = {{.rule=ASSIGN, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[EXPR][TOKEN_LPAR] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_OPP] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_STR] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_TRUE] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_THIS] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_NEW] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	prod_table[EXPR][TOKEN_NULL] = (Production) {.exp = {.items = {{.rule = ASSIGN, .type=RULE}}, .count=1}, .action = action_stub};
+	
+	// ASSIGN productions
+	prod_table[ASSIGN][TOKEN_ID] = (Production) {.exp = {.items = {{.rule = TOKEN_ID, .type=RULE}, {.rule=ASSIGN_ID, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_LPAR] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_OPP] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_STR] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_TRUE] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_THIS] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_NULL] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN][TOKEN_NEW] = (Production) {.exp = {.items = {{.rule = LOR_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+	
+	//ASSIGn_ID productions
+	prod_table[ASSIGN_ID][TOKEN_PTSVG] = (Production) {.exp = {.items={{.rule=POSTFIX_TAIL, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN_ID][TOKEN_LPAR] = (Production) {.exp = {.items={{.rule=POSTFIX_TAIL, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN_ID][TOKEN_RPAR] = (Production) {.exp = {.items={{.rule=POSTFIX_TAIL, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN_ID][TOKEN_VG] = (Production) {.exp = {.items={{.rule=POSTFIX_TAIL, .type=RULE}}, .count=1}, .action=action_stub};
+	prod_table[ASSIGN_ID][TOKEN_BINOP_EQ] = (Production) {.exp = {.items={{.rule=TOKEN_BINOP_EQ, .type=TOKEN}, {.rule=EXPR, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[ASSIGN_ID][TOKEN_PTS] = (Production) {.exp = {.items={{.rule=POSTFIX_EXPR, .type=RULE}}, .count=1}, .action=action_stub};
+
+	//LOR_EXPR productions
+	prod_table[LOR_EXPR][TOKEN_LPAR] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_OPP] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_INT] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_STR] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_TRUE] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_THIS] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_NULL] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LOR_EXPR][TOKEN_NEW] = (Production) {.exp = {.items = {{.rule=LAND_EXPR, .type=RULE},{.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	
+	//LOR_EXPR_SUITE productions	
+	prod_table[LOR_EXPR_SUITE][TOKEN_PTSVG] = (Production) {.exp = {.items={}, .count=0}, .action=action_suite_unop};
+	prod_table[LOR_EXPR_SUITE][TOKEN_RPAR] = (Production) {.exp = {.items={}, .count=0}, .action=action_suite_unop};
+	prod_table[LOR_EXPR_SUITE][TOKEN_VG] = (Production) {.exp = {.items={}, .count=0}, .action=action_suite_unop};
+	prod_table[LOR_EXPR_SUITE][TOKEN_BINOP_OR] = (Production) {.exp = {.items={{.rule=TOKEN_BINOP_OR, .type=TOKEN},{.rule=LAND_EXPR, .type=RULE},{.rule=LOR_EXPR_SUITE, .type=RULE}}, .count=3}, .action=action_stub};
+
+	//LAND_EXPR productions
+	prod_table[LAND_EXPR][TOKEN_LPAR] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_BINOP_SUB] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_OPP] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_INT] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_STR] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_TRUE] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_FALSE] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_THIS] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_NULL] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+	prod_table[LAND_EXPR][TOKEN_NEW] = (Production) {.exp = {.items={{.rule=EQ_EXPR, .type=RULE}, {.rule=LAND_EXPR_SUITE, .type=RULE}}, .count=2}, .action=action_stub};
+
+
 	// ADD productions
 	prod_table[ADD][TOKEN_BINOP_ADD]	= (Production) {.exp = {.items = {{.rule = MULT, .type = RULE}, {.rule = ADD_SUITE, .type = RULE}}, .count = 2}, .action = NULL};
 	prod_table[ADD][TOKEN_BINOP_SUB]	= (Production) {.exp = {.items = {{.rule = MULT, .type = RULE}, {.rule = ADD_SUITE, .type = RULE}}, .count = 2}, .action = NULL};
