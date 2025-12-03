@@ -84,7 +84,7 @@ void error_under_token(char* src, Token tok, const char* message, ...)
 	va_list args;
 	va_start(args, message);
 	fprintf(stderr, "\x1B[31mError\x1B[0m at line %d, column %d: \x1B[31m\"", line_num, col);
-		fprintf(stderr, message, args);
+		vfprintf(stderr, message, args);
 	fprintf(stderr, "\"\x1B[0m\n");
 	va_end(args);
 
@@ -115,7 +115,7 @@ void parser_error(const char* message, ...)
 	va_list args;
 	va_start(args, message);
 	fprintf(stderr, "\x1B[31m");
-		fprintf(stderr, message, args);
+		vfprintf(stderr, message, args);
 	fprintf(stderr, "\x1B[0m\n");
 	va_end(args);
 }

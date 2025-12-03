@@ -11,7 +11,7 @@ extern ASTStack* astk;
 extern Stack* stk;
 
 typedef struct {
-	NUT items[MAXIMUM_EXPANSION];  // Maximum expansion is 3 items + sentinel
+	NUT items[MAXIMUM_EXPANSION]; 	// max is 10 for now
 	int count;
 } Expansion;
 

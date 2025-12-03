@@ -25,7 +25,6 @@ typedef enum {
 	TOKEN_LPAR,
 	TOKEN_RPAR,
     TOKEN_CLASS,
-    TOKEN_KEYWORD,
     TOKEN_ID,
 
 	TOKEN_LACC,
