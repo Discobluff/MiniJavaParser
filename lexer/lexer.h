@@ -63,6 +63,8 @@ typedef enum {
 	TOKEN_UNOP_SUB,
 	TOKEN_UNOP_ADD,
 
+	TOKEN_ID_TYPE,
+
 	// leave at the end
 	TOKENTYPE_SIZE, 
 } TokenType;
