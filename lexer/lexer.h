@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define MAX_INIT_TYPE_BUFFER	16
+
 typedef enum {
 	TOKEN_NUMBER,
 
@@ -63,7 +65,7 @@ typedef enum {
 	TOKEN_UNOP_SUB,
 	TOKEN_UNOP_ADD,
 
-	TOKEN_ID_TYPE,
+	TOKEN_ID_TYPE,		// class names
 
 	// leave at the end
 	TOKENTYPE_SIZE, 
@@ -93,6 +95,9 @@ typedef struct Token Token;
 typedef struct {
 	char* source;
 	int length;
+	
+	int* decl_type_list;
+	int decl_type_list_size;
 
 	int pos;
 	Token tok;
@@ -120,6 +125,7 @@ void token_pprint(Token tok, Lexer* lex);
 
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
+void token_identifier(Lexer* lex, Token tok, char* buf, int bufsize);
 bool token_type_equality(TokenType tok1, Token tok2);
 
 #endif

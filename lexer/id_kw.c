@@ -36,7 +36,20 @@ Token id_kw_class (Lexer* lex, int start) {
     }
     else {
         tok.type = get_keyword_token(content);
+        if (tok.type == TOKEN_ID) {
+            // check if it's a declared type
+            for (int i=0; i<lex->decl_type_list_size; i++) {
+                char content1[32]; char content2[32];
+                token_identifier(lex, tok, content1, 32);
+                token_identifier(lex, (Token){.type = TOKEN_ID_TYPE, .position = lex->decl_type_list[i]}, content2, 32);
+                printf("Comparing %s and %s %d\n", content1, content2, i);
+                if (strcmp(content1, content2) == 0) {
+                    tok.type = TOKEN_ID_TYPE;
+                    return tok;
+                }
+            }
         }
+    }
     return tok;
     
 }
