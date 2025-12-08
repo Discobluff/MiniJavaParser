@@ -393,6 +393,11 @@ void token_pprint(Token tok, Lexer* lex) // mabe source file???
 	if (tok.type == TOKEN_NUMBER) {
 			printf(" (value: %d)", token_number(lex, tok));
 	}
+	if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
+		char buf[64];
+		token_identifier(lex, tok, buf, sizeof(buf));
+		printf(" (name: %s)", buf);
+	}
 	printf("\n");
 }
 

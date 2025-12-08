@@ -72,7 +72,6 @@ typedef enum {
 } TokenType;
 
 
-// TODO: what do we do with identifiers? (put them directely in the symbol table and pass them by index?)
 /**
  * A token is a position of the start of the token and a beginning:
  * The content is recomputed on demand and casted to the right type

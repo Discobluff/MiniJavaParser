@@ -57,6 +57,9 @@ typedef enum {
 	STMT_IF,
 	BLOCK,
 
+	METHODE,
+	CONST_OR_METH,
+
 	// TYPE_DEF,
 	// STMT_IDENT,
 

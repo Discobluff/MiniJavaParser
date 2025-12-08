@@ -52,15 +52,32 @@ void init_prod_table(void)
 	// productions DECLA
     prod_table[DECLA][TOKEN_ID_TYPE] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.token = TOKEN_ID, .type = TOKEN}, {.rule = DECL_TYPE_IDENT, .type = RULE}}, .count = 3}, .action = action_stub};
     prod_table[DECLA][TOKEN_PUBLIC] = (Production) {.exp = {.items = {{.token = TOKEN_PUBLIC, .type = TOKEN}, {.rule = DECL_PUBLIC, .type = RULE}}, .count = 2}, .action = action_stub};
-    prod_table[DECLA][TOKEN_STATIC] = (Production) {.exp = {.items = {{.token = TOKEN_STATIC, .type = TOKEN}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[DECLA][TOKEN_STATIC] = (Production) {.exp = {.items = {{.token = TOKEN_STATIC, .type = TOKEN}, {.rule = CONST_OR_METH, .type = RULE}}, .count = 2}, .action = action_stub};
     prod_table[DECLA][TOKEN_ID] = (Production) {.exp = {.items = {{.token = TOKEN_ID, .type = TOKEN}, {.rule = CONST_TAIL, .type = RULE}}, .count = 2}, .action = action_stub};
     prod_table[DECLA][TOKEN_BOOLEAN] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.token = TOKEN_ID, .type = TOKEN}, {.rule = DECL_TYPE_IDENT, .type = RULE}}, .count = 3}, .action = action_stub};
     prod_table[DECLA][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.token = TOKEN_ID, .type = TOKEN}, {.rule = DECL_TYPE_IDENT, .type = RULE}}, .count = 3}, .action = action_stub};
     prod_table[DECLA][TOKEN_VOID] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.token = TOKEN_ID, .type = TOKEN}, {.rule = DECL_TYPE_IDENT, .type = RULE}}, .count = 3}, .action = action_stub};
 
 	// productions DECL_PUBLIC
-    prod_table[DECL_PUBLIC][TOKEN_STATIC] = (Production) {.exp = {.items = {{.token = TOKEN_STATIC, .type = TOKEN}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
-    prod_table[DECL_PUBLIC][TOKEN_ID] = (Production) {.exp = {.items = {{.rule = CONST, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_ID_TYPE] = (Production) {.exp = {.items = {{.rule = CONST_OR_METH, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_STATIC] = (Production) {.exp = {.items = {{.token = TOKEN_STATIC, .type = TOKEN}, {.rule = CONST_OR_METH, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_ID] = (Production) {.exp = {.items = {{.rule = CONST_OR_METH, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_BOOLEAN] = (Production) {.exp = {.items = {{.rule = CONST_OR_METH, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = CONST_OR_METH, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[DECL_PUBLIC][TOKEN_VOID] = (Production) {.exp = {.items = {{.rule = CONST_OR_METH, .type = RULE}}, .count = 1}, .action = action_stub};
+
+	// productions CONST_OR_METH
+    prod_table[CONST_OR_METH][TOKEN_ID_TYPE] = (Production) {.exp = {.items = {{.rule = METHODE, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[CONST_OR_METH][TOKEN_ID] = (Production) {.exp = {.items = {{.rule = CONST, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[CONST_OR_METH][TOKEN_BOOLEAN] = (Production) {.exp = {.items = {{.rule = METHODE, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[CONST_OR_METH][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = METHODE, .type = RULE}}, .count = 1}, .action = action_stub};
+    prod_table[CONST_OR_METH][TOKEN_VOID] = (Production) {.exp = {.items = {{.rule = METHODE, .type = RULE}}, .count = 1}, .action = action_stub};
+
+	// productions METHODE
+    prod_table[METHODE][TOKEN_ID_TYPE] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[METHODE][TOKEN_BOOLEAN] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[METHODE][TOKEN_INT] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[METHODE][TOKEN_VOID] = (Production) {.exp = {.items = {{.rule = TYPE, .type = RULE}, {.rule = CONST, .type = RULE}}, .count = 2}, .action = action_stub};
 
 	// productions CONST_TAIL
     prod_table[CONST_TAIL][TOKEN_LPAR] = (Production) {.exp = {.items = {{.token = TOKEN_LPAR, .type = TOKEN}, {.rule = PARAMS_OPT, .type = RULE}, {.token = TOKEN_RPAR, .type = TOKEN}, {.token = TOKEN_LACC, .type = TOKEN}, {.rule = STMT_LIST, .type = RULE}, {.token = TOKEN_RACC, .type = TOKEN}}, .count = 6}, .action = action_stub};
