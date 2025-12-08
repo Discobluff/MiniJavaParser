@@ -397,7 +397,7 @@ void token_pprint(Token tok, Lexer* lex) // mabe source file???
 }
 
 /**
- * this exists because the unop and binop versions of + and - are the "same" thing from a synthax perspective
+ * this exists because the unop and binop versions of + and - are the "same" thing from a syntax perspective
  */
 bool token_type_equality(TokenType tok1, Token tok2)
 {
