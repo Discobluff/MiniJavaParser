@@ -100,7 +100,7 @@ void lexer_next(Lexer* lex)
 	}
 
 	/* ---------On lit une lettre --------*/
-	if (isalpha(c)) {
+	if (isalpha(c) || c=='_') {
 		Token tok = id_kw_class(lex, start);
 		lex->tok = tok;
 		return ;
