@@ -59,12 +59,20 @@ typedef enum {
 
 	METHODE,
 	CONST_OR_METH,
-
+	CRO_OPT,
 	// TYPE_DEF,
 	// STMT_IDENT,
-
+	CONST_OR_METH_OR_ATTR,
+	FUNCTION_TAIL,
+	METH_OR_ATTR,
+	CONST_OR_METH_SOL,
+	PARAMS_TAIL,
+	ASSIGNMENT,
+	ASSIGNEMENT_REC,
+	STMT_IDENT,
+	ASSIGNEMENT_REC_IDENT,
 	// leave at the end
-	RULE_SIZE
+	RULE_SIZE,
 } Rule;
 
 // Node in the parser stack: either a rule (non-terminal) or token (terminal)

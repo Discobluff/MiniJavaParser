@@ -59,6 +59,7 @@ AST* parse_main(Lexer* lex, int debug)
 					lexer_next(lex);
 				} else {
 					parser_error("Expected token %d, got %d", curr.token, current_token.type);
+					error_under_token(lex->source, current_token, "");
 					exit(1);
 				}
 				break;
