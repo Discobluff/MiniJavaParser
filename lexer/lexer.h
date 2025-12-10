@@ -120,5 +120,6 @@ void token_pprint(Token tok, Lexer* lex);
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
 bool token_type_equality(TokenType tok1, Token tok2);
+void advancetonextline(Lexer *lex);
 
 #endif
