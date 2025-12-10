@@ -1,9 +1,9 @@
 #ifndef PARSEERR_H
 #define PARSERR_H
 
-#include "parse.h"
-#include "../lexer/lexer.h"
-#include "../error/print_error.h"
+#include <parser/parse.h>
+#include <lexer/lexer.h>
+#include <error/print_error.h>
 
 void init_err_table(void);
 void panicmode(Lexer *lex, Stack *stk);

@@ -1,7 +1,10 @@
-#include "ast.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+
+#include <ast/ast.h>
+
 
 AST* create_number_node(size_t value)
 {

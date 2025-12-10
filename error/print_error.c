@@ -1,9 +1,12 @@
-#include "lexer/lexer.h"
-#include "parser/parse.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+
+#include <lexer/lexer.h>
+#include <parser/parse.h>
+
+
 
 void error_print(Lexer* lex, const char* message)
 {

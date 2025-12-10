@@ -1,4 +1,4 @@
-#include "prod_table.h"
+#include <parser/prod_table.h>
 
 void init_prod_table(void)
 {

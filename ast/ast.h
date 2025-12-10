@@ -2,7 +2,7 @@
 #define AST_H
 
 #include <stdlib.h>
-#include "../lexer/lexer.h"
+#include <lexer/lexer.h>
 /**
  * Output of the parser input of the type checker.
  */

@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "lexer.h"
-#include "id_kw.h"
-#include "string_lex.h"
-#include "error/print_error.h"
 
+#include <lexer/lexer.h>
+#include <lexer/id_kw.h>
+#include <lexer/string_lex.h>
+#include <error/print_error.h>
 
 // Initialize a lexer with source code
 Lexer* lexer_init(char* src, int len)

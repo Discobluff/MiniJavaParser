@@ -3,7 +3,11 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "parseerrors.h"
+
+
+#include <parser/parseerrors.h>
+
+
 char* err_table[RULE_SIZE][TOKENTYPE_SIZE];
 /*
 "Votre compilateur ne doit pas s’arrêter après une erreur lexicale ou syntaxique détectée, mais tenter de poursuivre
@@ -20,7 +24,7 @@ Pour ce qui est de err_table :
 */
 void panicmode(Lexer *lex, Stack *stk) {
     NUT curr = stack_pop(stk);
-    while (curr.type != TOKEN_PTSVG || curr.type != TOKEN_LACC) {
+    while (curr.token != TOKEN_PTSVG && curr.token != TOKEN_LACC) {
         curr = stack_pop(stk);
     }
     advancetonextline(lex);

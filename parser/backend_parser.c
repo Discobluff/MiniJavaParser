@@ -1,5 +1,5 @@
-#include "backend_parser.h"
-#include "error/print_error.h"
+#include <parser/backend_parser.h>
+#include <error/print_error.h>
 #include <stdio.h>
 
 Stack* stack_init()

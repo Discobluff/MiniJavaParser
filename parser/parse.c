@@ -1,6 +1,6 @@
-#include "parse.h"
-#include "prod_table.h"
-#include "parseerrors.h"
+#include <parser/parse.h>
+#include <parser/prod_table.h>
+#include <parser/parseerrors.h>
 
 ASTStack* astk;
 Stack* stk;

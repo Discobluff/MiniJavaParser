@@ -1,7 +1,7 @@
 #ifndef PROD_TABLE_H
 #define PROD_TABLE_H
 
-#include "parse.h"
+#include <parser/parse.h>
 
 
 extern Production prod_table[RULE_SIZE][TOKENTYPE_SIZE];
