@@ -111,8 +111,19 @@ char *itoa(int i){
     return buffer;
 }
 
-char *ctoce(char c){
+char *ctoce(TokenType c){
     static char str[2];
+    switch (c) {
+        case TOKEN_BINOP_ADD: c = '+'; break;
+        case TOKEN_BINOP_SUB: c = '-'; break;
+        case TOKEN_BINOP_MULT: c = '*'; break;
+        case TOKEN_BINOP_DIV: c = '/'; break;
+        case TOKEN_BINOP_MOD: c = '%'; break;
+        case TOKEN_UNOP_ADD: c = '+'; break;
+        case TOKEN_UNOP_SUB: c = '-'; break;
+        case TOKEN_OPP: c = '!'; break;
+        default: return "?";
+    }
     str[0] = c;
     str[1] = '\0';
     return str;
