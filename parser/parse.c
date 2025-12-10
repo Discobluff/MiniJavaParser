@@ -7,42 +7,6 @@ Stack* stk;
 
 Production prod_table[RULE_SIZE][TOKENTYPE_SIZE];
 
-// table of Productions indexed by non-terminals (Rule) and tokens (TokenType) santa maria madre de dios
-
-
-static AST* create_ast_token(Token token, Lexer* lex)
-{
-	// printf("Creating AST for token type: %d\n", token.type);
-
-	switch (token.type) {
-		case TOKEN_NUMBER:
-			return create_number_node(token_number(lex, token));
-		case TOKEN_TRUE:
-			return create_number_node(1);
-		case TOKEN_FALSE:
-			return create_number_node(0);
-		case TOKEN_BINOP_ADD:
-			return create_binary_op_node('+', NULL, NULL);
-		case TOKEN_BINOP_SUB:
-			return create_binary_op_node('-', NULL, NULL);
-		case TOKEN_BINOP_MULT:
-			return create_binary_op_node('*', NULL, NULL);
-		case TOKEN_BINOP_DIV:
-			return create_binary_op_node('/', NULL, NULL);
-		case TOKEN_BINOP_MOD:
-			return create_binary_op_node('%', NULL, NULL);
-		case TOKEN_OPP:
-			return create_unary_op_node('!', NULL);
-		case TOKEN_UNOP_ADD:
-			return create_unary_op_node('+', NULL);
-		case TOKEN_UNOP_SUB:
-			return create_unary_op_node('-', NULL);
-		default:
-			return NULL;
-	}
-}
-
-
 AST* parse_main(Lexer* lex, int debug)
 {
 	init_prod_table();
@@ -83,7 +47,7 @@ AST* parse_main(Lexer* lex, int debug)
 				}
 
 				if (prod.action) {
-					prod.action();
+					prod.action(lex);
 				}
 				break;
 			}
@@ -91,13 +55,12 @@ AST* parse_main(Lexer* lex, int debug)
 				if (curr.token == TOKEN_EOF && curr.token == current_token.type)
 					break;
 
-				if (token_type_equality(curr.token, current_token)) { 
-					lexer_next(lex);
-				} else {
-					parser_error("Expected token %d, got %d", curr.token, current_token.type);
-					error_under_token(lex->source, current_token, "");
+				if (curr.token != current_token.type) {
+					error_under_token(lex->source, current_token, "Unexpected token");
 					exit(1);
 				}
+				lexer_next(lex);
+
 				break;
 			}
 		}

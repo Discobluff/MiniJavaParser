@@ -1,34 +1,52 @@
 #include "actions.h"
 
-void action_suite_binop(void)
+void action_binop_create(Lexer* lex)
 {
-	if (astk->top < 3) {
-		return ; // cannot reduce 
-	}
+	AST* value = ast_stack_pop(astk);
 
-	AST* right = ast_stack_pop(astk);
-	AST* acc = ast_stack_pop(astk);
-	AST* left = ast_stack_pop(astk);
+	AST* node = create_binary_op_node(lexer_giveToken(lex).type, value, NULL);
 
-
-	while (acc && acc->type == BINARY_OP) {
-		acc->data.binary.left = left;
-		acc->data.binary.right = right;
-		
-		right = acc;
-		
-		if (astk->top >= 2) {
-			acc = ast_stack_pop(astk);
-			left = ast_stack_pop(astk);
-		} else {
-			break ;
-		}
-	}
-	ast_stack_push(astk, acc);
+	ast_stack_push(astk, node);
 	return ;
 }
 
-void action_suite_unop(void)
+void action_unop_create(Lexer* lex)
+{
+	AST* node = create_unary_op_node(lexer_giveToken(lex).type, NULL);
+
+	ast_stack_push(astk, node);
+	return ;
+}
+
+void action_binop_end(__attribute__((unused))Lexer* _lex)
+{
+	if (astk->top < 2)
+		return ; // cannot reduce 
+
+	    AST* value = ast_stack_pop(astk);
+    
+    // Keep combining with binary operators while they exist
+    while (astk->top >= 1)
+    {
+        AST* operator_node = ast_stack_peek(astk);
+        
+        // Check if it's a binary operator waiting for a right operand
+        if (operator_node && operator_node->type == BINARY_OP && operator_node->data.binary.right == NULL)
+        {
+            ast_stack_pop(astk); // remove the operator
+            operator_node->data.binary.right = value;
+            value = operator_node; // this becomes the new value
+        }
+        else
+        {
+            break; // no more binary operators waiting
+        }
+    }
+	ast_stack_push(astk, value);
+	return ;
+}
+
+void action_unop_end(__attribute__((unused)) Lexer* _lex)
 {
 	if (astk->top < 1)
 		return ;
@@ -55,5 +73,24 @@ void action_suite_unop(void)
 	return ;
 }
 
+void action_create_number_leaf(Lexer* lex)
+{
+	Token tok = lexer_giveToken(lex);
+
+	AST* number_node = create_number_node(token_number(lex, tok));
+	ast_stack_push(astk, number_node);
+	return ;
+}
+
+void action_create_boolean_leaf(Lexer* lex)
+{
+	Token tok = lexer_giveToken(lex);
+
+	size_t value = (tok.type == TOKEN_TRUE) ? 1 : 0;
+	AST* boolean_node = create_number_node(value);
+	ast_stack_push(astk, boolean_node);
+	return ;
+}
+
 // what the sigma? used for not having NULL as the action function (so we know when we have an error in the main loop of the parser)
-void action_stub(void) { return ; }
+void action_stub(__attribute__((unused)) Lexer* _lex) { return ; }
