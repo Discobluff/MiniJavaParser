@@ -416,3 +416,12 @@ bool token_type_equality(TokenType tok1, Token tok2)
 		return tok2.type == TOKEN_BINOP_ADD || tok2.type == TOKEN_UNOP_ADD;
 	}
 }
+
+void advancetonextline(Lexer *lex) {
+	char c = peek(lex);
+	while(c != '\n') {
+		advance(lex);
+	}
+	//lex->source[pos] = '\n'
+	lexer_next(lex);
+}

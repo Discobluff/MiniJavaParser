@@ -19,7 +19,11 @@ ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
 AST_SRCS = $(AST_DIR)/ast.c $(AST_DIR)/displayAst.c
 AST_OBJS = $(AST_SRCS:.c=.o)
+<<<<<<< HEAD
 PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/prod_table.c $(PARSER_DIR)/backend_parser.c $(PARSER_DIR)/actions/actions.c
+=======
+PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/prod_table.c $(PARSER_DIR)/backend_parser.c $(PARSER_DIR)/actions/actions.c $(PARSER_DIR)/parseerrors.c
+>>>>>>> feat(errors): clean. Added syntaxic errors
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 TARGET = main

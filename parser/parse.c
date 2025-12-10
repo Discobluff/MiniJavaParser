@@ -1,16 +1,52 @@
 #include "parse.h"
-#include "parser/prod_table.h"
+#include "prod_table.h"
+#include "parseerrors.h"
 
 ASTStack* astk;
 Stack* stk;
 
-
 Production prod_table[RULE_SIZE][TOKENTYPE_SIZE];
+
+// table of Productions indexed by non-terminals (Rule) and tokens (TokenType) santa maria madre de dios
+
+
+static AST* create_ast_token(Token token, Lexer* lex)
+{
+	// printf("Creating AST for token type: %d\n", token.type);
+
+	switch (token.type) {
+		case TOKEN_NUMBER:
+			return create_number_node(token_number(lex, token));
+		case TOKEN_TRUE:
+			return create_number_node(1);
+		case TOKEN_FALSE:
+			return create_number_node(0);
+		case TOKEN_BINOP_ADD:
+			return create_binary_op_node('+', NULL, NULL);
+		case TOKEN_BINOP_SUB:
+			return create_binary_op_node('-', NULL, NULL);
+		case TOKEN_BINOP_MULT:
+			return create_binary_op_node('*', NULL, NULL);
+		case TOKEN_BINOP_DIV:
+			return create_binary_op_node('/', NULL, NULL);
+		case TOKEN_BINOP_MOD:
+			return create_binary_op_node('%', NULL, NULL);
+		case TOKEN_OPP:
+			return create_unary_op_node('!', NULL);
+		case TOKEN_UNOP_ADD:
+			return create_unary_op_node('+', NULL);
+		case TOKEN_UNOP_SUB:
+			return create_unary_op_node('-', NULL);
+		default:
+			return NULL;
+	}
+}
 
 
 AST* parse_main(Lexer* lex, int debug)
 {
 	init_prod_table();
+	init_err_table();
 
 	stk = stack_init();
 	astk = ast_stack_init(); 	// the astk is global now deal wif it ...
@@ -38,7 +74,7 @@ AST* parse_main(Lexer* lex, int debug)
 				
 				// Check if production exists (internal error)
 				if (prod.exp.count == 0 && prod.action == NULL) {
-					parser_error("No production for rule %d and token %d", curr.rule, current_token.type);
+					print_syntax_error(lex, curr.rule, current_token.type);
 					exit(1);
 				}
 
