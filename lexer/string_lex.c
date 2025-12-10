@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "lexer.h"
-#include "string_lex.h"
-#include "../error/print_error.h"
+
+
+#include <lexer/lexer.h>
+#include <lexer/string_lex.h>
+#include <error/print_error.h>
 
 
 bool good_string(Lexer* lex) {

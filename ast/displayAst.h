@@ -1,7 +1,7 @@
 #ifndef DISPLAY_AST_H
 #define DISPLAY_AST_H
 
-#include "ast.h"
+#include <ast/ast.h>
 
 void mainloop(AST *ast);
 

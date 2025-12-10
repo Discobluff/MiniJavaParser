@@ -1,4 +1,4 @@
-#include "actions.h"
+#include <parser/actions/actions.h>
 
 void action_binop_create(Lexer* lex)
 {

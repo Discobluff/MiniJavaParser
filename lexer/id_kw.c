@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
-#include "lexer.h"
-#include "id_kw.h"
+
+
+#include <lexer/lexer.h>
+#include <lexer/id_kw.h>
 
 
 Token id_kw_class (Lexer* lex, int start) {

@@ -1,7 +1,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include "ast.h"
 #include <stdbool.h>
+
+
+#include <ast/ast.h>
+
 
 SDL_Window *win;
 SDL_Renderer *ren;

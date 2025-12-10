@@ -2,8 +2,8 @@
 #define BACKEND_PARSER_H
 
 
-#include "lexer/lexer.h"
-#include "ast/ast.h"
+#include <lexer/lexer.h>
+#include <ast/ast.h>
 
 #define PARSER_STACK_SIZE 256
 
