@@ -1,7 +1,8 @@
 #ifndef AST_H
 #define AST_H
-#include <stdlib.h>
 
+#include <stdlib.h>
+#include "../lexer/lexer.h"
 /**
  * Output of the parser input of the type checker.
  */
@@ -25,7 +26,7 @@ typedef enum {
 	PARAM,
 
 	/*For Stmt rule*/
-	DECLSTMT, 	//type ident;
+	DECLSTMT, 	// type ident;
 	DEF,		// type ident = expr
 	OPT,		// if (stmt) {stmt} else {stmt}
 	FOR, 		// for(expr;expr;expr)
@@ -58,13 +59,13 @@ typedef enum {
 typedef struct AST AST;
 
 typedef struct {
-	char op;
+	TokenType op;
 	AST* left;
 	AST* right;
 } BinaryOp;
 
 typedef struct {
-	char op;
+	TokenType op;
 	AST* operand;
 } UnaryOp;
 
@@ -189,8 +190,8 @@ struct AST {
 
 
 AST* create_number_node(size_t value);
-AST* create_binary_op_node(char op, AST* left, AST* right);
-AST* create_unary_op_node(char op, AST* operand);
+AST* create_binary_op_node(TokenType op, AST* left, AST* right);
+AST* create_unary_op_node(TokenType op, AST* operand);
 AST* create_variable_node(char* name, int size);
 AST* create_dot_node (AST* expr, AST* id);
 AST* create_affect_node (AST* id, AST* value);
