@@ -11,7 +11,7 @@ AST* create_number_node(size_t value)
 	return node;
 }
 
-AST* create_binary_op_node(char op, AST* left, AST* right)
+AST* create_binary_op_node(TokenType op, AST* left, AST* right)
 {
 	AST *node = malloc(sizeof(AST));
 	node->type = BINARY_OP;
@@ -21,7 +21,7 @@ AST* create_binary_op_node(char op, AST* left, AST* right)
 	return node;
 }
 
-AST* create_unary_op_node(char op, AST* operand)
+AST* create_unary_op_node(TokenType op, AST* operand)
 {
 	AST *node = malloc(sizeof(AST));
 	node->type = UNARY_OP;
@@ -196,6 +196,9 @@ int maxList(AST **astList, int len){
 }
 
 int depth(AST *ast){
+	if (ast == NULL)
+		return 0;
+
 	switch (ast->type){
 		case NUMBER:
 		case VARIABLE:
@@ -249,10 +252,10 @@ size_t evaluate(AST *node)
 			size_t left = evaluate(node->data.binary.left);
 			size_t right = evaluate(node->data.binary.right);
 			switch (node->data.binary.op) {
-				case '+': return left + right;
-				case '-': return left - right;
-				case '*': return left * right;
-				case '/': return left / right;
+				case TOKEN_BINOP_ADD: return left + right;
+				case TOKEN_BINOP_SUB: return left - right;
+				case TOKEN_BINOP_MULT: return left * right;
+				case TOKEN_BINOP_DIV: return left / right;
 				default: return 0;
 			}
 		}
@@ -260,8 +263,8 @@ size_t evaluate(AST *node)
 		case UNARY_OP: {
 			size_t operand = evaluate(node->data.unary.operand);
 			switch (node->data.unary.op) {
-				case '-': return -operand;
-				case '!': return !operand;
+				case TOKEN_BINOP_SUB: return -operand;
+				case TOKEN_OPP: return !operand;
 				default: return operand;
 			}
 		}
@@ -286,13 +289,13 @@ void print_ast(AST *node, int depth)
 			break;
 		
 		case BINARY_OP:
-			printf("BinaryOp: %c\n", node->data.binary.op);
+			printf("BinaryOp: %s\n", token_type_name(node->data.binary.op));
 			print_ast(node->data.binary.left, depth + 1);
 			print_ast(node->data.binary.right, depth + 1);
 			break;
 		
 		case UNARY_OP:
-			printf("UnaryOp: %c\n", node->data.unary.op);
+			printf("UnaryOp: %s\n", token_type_name(node->data.unary.op));
 			print_ast(node->data.unary.operand, depth + 1);
 			break;
 		
