@@ -1,8 +1,8 @@
-#include "../parse.h"
-#include "../backend_parser.h"
-#include "../../lexer/lexer.h"
-#include "../../ast/ast.h"
-#include "../../error/print_error.h"
+#include <parse.h>
+#include <backend_parser.h>
+#include <lexer/lexer.h>
+#include <ast/ast.h>
+#include <error/print_error.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -88,7 +88,7 @@ void test_parse_number() {
     TEST("parse_main - simple number") {
         Lexer* lex = lexer_init("42", 2);
         lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_number(ast, 42, "Number 42");
         
@@ -102,7 +102,7 @@ void test_parse_true() {
     TEST("parse_main - boolean true") {
         Lexer* lex = lexer_init("true", 4);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_number(ast, 1, "True (converted to 1)");
         
@@ -116,7 +116,7 @@ void test_parse_false() {
     TEST("parse_main - boolean false") {
         Lexer* lex = lexer_init("false", 5);
         lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_number(ast, 0, "False (converted to 0)");
         
@@ -134,7 +134,7 @@ void test_parse_addition() {
     TEST("parse_main - simple addition (2 + 3)") {
         Lexer* lex = lexer_init("2 + 3", 5);
         lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '+', "Addition");
         verify_number(ast->data.binary.left, 2, "Left operand");
@@ -150,7 +150,7 @@ void test_parse_subtraction() {
     TEST("parse_main - simple subtraction (10 - 7)") {
         Lexer* lex = lexer_init("10 - 7", 6);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '-', "Subtraction");
         verify_number(ast->data.binary.left, 10, "Left operand");
@@ -166,7 +166,7 @@ void test_parse_multiplication() {
     TEST("parse_main - simple multiplication (4 * 5)") {
         Lexer* lex = lexer_init("4 * 5", 5);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '*', "Multiplication");
         verify_number(ast->data.binary.left, 4, "Left operand");
@@ -182,7 +182,7 @@ void test_parse_division() {
     TEST("parse_main - simple division (20 / 4)") {
         Lexer* lex = lexer_init("20 / 4", 6);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '/', "Division");
         verify_number(ast->data.binary.left, 20, "Left operand");
@@ -198,7 +198,7 @@ void test_parse_modulo() {
     TEST("parse_main - simple modulo (17 % 5)") {
         Lexer* lex = lexer_init("17 % 5", 6);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '%', "Modulo");
         verify_number(ast->data.binary.left, 17, "Left operand");
@@ -218,7 +218,7 @@ void test_parse_unary_minus() {
     TEST("parse_main - unary minus (-5)") {
         Lexer* lex = lexer_init("-5", 2);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_unary_op(ast, '-', "Unary minus");
         verify_number(ast->data.unary.operand, 5, "Operand");
@@ -233,7 +233,7 @@ void test_parse_unary_plus() {
     TEST("parse_main - unary plus (+8)") {
         Lexer* lex = lexer_init("+8", 2);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_unary_op(ast, '+', "Unary plus");
         verify_number(ast->data.unary.operand, 8, "Operand");
@@ -248,7 +248,7 @@ void test_parse_negation() {
     TEST("parse_main - logical negation (!true)") {
         Lexer* lex = lexer_init("!true", 5);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_unary_op(ast, '!', "Logical negation");
         verify_number(ast->data.unary.operand, 1, "Operand (true)");
@@ -263,7 +263,7 @@ void test_parse_double_negation() {
     TEST("parse_main - double negation (--5)") {
         Lexer* lex = lexer_init("--5", 3);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_unary_op(ast, '-', "First negation");
         verify_unary_op(ast->data.unary.operand, '-', "Second negation");
@@ -283,7 +283,7 @@ void test_parse_precedence_mult_over_add() {
     TEST("parse_main - precedence: 2 + 3 * 4") {
         Lexer* lex = lexer_init("2 + 3 * 4", 9);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '+', "Top level addition");
         verify_number(ast->data.binary.left, 2, "Left is 2");
@@ -301,7 +301,7 @@ void test_parse_precedence_mult_over_sub() {
     TEST("parse_main - precedence: 10 - 2 * 3") {
         Lexer* lex = lexer_init("10 - 2 * 3", 10);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         // Result should be: 10 - (2 * 3)
         verify_binary_op(ast, '-', "Top level subtraction");
@@ -320,7 +320,7 @@ void test_parse_precedence_div_over_add() {
     TEST("parse_main - precedence: 5 + 20 / 4") {
         Lexer* lex = lexer_init("5 + 20 / 4", 10);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '+', "Top level addition");
         verify_number(ast->data.binary.left, 5, "Left is 5");
@@ -340,7 +340,7 @@ void test_parse_left_assoc_addition() {
     TEST("parse_main - left associativity: 1 + 2 + 3") {
         Lexer* lex = lexer_init("1 + 2 + 3", 9);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '+', "Rightmost addition");
         verify_binary_op(ast->data.binary.left, '+', "Leftmost addition");
@@ -358,7 +358,7 @@ void test_parse_left_assoc_subtraction() {
     TEST("parse_main - left associativity: 10 - 3 - 2") {
         Lexer* lex = lexer_init("10 - 3 - 2", 10);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '-', "Rightmost subtraction");
         verify_binary_op(ast->data.binary.left, '-', "Leftmost subtraction");
@@ -376,7 +376,7 @@ void test_parse_left_assoc_multiplication() {
     TEST("parse_main - left associativity: 2 * 3 * 4") {
         Lexer* lex = lexer_init("2 * 3 * 4", 9);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         // Parser produces right-associative structure: 2 * (3 * 4)
         // This is actually correct behavior for the current implementation
@@ -400,7 +400,7 @@ void test_parse_complex_expression_1() {
     TEST("parse_main - complex: 2 + 3 * 4 - 5") {
         Lexer* lex = lexer_init("2 + 3 * 4 - 5", 13);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         // Result should be: (2 + (3 * 4)) - 5
         verify_binary_op(ast, '-', "Top level subtraction");
@@ -421,7 +421,7 @@ void test_parse_complex_expression_2() {
     TEST("parse_main - complex: -2 * 3 + 4") {
         Lexer* lex = lexer_init("-2 * 3 + 4", 10);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_binary_op(ast, '+', "Top level addition");
         verify_binary_op(ast->data.binary.left, '*', "Multiplication");
@@ -437,7 +437,7 @@ void test_parse_complex_expression_3() {
     TEST("parse_main - complex: 10 / 2 + 3 * 4 - 1") {
         Lexer* lex = lexer_init("10 / 2 + 3 * 4 - 1", 18);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         ASSERT(ast != NULL, "AST created");
         ASSERT(ast->type == BINARY_OP, "Root is binary operation");
@@ -452,7 +452,7 @@ void test_parse_complex_unary_chain() {
     TEST("parse_main - complex: -+-5") {
         Lexer* lex = lexer_init("-+-5", 4);
 		lexer_next(lex);
-        AST* ast = parse_main(lex);
+        AST* ast = parse_main(lex, 0);
         
         verify_unary_op(ast, '-', "First unary minus");
         verify_unary_op(ast->data.unary.operand, '+', "Unary plus");

@@ -26,6 +26,7 @@ void action_binop_create(Lexer* lex);
 
 void action_unop_end(Lexer* lex);
 void action_binop_end(Lexer* lex);
+void action_binop_end_for_mult(Lexer* lex);
 
 
 void action_create_number_leaf(Lexer* lex);

@@ -16,9 +16,9 @@ void init_prod_table(void)
     prod_table[ADD_SUITE][TOKEN_EOF]       = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
 
 	// productions MULT
-    prod_table[MULT][TOKEN_BINOP_ADD] = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
-    prod_table[MULT][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
-    prod_table[MULT][TOKEN_OPP]       = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
+    prod_table[MULT][TOKEN_BINOP_ADD] = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_binop_create};
+    prod_table[MULT][TOKEN_BINOP_SUB] = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_binop_create};
+    prod_table[MULT][TOKEN_OPP]       = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_binop_create};
     prod_table[MULT][TOKEN_NUMBER]    = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
     prod_table[MULT][TOKEN_TRUE]      = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
     prod_table[MULT][TOKEN_FALSE]     = (Production) {.exp = {.items = {{.rule = UNARY, .type = RULE}, {.rule = MULT_SUITE, .type = RULE}}, .count = 2}, .action = action_stub};
@@ -50,12 +50,12 @@ void init_prod_table(void)
     prod_table[POSTFIX_EXPR][TOKEN_FALSE] = (Production) {.exp = {.items = {{.rule = PRIMARY, .type = RULE}, {.rule = POSTFIX_TAIL, .type = RULE}}, .count = 2}, .action = action_stub};
 
 	// productions POSTFIX_TAIL
-    prod_table[POSTFIX_TAIL][TOKEN_BINOP_ADD]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
-    prod_table[POSTFIX_TAIL][TOKEN_BINOP_SUB]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
-    prod_table[POSTFIX_TAIL][TOKEN_BINOP_MULT] = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
-    prod_table[POSTFIX_TAIL][TOKEN_BINOP_DIV]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
-    prod_table[POSTFIX_TAIL][TOKEN_BINOP_MOD]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
-    prod_table[POSTFIX_TAIL][TOKEN_EOF]        = (Production) {.exp = {.items = {}, .count = 0}, .action = action_unop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_BINOP_ADD]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_BINOP_SUB]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_BINOP_MULT] = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_BINOP_DIV]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_BINOP_MOD]  = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
+    prod_table[POSTFIX_TAIL][TOKEN_EOF]        = (Production) {.exp = {.items = {}, .count = 0}, .action = action_binop_end};
 
 	// productions PRIMARY
     prod_table[PRIMARY][TOKEN_NUMBER]= (Production) {.exp = {.items = {{.token = TOKEN_NUMBER, .type = TOKEN}}, .count = 1}, .action = action_create_number_leaf};
