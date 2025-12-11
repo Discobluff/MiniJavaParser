@@ -18,20 +18,21 @@ void action_unop_create(Lexer* lex)
 	return ;
 }
 
-void action_binop_end(__attribute__((unused))Lexer* _lex)
+void action_binop_end(__attribute__((unused)) Lexer* _lex)
 {
 	if (astk->top < 2)
 		return ; // cannot reduce 
 
-	    AST* value = ast_stack_pop(astk);
-    
+	AST* value = ast_stack_pop(astk);
+    #include <stdio.h>
+    printf("===================================== Combining binary operators =====================================\n");
     // Keep combining with binary operators while they exist
     while (astk->top >= 1)
     {
         AST* operator_node = ast_stack_peek(astk);
         
         // Check if it's a binary operator waiting for a right operand
-        if (operator_node && operator_node->type == BINARY_OP && operator_node->data.binary.right == NULL)
+        if (operator_node && operator_node->type == BINARY_OP)
         {
             ast_stack_pop(astk); // remove the operator
             operator_node->data.binary.right = value;

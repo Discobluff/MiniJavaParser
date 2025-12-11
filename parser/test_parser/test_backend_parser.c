@@ -1,9 +1,12 @@
-#include "../backend_parser.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+
+
+#include <backend_parser.h>
+
 
 // Test counter
 static int tests_passed = 0;
@@ -108,13 +111,13 @@ void test_stack_push_token() {
         
         NUT nut;
         nut.type = TOKEN;
-        nut.token = create_test_token(TOKEN_BINOP_ADD);
+        nut.token = create_test_token(TOKEN_BINOP_ADD).type;
         
         stack_push(stk, nut);
         
         ASSERT(stk->top == 1, "Stack top should be 1");
         ASSERT(stk->items[0].type == TOKEN, "Item type should be TOKEN");
-        ASSERT(stk->items[0].token.type == TOKEN_BINOP_ADD, "Token type should be TOKEN_BINOP_ADD");
+        ASSERT(stk->items[0].token == TOKEN_BINOP_ADD, "Token type should be TOKEN_BINOP_ADD");
         
         free(stk);
         TEST_END();

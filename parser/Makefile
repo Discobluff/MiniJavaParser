@@ -13,6 +13,9 @@ TEST_DIR = test_parser
 # Source files
 PARSER_SRCS = $(PARSER_DIR)/backend_parser.c \
               $(PARSER_DIR)/parse.c \
+			  $(PARSER_DIR)/prod_table.c \
+			  $(PARSER_DIR)/actions/actions.c \
+			  $(PARSER_DIR)/parseerrors.c
 
 AST_SRCS = $(AST_DIR)/ast.c
 
