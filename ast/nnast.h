@@ -260,6 +260,73 @@ typedef struct {
 	ClassDecl** classes;
 } File;
 
+
+
 Type* create_type(TypeKind kind);
+Type* create_class_type(char* class_name);
+
+Expression* create_literal_int(int val);
+Expression* create_literal_boolean(int val);
+Expression* create_literal_string(char* val);
+Expression* create_literal_null();
+Expression* create_variable(char* name);
+Expression* create_binary_op(BinaryOp op, Expression* left, Expression* right);
+Expression* create_unary_op(UnaryOp op, Expression* operand);
+Expression* create_call(Expression* callee, Expression** args, int arg_count);
+Expression* create_new(Type* type, Expression** args, int arg_count);
+Expression* create_dot(Expression* object, char* field_name);
+Expression* create_cast(Type* target_type, Expression* expr);
+
+
+Statement* create_expr_stmt(Expression* expr);
+Statement* create_return_stmt(Expression* val);
+Statement* create_if_stmt(Expression* condition, Statement* then_branch, Statement* else_branch);
+Statement* create_for_stmt(Statement* init, Expression* condition, Expression* increment, Statement* body);
+Statement* create_block(Statement** stmts, int count);
+Statement* create_var_decl(Type* type, char* name, Expression* init);
+Statement* create_break_stmt();
+Statement* create_continue_stmt();
+
+
+Parameter* create_parameter(Type* type, char* name);
+
+Field* create_field(int modifiers, Type* type, char* name, Expression* initializer);
+
+Method* create_method(int modifiers, Type* return_type, char* name, Parameter** params, int param_count, Statement* body);
+
+Constructor* create_constructor(int modifiers, char* name, Parameter** params, int param_count, Statement* body);
+
+ClassDecl* create_class(char* name);
+void class_set_superclass(ClassDecl* cls, char* super_class);
+void class_add_field(ClassDecl* cls, Field* field);
+void class_add_constructor(ClassDecl* cls, Constructor* constructor);
+
+void class_add_method(ClassDecl* cls, Method* method);
+
+File* create_file();
+void file_add_class(File* file, ClassDecl* cls);
+
+
+File* example1();
+File* example2();
+
+
+void freeFile(File* file);
+void freeClass(ClassDecl* class);
+void freeMethod(Method* meth);
+void freeConstructor(Constructor* constr);
+void freeField(Field* field);
+void freeParameter(Parameter* param);
+void freeStatement(Statement* state);
+void freeVarDecl(VarDecl var);
+void freeIf(IfStmt ifstmt);
+void freeFor(ForStmt forstmt);
+void freeBlock(Block blk);
+void freeCallExpr(CallExpr cexpr);
+void freeNew(NewExpr n);
+void freeExpression(Expression* expr);
+void freeLiteral(Literal l);
+void freeType(Type* type);
+
 
 #endif
