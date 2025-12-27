@@ -8,7 +8,6 @@
 #include <lexer/string_lex.h>
 #include <error/print_error.h>
 
-
 // Initialize a lexer with source code
 Lexer* lexer_init(char* src, int len)
 {
