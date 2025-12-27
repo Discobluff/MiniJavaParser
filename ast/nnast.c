@@ -105,6 +105,15 @@ Expression* create_call(Expression* callee, Expression** args, int arg_count)
 	return e;
 }
 
+Expression* create_instaceof(Expression* val, Type* comp){
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_INSTOF;
+	e->type = create_type(TYPE_BOOLEAN); // Type of a instanceof B is always bool
+	e->instof.comp = comp;
+	e->instof.val = val;
+	return e;
+}
+
 Expression* create_new(Type* type, Expression** args, int arg_count)
 {
 	Expression* e = malloc(sizeof(Expression));
@@ -279,6 +288,11 @@ void class_set_superclass(ClassDecl* cls, char* super_class)
 	cls->super_class = strdup(super_class);
 }
 
+void class_set_modifiers(ClassDecl* class, int modifiers)
+{
+	class->modifiers = modifiers;
+}
+
 void class_add_field(ClassDecl* cls, Field* field)
 {
 	cls->fields = realloc(cls->fields, (cls->field_count + 1) * sizeof(Field*));
@@ -416,7 +430,7 @@ File* example2()
 	ClassDecl* Main = create_class("Main");
 
 	Parameter* args_param = create_parameter(
-		create_class_type(TYPE_CLASS),
+		create_class_type("String"),
 		"args"
 	);
 
@@ -508,7 +522,11 @@ void freeExpression(Expression* expr)
 		freeExpression(expr->unary.operand);
 		break;
 	case EXPR_CALL:
-		freeCallExpr(expr->call);
+		freeExpression(expr->instof.val);
+		freeType(expr->instof.comp);
+		break;
+	case EXPR_INSTOF:
+		freeInstOf(expr->instof);
 		break;
 	case EXPR_NEW:
 		freeNew(expr->new_expr);

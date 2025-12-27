@@ -33,6 +33,7 @@ typedef enum {
 	EXPR_BINARY_OP,
 	EXPR_UNARY_OP,
 	EXPR_CALL,
+	EXPR_INSTOF,
 	EXPR_NEW,
 	EXPR_FIELD_ACCESS,
 	EXPR_CAST
@@ -60,7 +61,6 @@ typedef struct {
 	LiteralKind kind;
 	union {
 		int int_val;
-		float float_val;
 		int bool_val;
 		char* string_val;
 	};
@@ -107,6 +107,10 @@ struct Expression {
 			Expression* operand;
 		} unary;
 		CallExpr call;
+		struct {
+			Expression val;
+			Type* comp;
+		} instof;
 		NewExpr new_expr;
 		struct {
 			Expression* object;
@@ -273,6 +277,7 @@ Expression* create_variable(char* name);
 Expression* create_binary_op(BinaryOp op, Expression* left, Expression* right);
 Expression* create_unary_op(UnaryOp op, Expression* operand);
 Expression* create_call(Expression* callee, Expression** args, int arg_count);
+Expression* create_instaceof(Expression* val, Type* comp);
 Expression* create_new(Type* type, Expression** args, int arg_count);
 Expression* create_dot(Expression* object, char* field_name);
 Expression* create_cast(Type* target_type, Expression* expr);
@@ -298,6 +303,7 @@ Constructor* create_constructor(int modifiers, char* name, Parameter** params, i
 
 ClassDecl* create_class(char* name);
 void class_set_superclass(ClassDecl* cls, char* super_class);
+void class_set_modifiers(ClassDecl* class, int modifiers);
 void class_add_field(ClassDecl* cls, Field* field);
 void class_add_constructor(ClassDecl* cls, Constructor* constructor);
 
