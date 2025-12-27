@@ -1,79 +1,220 @@
 #include <parser/parse.h>
-#include <parser/prod_table.h>
-#include <parser/parseerrors.h>
 
-ASTStack* astk;
-Stack* stk;
+#define BASE_SUITE_SIZE 	10 // base size of a *_suite list
 
-Production prod_table[RULE_SIZE][TOKENTYPE_SIZE];
+static Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
 
-AST* parse_main(Lexer* lex, int debug)
+static inline bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
+
+/**
+ * matches the lexer position with the type of the token expected. Advances the token on
+ * consumtion
+ * @return the matched token
+ * returns a token that satisfies iserr. 
+ */
+static Token match(Lexer* lex, TokenType* values)
 {
-	init_prod_table();
-	init_err_table();
+	Token t = lexer_giveToken(lex);
 
-	stk = stack_init();
-	astk = ast_stack_init(); 	// the astk is global now deal wif it ...
+	for (; *values != TOKENTYPE_SIZE; values++)
+		if (t.type == *values) {lexer_next(lex); return t;}
+	return err;
+}
 
-	stack_push(stk, (NUT){.type = RULE, .rule = FIL});
+/**
+ * matches the lexer position with the type of the token expected. (Not for epsilon transitions)
+ * @return the matched token
+ * On error prints an error under the token.
+ */
+static Token match_nofail(Lexer* lex, TokenType* values)
+{
+	Token t = lexer_giveToken(lex);
+
+	for (; *values != TOKENTYPE_SIZE; values++)
+		if (t.type == *values) {lexer_next(lex); return t;}
+	error_under_token(lex->source, lex->tok, "unexpected token");
+	exit(0);
+}
 
 
-	while (stk->top > 0) {
-		if (debug) {
-			printf("==================== NEW ITERATION ===================\n"); 
-			print_parser(stk);
-			printf("\n");
-			token_pprint(lex->tok, lex);
-			printf("\n");
-			print_ast_parser(astk);
-			printf("\n");
-		}
-		
-		NUT curr = stack_pop(stk);
-		Token current_token = lexer_giveToken(lex);
-
-		switch (curr.type) {
-			case RULE: {
-				Production prod = prod_table[curr.rule][current_token.type];
-				
-				// Check if production exists (internal error)
-				if (prod.exp.count == 0 && prod.action == NULL) {
-					print_syntax_error(lex, curr.rule, current_token.type);
-					exit(1);
-				}
-
-				for (int i = prod.exp.count - 1; i >= 0; i--) {
-					stack_push(stk, prod.exp.items[i]);
-				}
-
-				if (prod.action) {
-					prod.action(lex);
-				}
-				break;
-			}
-			case TOKEN: {
-				if (curr.token == TOKEN_EOF && curr.token == current_token.type)
-					break;
-
-				if (curr.token != current_token.type) {
-					error_under_token(lex->source, current_token, "Unexpected token");
-					exit(1);
-				}
-				lexer_next(lex);
-
-				break;
-			}
-		}
+Type* parse_type(Lexer* lex)
+{
+	Token t = match_nofail(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKEN_BOOLEAN, TOKEN_INT, TOKEN_VOID, TOKENTYPE_SIZE});
+	switch (t.type)
+	{
+	case TOKEN_ID_TYPE: {
+		char buff[32]; token_text(lex, t, buff, 32);
+		return create_class_type(buff);
 	}
+	case TOKEN_BOOLEAN: return create_type(TYPE_BOOLEAN);
+	case TOKEN_INT: 	return create_type(TYPE_INT);
+	case TOKEN_VOID: 	return create_type(TYPE_VOID);
+	default:
+		return NULL; // shuddap compiler
+	}
+}
 
-	// (remove this comment when done pls) TODO: remove after actions are implemented
-	// if (astk->top != 1) {
-	// 	parser_error("Parse finished with %lu AST nodes (expected 1)", astk->top);
-	// 	exit(1);
-	// }
 
-	AST* result = ast_stack_pop(astk);
-	free(stk); 
-	free(astk);
-	return result;
+void parse_cro_opt(Lexer* lex)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_LCRO, TOKENTYPE_SIZE});
+	if (iserr(t)) return;
+	match_nofail(lex, (TokenType[]) {TOKEN_RCRO, TOKENTYPE_SIZE});
+}
+
+Parameter** parse_params(Lexer* lex)
+{
+
+}
+
+Parameter** parse_params_opt(Lexer* lex)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKEN_RPAR, TOKEN_BOOLEAN, TOKEN_INT, TOKEN_VOID, TOKENTYPE_SIZE});
+	if (iserr(t)) {
+		// TODO: erreur
+	}
+	if (t.type == TOKEN_RPAR) {
+		return NULL;
+	}
+	return parse_params(lex);
+}
+
+Statement** parse_stmt_list(Lexer* lex)
+{
+
+}
+
+void parse_function_tail(Lexer* lex, ClassDecl* class, Type* type, bool isMeth)
+{
+	match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE});
+	Parameter** params = parse_params(lex);
+	match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE});
+	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE});
+	Statement** body = parse_stmt_list(lex);
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+	if (isMeth) {
+
+	}
+}
+
+void parse_const_or_meth(Lexer* lex, ClassDecl* class, bool is_stat)
+{
+
+}
+
+void parse_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type, char* name)
+{
+
+}
+
+void parse_decl_public(Lexer* lex, ClassDecl* class)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_STATIC, TOKENTYPE_SIZE});
+	if (!iserr(t)) {
+		return parse_const_or_meth(lex, class, true);
+	}
+	parse_const_or_meth(lex, class, false);
+}
+
+void parse_const_or_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type)
+{
+	Token t = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKEN_LACC, TOKENTYPE_SIZE});
+	if (t.type == TOKEN_ID) {
+		char name[32]; token_text(lex, t, name, 32);
+		parse_meth_or_attr(lex, class, type, name);
+	}
+	if (t.type == TOKEN_LACC) {
+		// we are on a constructor
+		parse_function_tail(lex, class, type, false);
+	}
+}
+
+void parse_decl(Lexer* lex, ClassDecl* class)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_PUBLIC, TOKENTYPE_SIZE});
+	if (!iserr(t)) {
+		parse_decl_public(lex, class);
+		return;
+	}
+	t = match(lex, (TokenType[]) {TOKEN_STATIC, TOKENTYPE_SIZE});
+	if (!iserr(t)) {
+		parse_const_or_meth(lex, class, false);
+		return;
+	}
+	Type* type = parse_type(lex);
+	parse_const_or_meth_or_attr(lex, class, type);
+}
+
+void parse_decl_list(Lexer* lex, ClassDecl* class)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+	if (!iserr(t)) {
+		return;
+	}
+	parse_decl(lex, class);
+	parse_decl_list(lex, class);
+}
+
+bool parse_public_opt(Lexer* lex)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_PUBLIC, TOKENTYPE_SIZE});
+	return !iserr(t);	// on error we don't have a public
+}
+
+bool parse_static_opt(Lexer* lex)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_STATIC, TOKENTYPE_SIZE});
+	return !iserr(t);	// on error we don't have a static
+}
+
+Token parse_extends_opt(Lexer* lex)
+{
+	match_nofail(lex, (TokenType[]) {TOKEN_EXTENDS, TOKENTYPE_SIZE});
+	Token t = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE});
+	return t;
+}
+
+ClassDecl* parse_class(Lexer* lex)
+{
+	bool pub = parse_public_opt(lex);
+	bool stat = parse_static_opt(lex);
+	match_nofail(lex, (TokenType[]) {TOKEN_CLASS, TOKENTYPE_SIZE});
+	
+	Token type_name = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE});
+	
+	Token extends = parse_extends_opt(lex);
+
+	char buff[32]; token_text(lex, type_name, buff, 32);
+	ClassDecl* class = create_class(buff);
+
+	token_text(lex, extends, buff, 32);
+	class_set_superclass(class, buff);
+
+	class_set_modifiers(class, pub*MOD_PUBLIC & stat*MOD_STATIC);
+
+		
+	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE});
+
+	parse_decl_list(lex, class);
+
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+
+	return class;
+}
+
+void parse_class_list(Lexer* lex, File* file)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_EOF, TOKENTYPE_SIZE});
+	if (iserr(t)) {
+		ClassDecl* class = parse_class(lex);
+		file_add_class(file, class);
+		parse_class_list(lex, file);
+	}
+}
+
+File* parse_fichier(Lexer* lex)
+{
+	File* f = create_file();
+	parse_class_list(lex, f);
+	return f;
 }

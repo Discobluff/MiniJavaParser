@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
-LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
+# LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages
 MAKEFLAGS += --no-print-directory
@@ -17,9 +17,9 @@ LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c
 LEXER_OBJS = $(LEXER_SRCS:.c=.o)
 ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
-AST_SRCS = $(AST_DIR)/ast.c $(AST_DIR)/displayAst.c
+AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/prod_table.c $(PARSER_DIR)/backend_parser.c $(PARSER_DIR)/actions/actions.c $(PARSER_DIR)/parseerrors.c
+PARSER_SRCS = $(PARSER_DIR)/parse.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 TARGET = main
@@ -33,7 +33,7 @@ all: $(TARGET)
 
 # Build the executable
 $(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
-	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET)
 
 # Compile main.c
 main.o: main.c
@@ -113,7 +113,7 @@ successTodo: $(TARGET)
 
 # Clean build artifacts
 clean:
-	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o $(PARSER_DIR)/actions/*.o
+	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
 
 # Rebuild everything
 rebuild: clean all

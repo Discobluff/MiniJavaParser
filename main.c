@@ -2,7 +2,6 @@
 #include "error/print_error.h"
 #include "parser/parse.h"
 #include "ast/ast.h"
-#include "ast/displayAst.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,6 +26,8 @@ int main(int argc, char** argv)
         } else if (strcmp(argv[i], "--debug-parser") == 0) {
             debug_parser = 1;
         } else if (strcmp(argv[i], "--show-ast") == 0) {
+            perror("show ast not implemented");
+            exit(0);
             show_ast = 1;
         } else if (argv[i][0] != '-') {
             filename = argv[i];
@@ -84,14 +85,9 @@ int main(int argc, char** argv)
         lex = lexer_init(source, bytes_read);
     }
 
-    AST* ast = parse_main(lex, debug_parser);
+    File* unit = parse_fichier(lex);
 
-    if (debug_parser) print_ast(ast, 0);
-    
-    if (show_ast) mainloop(ast);
-
-    free_ast(ast);
-
+    freeFile(unit);
     free(source);
     free(lex);
     return 0;

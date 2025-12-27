@@ -3,7 +3,7 @@
 #include <stdbool.h>
 
 
-#include <ast/ast.h>
+#include <ast/astold.h>
 
 
 SDL_Window *win;
