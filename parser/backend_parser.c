@@ -49,24 +49,14 @@ char* rule_to_string(Rule rule)
 		return "EXTENDS_OPT";
 	case DECL_LIST: 
 		return "DECL_LIST";
-	case DECL_TYPE: 
-		return "DECL_TYPE";
-	case DECL_TYPE_IDENT: 
-		return "DECL_TYPE_IDENT";
 	case DECLA: 
 		return "DECLA";
 	case DECL_PUBLIC: 
 		return "DECL_PUBLIC";
-	case CONST_TAIL: 
-		return "CONST_TAIL";
-	case CONST: 
-		return "CONST";
 	case PARAMS_OPT: 
 		return "PARAMS_OPT";
 	case PARAMS: 
 		return "PARAMS";
-	case PARAMS2: 
-		return "PARAMS2";
 	case TYPE: 
 		return "TYPE";
 	case EXPR_OPT: 
@@ -75,8 +65,6 @@ char* rule_to_string(Rule rule)
 		return "EXPR";
 	case ASSIGN:
 		return "ASSIGN";
-	case ASSIGN_ID:
-		return "ASSIGN_ID";
 	case LOR_EXPR:
 		return "LOR_EXPR";
 	case LOR_EXPR_SUITE:
@@ -125,14 +113,10 @@ char* rule_to_string(Rule rule)
 		return "STMT_LIST";
 	case STMT:
 		return "STMT";
-	case STMT_TYPE_IDENT:
-		return "STMT_TYPE_IDENT";
 	case STMT_IF:
 		return "STMT_IF";
 	case BLOCK:
 		return "BLOCK";
-	case METHODE:
-		return "METHODE";
 	case CONST_OR_METH:
 		return "CONST_OR_METH";
 	case CRO_OPT:
@@ -147,14 +131,8 @@ char* rule_to_string(Rule rule)
 		return "CONST_OR_METH_SOL";
 	case PARAMS_TAIL:
 		return "PARAMS_TAIL";
-	case ASSIGNMENT:
-		return "ASSIGNMENT";
-	case ASSIGNEMENT_REC:
-		return "ASSIGNEMENT_REC";
 	case STMT_IDENT:
 		return "STMT_IDENT";
-	case ASSIGNEMENT_REC_IDENT:
-		return "ASSIGNEMENT_REC_IDENT";
 	default:
 		return "UNKNOWN_RULE???? :((((";
 	}
