@@ -2,9 +2,9 @@
 
 #define BASE_SUITE_SIZE 	10 // base size of a *_suite list
 
-static Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
+Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
 
-static inline bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
+bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
 
 /**
  * matches the lexer position with the type of the token expected. Advances the token on
@@ -12,7 +12,7 @@ static inline bool iserr(Token t) {return t.type == err.type || t.position == er
  * @return the matched token
  * returns a token that satisfies iserr. 
  */
-static Token match(Lexer* lex, TokenType* values)
+Token match(Lexer* lex, TokenType* values)
 {
 	Token t = lexer_giveToken(lex);
 
@@ -26,13 +26,13 @@ static Token match(Lexer* lex, TokenType* values)
  * @return the matched token
  * On error prints an error under the token.
  */
-static Token match_nofail(Lexer* lex, TokenType* values)
+Token match_nofail(Lexer* lex, TokenType* values)
 {
 	Token t = lexer_giveToken(lex);
 
 	for (; *values != TOKENTYPE_SIZE; values++)
 		if (t.type == *values) {lexer_next(lex); return t;}
-	error_under_token(lex->source, lex->tok, "unexpected token");
+	error_under_token(lex->source, lex->tok, "unexpected token (from match_nofail)");
 	exit(0);
 }
 
@@ -169,41 +169,48 @@ bool parse_static_opt(Lexer* lex)
 
 Token parse_extends_opt(Lexer* lex)
 {
-	match_nofail(lex, (TokenType[]) {TOKEN_EXTENDS, TOKENTYPE_SIZE});
+	Token ext = match(lex, (TokenType[]) {TOKEN_EXTENDS, TOKENTYPE_SIZE});
+	if (iserr(ext)) {
+		return err;
+	}
 	Token t = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE});
 	return t;
 }
 
-ClassDecl* parse_class(Lexer* lex)
+ClassDecl* parse_class(Lexer* lex) // public static class Chien extends Animal { ... }
 {
-	bool pub = parse_public_opt(lex);
-	bool stat = parse_static_opt(lex);
-	match_nofail(lex, (TokenType[]) {TOKEN_CLASS, TOKENTYPE_SIZE});
-	
-	Token type_name = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE});
-	
-	Token extends = parse_extends_opt(lex);
+	bool pub = parse_public_opt(lex); // public ...
+	bool stat = parse_static_opt(lex); // ... static ...
+	match_nofail(lex, (TokenType[]) {TOKEN_CLASS, TOKENTYPE_SIZE}); // ... class ...
+
+	Token type_name = match(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE}); // ... Chien ...
+
+	Token extends = parse_extends_opt(lex); // extends Animal ?
 
 	char buff[32]; token_text(lex, type_name, buff, 32);
+
 	ClassDecl* class = create_class(buff);
 
-	token_text(lex, extends, buff, 32);
-	class_set_superclass(class, buff);
-
+	if (!iserr(extends)) { // puts extends name in buff if any
+		token_text(lex, extends, buff, 32); 
+		class_set_superclass(class, buff);
+	}
+	
 	class_set_modifiers(class, pub*MOD_PUBLIC & stat*MOD_STATIC);
 
-		
+	
 	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE});
 
 	parse_decl_list(lex, class);
 
-	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+	// on a déjà lu RACC et consommé RACC dans parse_decl_list
 
 	return class;
 }
 
 void parse_class_list(Lexer* lex, File* file)
-{
+{	
+
 	Token t = match(lex, (TokenType[]) {TOKEN_EOF, TOKENTYPE_SIZE});
 	if (iserr(t)) {
 		ClassDecl* class = parse_class(lex);
