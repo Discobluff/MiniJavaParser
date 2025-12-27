@@ -6,5 +6,15 @@
 #include <error/print_error.h>
 
 File* parse_fichier(Lexer* lex);
+bool iserr(Token t);
+Token match(Lexer* lex, TokenType* values);
+Token match_nofail(Lexer* lex, TokenType* values);
+Type* parse_type(Lexer* lex);
+void parse_cro_opt(Lexer* lex);
+bool parse_public_opt(Lexer* lex);
+bool parse_static_opt(Lexer* lex);
+Token parse_extends_opt(Lexer* lex);
+ClassDecl* parse_class(Lexer* lex);
+void parse_decl_list(Lexer* lex, ClassDecl* class);
 
 #endif

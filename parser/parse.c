@@ -2,9 +2,9 @@
 
 #define BASE_SUITE_SIZE 	10 // base size of a *_suite list
 
-static Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
+Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
 
-static inline bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
+bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
 
 /**
  * matches the lexer position with the type of the token expected. Advances the token on
@@ -12,7 +12,7 @@ static inline bool iserr(Token t) {return t.type == err.type || t.position == er
  * @return the matched token
  * returns a token that satisfies iserr. 
  */
-static Token match(Lexer* lex, TokenType* values)
+Token match(Lexer* lex, TokenType* values)
 {
 	Token t = lexer_giveToken(lex);
 
@@ -26,13 +26,13 @@ static Token match(Lexer* lex, TokenType* values)
  * @return the matched token
  * On error prints an error under the token.
  */
-static Token match_nofail(Lexer* lex, TokenType* values)
+Token match_nofail(Lexer* lex, TokenType* values)
 {
 	Token t = lexer_giveToken(lex);
 
 	for (; *values != TOKENTYPE_SIZE; values++)
 		if (t.type == *values) {lexer_next(lex); return t;}
-	error_under_token(lex->source, lex->tok, "unexpected token");
+	error_under_token(lex->source, lex->tok, "unexpected token (from match_nofail)");
 	exit(0);
 }
 
@@ -347,7 +347,7 @@ bool parse_static_opt(Lexer* lex)
 }
 
 
-ClassDecl* parse_class(Lexer* lex)
+ClassDecl* parse_class(Lexer* lex) // public static class Chien extends Animal { ... }
 {
 	bool is_pub = parse_public_opt(lex);
 	bool is_stat = parse_static_opt(lex);

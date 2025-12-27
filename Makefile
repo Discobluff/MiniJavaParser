@@ -26,6 +26,11 @@ TARGET = main
 
 MAIN_OBJ = main.o
 
+# New testparse target variables
+TESTPARSE_SRC = parser/testparse.c
+TESTPARSE_OBJ = parser/testparse.o
+TESTPARSE_BIN = testparse
+
 file ?= tests/implemented/success/op.java
 
 # Default target
@@ -64,6 +69,14 @@ $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 # Run the program with a test file
 run: $(TARGET)
 	./$(TARGET) $(file)
+
+# Compile and link testparse (uses existing objects)
+$(TESTPARSE_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ) $(ERROR_OBJS) -o $(TESTPARSE_BIN)
+
+# Compile testparse.c -> testparse.o
+$(TESTPARSE_OBJ): $(TESTPARSE_SRC)
+	$(CC) $(CFLAGS) -c $(TESTPARSE_SRC) -o $(TESTPARSE_OBJ)
 
 debugAll: all
 	./$(TARGET) --debug-lexer --debug-parser $(file)
@@ -114,6 +127,7 @@ successTodo: $(TARGET)
 # Clean build artifacts
 clean:
 	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
+	rm -f $(TESTPARSE_OBJ) $(TESTPARSE_BIN)
 
 # Rebuild everything
 rebuild: clean all
