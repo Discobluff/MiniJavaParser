@@ -21,6 +21,15 @@ Token match(Lexer* lex, TokenType* values)
 	return err;
 }
 
+Token match_without_consuming(Lexer* lex, TokenType* values)
+{
+	Token t = lexer_giveToken(lex);
+
+	for (; *values != TOKENTYPE_SIZE; values++)
+		if (t.type == *values) {return t;}
+	return err;
+}
+
 /**
  * matches the lexer position with the type of the token expected. (Not for epsilon transitions)
  * @return the matched token
@@ -63,7 +72,42 @@ Expression* parse_expr(Lexer* lex)
 
 Expression* parse_expr_opt(Lexer* lex)
 {
-	
+	if (lex->tok.type == TOKEN_PTSVG || lex->tok.type == TOKEN_RPAR) {
+		return NULL;
+	}
+	Expression *land_expr = parse_land_expr(lex);
+	Expression *lor_expr_suite = parse_lor_expr_suite(lex);
+	if (lor_expr_suite != NULL) {
+		return create_binary_op(OP_OR, land_expr, lor_expr_suite);
+	}
+	return land_expr;
+}
+
+Expression* parse_land_expr(Lexer* lex)
+{
+	Expression* left = parse_equality_expr(lex);
+	Expression* right = parse_land_expr_suite(lex);
+}
+
+Expression* parse_lor_expr_suite(Lexer* lex)
+{
+	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_BINOP_OR, TOKEN_PTSVG, TOKEN_RPAR, TOKENTYPE_SIZE});
+	switch(t.type) {
+		case TOKEN_BINOP_OR: {
+			lexer_next(lex); //consume "||'
+			Expression *left = parse_land_expr(lex);
+			Expression *right = parse_lor_expr_suite(lex);
+			if (right->kind != NULL) {
+				return create_binary_op(OP_OR, left, right);
+			}
+			return left;
+		}
+		case TOKEN_PTSVG:
+			return NULL;
+		case TOKEN_RPAR:
+			return NULL;
+	}
+
 }
 
 Expression* parse_block(Lexer* lex)
@@ -140,6 +184,7 @@ Statement* parse_stmt(Lexer* lex)
 	Token t = lexer_giveToken(lex);
 	switch (t.type)
 	{
+	case TOKEN_RACC : return NULL;
 	case TOKEN_BOOLEAN:
 	case TOKEN_INT:
 	case TOKEN_VOID:
@@ -198,13 +243,18 @@ Statement* parse_stmt(Lexer* lex)
 Statement** parse_stmt_list(Lexer* lex, int* stmts_count)
 {
 	Statement** stmt_list = malloc(sizeof(Statement*));
-	Token t = match(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
-	while (iserr(t)) {
+	Token t = lexer_giveToken(lex);
+	while (t.type != TOKEN_RACC) {
 		*stmts_count++;
 		stmt_list = realloc(stmt_list, *stmts_count*sizeof(Statement*));
 
 		Statement* stmt = parse_stmt(lex);
-		t = match(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+		stmt_list[*stmts_count - 1] = stmt;
+		
+	}
+	if (*stmts_count == 0) {
+		free(stmt_list);
+		return NULL;
 	}
 	return stmt_list;
 }
@@ -222,7 +272,7 @@ void parse_function_tail(Lexer* lex, ClassDecl* class, Type* type, char* name, i
 	Statement** body_stmts = parse_stmt_list(lex, &stmts_count);
 	Statement*  body = create_block(body_stmts, stmts_count);
 	printf("in function_tail after stmt_list, token is %s \n", token_type_name(lex->tok.type));
-	//match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
 
 	if (is_constr) {
 		// Constructeur

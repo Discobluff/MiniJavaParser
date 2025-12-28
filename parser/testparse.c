@@ -76,7 +76,14 @@ void test_parse_classwithmethod() {
 }
 
 
+void test_basic2() {
+    Lexer* lex = lexer_init_for_test("tests/todo/success/basic2.java");
+    File* unit = parse_file(lex);
+    free(lex);
+}
+
+
 int main(int argc, char** argv) {
-    test_parse_classwithmethod();
+    test_parse_file();
     return 0;
 }
