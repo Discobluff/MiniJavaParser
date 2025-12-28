@@ -5,7 +5,7 @@
 #include <ast/ast.h>
 #include <error/print_error.h>
 
-File* parse_fichier(Lexer* lex);
+File* parse_file(Lexer* lex);
 bool iserr(Token t);
 Token match(Lexer* lex, TokenType* values);
 Token match_nofail(Lexer* lex, TokenType* values);

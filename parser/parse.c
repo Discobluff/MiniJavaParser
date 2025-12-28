@@ -65,6 +65,16 @@ Expression* parse_expr_opt(Lexer* lex)
 	
 }
 
+Expression* parse_block(Lexer* lex)
+{
+
+}
+
+Expression* parse_stmt_ident(Lexer* lex, char* name)
+{
+
+}
+
 Expression* parse_assignement(Lexer* lex)
 {
 	match_nofail(lex, (TokenType[]) {TOKEN_BINOP_EQ, TOKENTYPE_SIZE});
@@ -95,6 +105,7 @@ Parameter** parse_param_tail(Lexer* lex, int* param_cpt, Parameter** param_lst)
 	
 	char name[32]; token_text(lex, ident, name, 32);
 	Parameter* param = create_parameter(type, name);
+	param_lst[*param_cpt] = param;
 	*param_cpt++;
 	return parse_param_tail(lex, param_cpt, param_lst);
 }
@@ -111,7 +122,7 @@ Parameter** parse_params(Lexer* lex, int* param_cpt)
 	Parameter** param_lst = malloc(sizeof(Parameter*));
 	param_lst[0] = param;
 	*param_cpt++;
-	return parse_param_tail(lex, param_cpt, param);
+	return parse_param_tail(lex, param_cpt, param_lst);
 }
 
 Parameter** parse_params_opt(Lexer* lex, int* param_cpt)
@@ -152,18 +163,18 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_FOR: {
 		match_nofail(lex, (TokenType[]) {TOKEN_FOR, TOKENTYPE_SIZE});
 		match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE});
-		Expression* expr1 = parse_expr_opt(lex);
+		Statement* init = parse_stmt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE});
-		Expression* expr2 = parse_expr_opt(lex);
+		Expression* cond = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE});
-		Expression* expr3 = parse_expr_opt(lex);
+		Expression* incr = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE});
 		Statement* stmt = parse_stmt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
 		return create_for_stmt(
-			expr1,
-			expr2,
-			expr3,
+			init,
+			cond,
+			incr,
 			stmt
 		);
 	}
@@ -356,7 +367,7 @@ ClassDecl* parse_class(Lexer* lex) // public static class Chien extends Animal {
 	Token ident = match_nofail(lex, (TokenType[]) {TOKEN_ID_TYPE, TOKENTYPE_SIZE});
 
 	char buff[32]; token_text(lex, ident, buff, 32);
-	ClassDecl* class = createclass(buff);
+	ClassDecl* class = create_class(buff);
 	class_set_modifiers(class, is_pub*MOD_PUBLIC | is_stat*MOD_STATIC);
 
 	// extends_opt

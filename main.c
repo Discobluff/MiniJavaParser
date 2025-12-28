@@ -85,7 +85,7 @@ int main(int argc, char** argv)
         lex = lexer_init(source, bytes_read);
     }
 
-    File* unit = parse_fichier(lex);
+    File* unit = parse_file(lex);
 
     freeFile(unit);
     free(source);
