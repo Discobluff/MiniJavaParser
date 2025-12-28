@@ -32,6 +32,7 @@ Token match_nofail(Lexer* lex, TokenType* values)
 
 	for (; *values != TOKENTYPE_SIZE; values++)
 		if (t.type == *values) {lexer_next(lex); return t;}
+	printf("%s\n", token_type_name(t.type));
 	error_under_token(lex->source, lex->tok, "unexpected token (from match_nofail)");
 	exit(0);
 }
@@ -198,7 +199,7 @@ Statement** parse_stmt_list(Lexer* lex, int* stmts_count)
 {
 	Statement** stmt_list = malloc(sizeof(Statement*));
 	Token t = match(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
-	while (!iserr(t)) {
+	while (iserr(t)) {
 		*stmts_count++;
 		stmt_list = realloc(stmt_list, *stmts_count*sizeof(Statement*));
 
@@ -215,12 +216,13 @@ void parse_function_tail(Lexer* lex, ClassDecl* class, Type* type, char* name, i
 
 	match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE});
 	Parameter** params = parse_params_opt(lex, &params_count);
-	match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE});
-	
+
+	printf("in function_tail before stmt_list, token is %s \n", token_type_name(lex->tok.type));
 	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE});
 	Statement** body_stmts = parse_stmt_list(lex, &stmts_count);
 	Statement*  body = create_block(body_stmts, stmts_count);
-	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
+	printf("in function_tail after stmt_list, token is %s \n", token_type_name(lex->tok.type));
+	//match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE});
 
 	if (is_constr) {
 		// Constructeur
@@ -285,6 +287,7 @@ void parse_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type, char* name)
 
 void parse_const_or_meth_sol(Lexer* lex, ClassDecl* class, int modifier, Type* type)
 {
+	printf("in parse_const_or_meth_sol, token is %s \n", token_type_name(lex->tok.type));
 	Token ident = match(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE});
 	if (!iserr(ident)) {
 		char name[32]; token_text(lex, ident, name, 32);
@@ -295,6 +298,7 @@ void parse_const_or_meth_sol(Lexer* lex, ClassDecl* class, int modifier, Type* t
 
 void parse_const_or_meth(Lexer* lex, ClassDecl* class, int modifier)
 {
+	printf("in parse_const_or_meth, token is %s \n", token_type_name(lex->tok.type));
 	Type* type = parse_type(lex);
 	parse_const_or_meth_sol(lex, class, modifier, type);
 }
@@ -310,6 +314,7 @@ void parse_decl_public(Lexer* lex, ClassDecl* class)
 
 void parse_const_or_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type)
 {
+	printf("in parse_const_or_meth_or_attr, token is %s \n", token_type_name(lex->tok.type));
 	Token t = match(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE});
 	if (iserr(t)) {
 		char name[32]; token_text(lex, t, name, 32);
@@ -335,6 +340,9 @@ void parse_decl(Lexer* lex, ClassDecl* class)
 
 void parse_decl_list(Lexer* lex, ClassDecl* class)
 {
+	if (lex->tok.type == TOKEN_RACC) {
+		return;
+	}
 	Token t = match_nofail(
 		lex, 
 		(TokenType[]) {TOKEN_LCRO, TOKEN_ID_TYPE, TOKEN_PUBLIC, TOKEN_STATIC, TOKEN_BOOLEAN, TOKEN_INT, TOKEN_VOID, TOKENTYPE_SIZE}
@@ -387,6 +395,9 @@ ClassDecl* parse_class(Lexer* lex) // public static class Chien extends Animal {
 
 void parse_class_list(Lexer* lex, File* file)
 {
+	Token t = match(lex, (TokenType[]) {TOKEN_EOF, TOKENTYPE_SIZE});
+	if (!iserr(t)) {return;}
+
 	ClassDecl* c = parse_class(lex);
 	file_add_class(file, c);
 	parse_class_list(lex, file);
