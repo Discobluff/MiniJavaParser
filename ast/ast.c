@@ -327,162 +327,150 @@ void file_add_class(File* file, ClassDecl* cls)
 	file->class_count++;
 }
 
-// ======================================= Example Usage =======================================
+// === Calcul depth of AST ===
 
-/**
- *	class A {
- *		A() {}
- *		String ok() { return "ok\n"; }
- *	}
- *	class Main {
- *		public static void main(String args[]) {
- *			System.out.print(new A().ok());
- *		}
- *	}
- */
-File* example1()
-{
-	ClassDecl* A = create_class("A");
-
-	Constructor* constr_A = create_constructor(
-		MOD_PUBLIC,
-		"A",
-		NULL,
-		0,
-		NULL
-	);
-
-	class_add_constructor(A, constr_A);
-
-	ClassDecl* main_class = create_class("Main");
-	
-	// String args
-	Parameter* args_param = create_parameter(create_class_type("String"), "args");
-	Parameter** main_params = malloc(sizeof(Parameter*));
-	main_params[0] = args_param;
-	
-	// new A().ok()
-	Expression* new_a = create_new(
-		create_class_type("A"),
-		NULL,  // no constructor arguments
-		0
-	);
-	
-	Expression* ok_method = create_dot(new_a, "ok\n");
-	
-	Expression* ok_call = create_call(
-		ok_method,
-		NULL,  // no arguments to ok()
-		0
-	);
-	
-	Expression* system = create_variable("System");
-	Expression* system_out = create_dot(system, "out");
-	
-	Expression* print_method = create_dot(system_out, "print");
-	
-	Expression** print_args = malloc(sizeof(Expression*));
-	print_args[0] = ok_call;
-	Expression* print_call = create_call(
-		print_method,
-		print_args,
-		1
-	);
-	
-	Statement* print_stmt = create_expr_stmt(print_call);
-	
-	Statement** main_body_stmts = malloc(sizeof(Statement*));
-	main_body_stmts[0] = print_stmt;
-	Statement* main_body = create_block(main_body_stmts, 1);
-	
-	Method* main_method = create_method(
-		MOD_PUBLIC | MOD_STATIC,
-		create_type(TYPE_VOID),
-		"main",
-		main_params,
-		1,
-		main_body
-	);
-	
-	class_add_method(main_class, main_method);
-
-	File* f = create_file();
-	file_add_class(f, A);
-	file_add_class(f, main_class);
-	return f;
+int max(int a, int b){
+	return (a > b) ? a : b;
 }
 
-/**
- *	class Main {
- *		public static void main(String args[]) { 
- *			int x = 1;
- *			int y = x + x;
- *			if (y == 2) System.out.print("ok\n");
- *		}
- *	}
- */
-File* example2()
-{
-	ClassDecl* Main = create_class("Main");
+int depthCallExpr(CallExpr *callExpr){
+	int maxArgDepth = depthExpression(callExpr->callee);
+	for (int i = 0; i < callExpr->arg_count; i++){
+		maxArgDepth = max(maxArgDepth, depthExpression(callExpr->args[i]));
+	}
+	return maxArgDepth + 1;
+}
 
-	Parameter* args_param = create_parameter(
-		create_class_type("String"),
-		"args"
-	);
+int depthNewExpr(NewExpr *newExpr){
+	int maxArgDepth = 0;
+	for (int i = 0; i < newExpr->arg_count; i++){
+		maxArgDepth = max(maxArgDepth, depthExpression(newExpr->args[i]));
+	}
+	return maxArgDepth + 1;
+}
 
-	Parameter** main_params = malloc(sizeof(Parameter*));
-	main_params[0] = args_param;
+int depthExpression(Expression* expr){
+	switch (expr->kind){
+		case EXPR_LITERAL:
+			return 0;
+		case EXPR_VARIABLE:
+			return 0;
+		case EXPR_BINARY_OP:
+			return 1 + max(depthExpression(expr->binary.left), depthExpression(expr->binary.right));
+		case EXPR_UNARY_OP:
+			return 1 + depthExpression(expr->unary.operand);
+		case EXPR_CALL:
+			return depthCallExpr(&expr->call);
+		case EXPR_INSTOF:
+			return 1 + depthExpression(expr->instof.val);
+		case EXPR_NEW:
+			return depthNewExpr(&expr->new_expr);
+		case EXPR_FIELD_ACCESS:
+			return 1 + depthExpression(expr->field_access.object);
+		case EXPR_CAST:
+			return 1 + depthExpression(expr->cast.expr);
+		default:
+			return 0;
+	}
+}
 
-	Statement** main_stmts = malloc(3 * sizeof(Statement*));
-	main_stmts[0] = create_var_decl(
-		create_type(TYPE_INT),
-		"x",
-		create_literal_int(1)
-	);
-	main_stmts[1] = create_var_decl(
-		create_type(TYPE_INT),
-		"y",
-		create_binary_op(
-			OP_ADD,
-			create_variable("x"),
-			create_variable("x")
-		)
-	);
+int depthBlock(Block* block){
+	int maxDepth = 0;
+	for (int i = 0; i < block->count; i++){
+		maxDepth = max(maxDepth, depthStatement(block->stmts[i]));
+	}
+	return maxDepth + 1;
+}
 
-	Expression* system = create_variable("System");
-	Expression* system_out = create_dot(system, "out");
-	
-	Expression* print_method = create_dot(system_out, "print");
-	
-	Expression** print_args = malloc(sizeof(Expression*));
-	print_args[0] = create_literal_string("ok\n");
-	Expression* print_call = create_call(
-		print_method,
-		print_args,
-		1
-	);
+int depthIfStmt(IfStmt* ifstmt){
+	int maxDepth = max(depthExpression(ifstmt->condition), depthStatement(ifstmt->then_branch));
+	int elseDepth = 0;
+	if (ifstmt->else_branch != NULL){
+		elseDepth = depthStatement(ifstmt->else_branch);
+	}
+	return 1 + max(maxDepth, elseDepth);
+}
 
-	Statement* stmt = create_expr_stmt(print_call);
-	main_stmts[2] = create_if_stmt(
-		create_binary_op(OP_EQ, create_variable("y"), create_literal_int(2)),
-		stmt,
-		NULL
-	);
+int depthForStmt(ForStmt* forstmt){
+	int maxDepth = 0;
+	if (forstmt->init != NULL){
+		maxDepth = depthStatement(forstmt->init);
+	}
+	if (forstmt->condition != NULL){
+		maxDepth = max(maxDepth, depthExpression(forstmt->condition));
+	}
+	if (forstmt->increment != NULL){
+		maxDepth = max(maxDepth, depthExpression(forstmt->increment));
+	}
+	maxDepth = max(maxDepth, depthStatement(forstmt->body));
+	return 1 + maxDepth;;
+}
 
-	Statement* main_body = create_block(main_stmts, 3);
-	Method* main_method = create_method(
-		MOD_PUBLIC | MOD_STATIC,
-		create_type(TYPE_VOID),
-		"main",
-		NULL,
-		0,
-		main_body
-	);
-	class_add_method(Main, main_method);
+int depthVarDecl(VarDecl* varDecl){
+	if (varDecl->initializer != NULL){
+		return depthExpression(varDecl->initializer);
+	}
+	return 0;
+}
 
-	File* f = create_file();
-	file_add_class(f, Main);
-	return f;
+int depthStatement(Statement* state){
+	switch (state->kind){
+		case STMT_BLOCK:
+			return depthBlock(&state->block);
+		case STMT_EXPR:
+			return depthExpression(state->expr);
+		case STMT_RETURN:
+			if (state->return_val != NULL){
+				return 1 + depthExpression(state->return_val);
+			}
+			return 0;
+		case STMT_FOR:
+			return depthForStmt(&state->for_stmt);
+		case STMT_IF:
+			return depthIfStmt(&state->if_stmt);
+		case STMT_VAR_DECL:
+			return depthVarDecl(&state->var_decl);
+		default:
+			return 0;
+	}
+}
+
+int depthField(Field* field){
+	if (field->initializer != NULL){
+		return 1 + depthExpression(field->initializer);
+	}
+	return 1;
+}
+
+int depthMethod(Method* meth){
+	return 1 + depthStatement(meth->body);
+}
+
+int depthConstructor(Constructor* constr){
+	return 1 + depthStatement(constr->body);
+}
+
+
+int depthClassDecl(ClassDecl* class){
+	int maxDepth = 0;
+	for (int i = 0; i < class->field_count; i++){
+		maxDepth = max(maxDepth, depthField(class->fields[i]));
+	}
+	for (int i = 0; i < class->constructor_count; i++){
+		maxDepth = max(maxDepth, depthConstructor(class->constructors[i]));
+	}
+	for (int i = 0; i < class->method_count; i++){
+		maxDepth = max(maxDepth, depthMethod(class->methods[i]));
+	}
+	return 1 + maxDepth;
+}
+
+int depthFile(File* file){
+	int maxDepth = 0;
+	for (int i = 0; i < file->class_count; i++){
+		maxDepth = max(maxDepth, depthClassDecl(file->classes[i]));
+	}
+	return 1 + maxDepth;
 }
 
 // ======================================= Freeing =======================================

@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
-# LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
+LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages
 MAKEFLAGS += --no-print-directory
@@ -47,8 +47,8 @@ main.o: main.c
 runDisplayAst: displayAst
 	./displayAst
 
-displayAst: ast/ast.o ast/displayAst.o
-	$(CC) $(LDFLAGS) ast/ast.o ast/displayAst.o -o $@ $(LDFLAGS_SDL)
+displayAst: ast/ast.o ast/displayAst.o ast/astExample.o
+	$(CC) $(LDFLAGS) ast/ast.o ast/displayAst.o ast/astExample.o -o $@ $(LDFLAGS_SDL)
 
 # Generic rule for compiling lexer .c -> .o
 $(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c $(LEXER_DIR)/%.h

@@ -2,15 +2,13 @@
 #include <SDL2/SDL_ttf.h>
 #include <stdbool.h>
 
-
-#include <ast/astold.h>
-
+#include <ast/ast.h>
 
 SDL_Window *win;
 SDL_Renderer *ren;
 
-#define WIDTH 700
-#define HEIGHT 500
+#define WIDTH 1400
+#define HEIGHT 1000
 #define GAP_HOR 50
 #define GAP_VER 100
 #define MOVE_ARROW 25
@@ -114,57 +112,298 @@ char *itoa(int i){
     return buffer;
 }
 
-char *ctoce(TokenType c){
-    static char str[2];
-    switch (c) {
-        case TOKEN_BINOP_ADD: c = '+'; break;
-        case TOKEN_BINOP_SUB: c = '-'; break;
-        case TOKEN_BINOP_MULT: c = '*'; break;
-        case TOKEN_BINOP_DIV: c = '/'; break;
-        case TOKEN_BINOP_MOD: c = '%'; break;
-        case TOKEN_UNOP_ADD: c = '+'; break;
-        case TOKEN_UNOP_SUB: c = '-'; break;
-        case TOKEN_OPP: c = '!'; break;
+char *stringBinaryOp(BinaryOp op){
+    switch (op) {
+        case OP_ADD: return "+";
+        case OP_SUB: return "-";
+        case OP_MUL: return "*";
+        case OP_DIV: return "/";
+        case OP_MOD: return "%";
+        case OP_EQ: return "==";
+        case OP_NEQ: return "!=";
+        case OP_LT: return "<";
+        case OP_LTE: return "<=";
+        case OP_GT: return ">";
+        case OP_GTE: return ">=";
+        case OP_AND: return "&&";
+        case OP_OR: return "||";
+        case OP_ASSIGN: return "=";
         default: return "?";
     }
-    str[0] = c;
-    str[1] = '\0';
-    return str;
 }
 
-void displayAST(AST *ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, double xPere, double yPere, bool drawLine){
-    // yPere is useful to draw the lines between the nodes
-    if (ast == NULL) {
-        return;
+char *stringUnaryOp(UnaryOp op){
+    switch (op) {
+        case UNARY_NOT: return "!";
+        case UNARY_NEG: return "-";
+        default: return "?";
     }
+}
+
+char *stringType(Type *type){
+    switch (type->kind) {
+        case TYPE_INT: return "int";
+        case TYPE_BOOLEAN: return "boolean";
+        case TYPE_STRING: return "string";
+        case TYPE_VOID: return "void";
+        case TYPE_CLASS: return type->class_name;
+        default: return "?";
+    }
+}
+
+bool isPublic(int modifier){
+    return (modifier & MOD_PUBLIC) != 0;
+}
+
+bool isPrivate(int modifier){
+    return (modifier & MOD_PRIVATE) != 0;
+}
+
+bool isStatic(int modifier){
+    return (modifier & MOD_STATIC) != 0;
+}
+
+void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY, int depth, int depthMax, int numColumn, int numColumnMax, double xPere, double yPere, bool drawLine){
+    // yPere is useful to draw the lines between the nodes
     double gap = (2 << (depthMax - depth))*scale*scale;
     double x = xPere + (- GAP_HOR*gap*numColumnMax + 2*GAP_HOR*gap*numColumn) + offsetX;
-    double y = scale*(GAP_VER * depth) + offsetY;
+    double y = scale/scale*(GAP_VER * depth) + offsetY;
     SDL_Color color = {0, 0, 0, 255};
-    switch (ast->type){
-        case (NUMBER):
-            displayNode(itoa(ast->data.number), x, y, color, font, xPere + offsetX, yPere, drawLine);
-            break;
-        case (BINARY_OP):{
-            double newY = displayNode(ctoce(ast->data.binary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
-            displayAST(ast->data.binary.left, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
-            displayAST(ast->data.binary.right, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+    switch (ast.type){
+        case (AST_TYPE):{
+            displayNode(stringType(ast.data.type), x, y, color, font, xPere + offsetX, yPere, drawLine);
             break;
         }
-        case (UNARY_OP):{
-            double newY = displayNode(ctoce(ast->data.unary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
-            displayAST(ast->data.unary.operand, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 0, x-offsetX, newY, true);
+        case (AST_NAME):{
+            displayNode(ast.data.name, x, y, color, font, xPere + offsetX, yPere, drawLine);
             break;
         }
-        case (VARIABLE):
-            displayNode(ast->data.variable, x, y, color, font, xPere, yPere, drawLine);
+        case (AST_EXPRESSION):{
+            switch (ast.data.expression->kind){
+                case (EXPR_LITERAL):{
+                    switch (ast.data.expression->literal.kind){
+                        case (LIT_INT):
+                            displayNode(itoa(ast.data.expression->literal.int_val), x, y, color, font, xPere + offsetX, yPere, drawLine);
+                            break;
+                        case (LIT_BOOLEAN):
+                            if (ast.data.expression->literal.bool_val){
+                                displayNode("TRUE", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                            }
+                            else{
+                                displayNode("FALSE", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                            }
+                            break;
+                        case (LIT_STRING):{
+                            char *str = malloc(strlen(ast.data.expression->literal.string_val) + 3);
+                            sprintf(str, "\"%s\"", ast.data.expression->literal.string_val);
+                            displayNode(str, x, y, color, font, xPere + offsetX, yPere, drawLine);
+                            free(str);
+                            break;
+                        }
+                        case (LIT_NULL):
+                            displayNode("NULL", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                            break;
+                    }
+                    break;
+                }
+                case (EXPR_VARIABLE):{
+                    displayNode(ast.data.expression->var_name, x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    break;
+                }
+                case (EXPR_BINARY_OP):{
+                    double newY = displayNode(stringBinaryOp(ast.data.expression->binary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.left}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.right}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+                    break;
+                }
+                case (EXPR_UNARY_OP):{
+                    double newY = displayNode(stringUnaryOp(ast.data.expression->unary.op), x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->unary.operand}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 0, x-offsetX, newY, true);
+                    break;
+                }
+                case (EXPR_CALL):{
+                    double newY = displayNode("CALL", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    int nbChildren = 1 + ast.data.expression->call.arg_count;
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.callee}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, nbChildren - 1, x-offsetX, newY, true);
+                    for (int i = 0; i < ast.data.expression->call.arg_count; i++){
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.args[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i+1, nbChildren - 1, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                case (EXPR_INSTOF):{
+                    double newY = displayNode("INSTANCEOF", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->instof.val}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->instof.comp}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+                    break;
+                }
+                case (EXPR_NEW):{
+                    double newY = displayNode("NEW", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    int nbChildren = 1 + ast.data.expression->new_expr.arg_count;
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->new_expr.type}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, nbChildren - 1, x-offsetX, newY, true);
+                    for (int i = 0; i < ast.data.expression->new_expr.arg_count; i++){
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->new_expr.args[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i+1, nbChildren, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                case (EXPR_FIELD_ACCESS):{
+                    double newY = displayNode(".", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->field_access.object}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.expression->field_access.field_name}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+                    break;
+                }
+                case (EXPR_CAST):{
+                    double newY = displayNode("CAST", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->cast.target_type}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->cast.expr}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+                    break;
+                }
+            }
             break;
+        }
+        case (AST_STATEMENT):{
+            switch (ast.data.statement->kind){
+                case (STMT_EXPR):{
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->expr}, font, scale, offsetX, offsetY, depth, depthMax, 0, 0, x-offsetX, yPere, true);
+                    break;
+                }
+                case (STMT_BLOCK):{
+                    double newY = displayNode("BLOCK", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    int nbChildren = ast.data.statement->block.count;
+                    for (int i = 0; i < ast.data.statement->block.count; i++){
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->block.stmts[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i, nbChildren - 1, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                case (STMT_IF):{
+                    double newY = displayNode("IF", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->if_stmt.condition}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 2, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.then_branch}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 2, x-offsetX, newY, true);
+                    if (ast.data.statement->if_stmt.else_branch != NULL){
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.else_branch}, font, scale, offsetX, offsetY, depth+1, depthMax, 2, 2, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                case (STMT_FOR):{
+                    double newY = displayNode("FOR", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.init}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 3, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.condition}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 3, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.increment}, font, scale, offsetX, offsetY, depth+1, depthMax, 2, 3, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.body}, font, scale, offsetX, offsetY, depth+1, depthMax, 3, 3, x-offsetX, newY, true);
+                    break;
+                }
+                case (STMT_RETURN):{
+                    double newY = displayNode("RETURN", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    if (ast.data.statement->return_val != NULL){
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->return_val}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 0, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                case (STMT_VAR_DECL):{
+                    double newY = displayNode("VAR_DECL", x, y, color, font, xPere + offsetX, yPere, drawLine);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.statement->var_decl.type}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 2, x-offsetX, newY, true);
+                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.statement->var_decl.name}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 2, x-offsetX, newY, true);
+                    if (ast.data.statement->var_decl.initializer != NULL){
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->var_decl.initializer}, font, scale, offsetX, offsetY, depth+1, depthMax, 2, 2, x-offsetX, newY, true);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+            break;
+        }
+        case (AST_PARAMETER):{
+            double newY = displayNode("PARAM", x, y, color, font, xPere + offsetX, yPere, drawLine);
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.parameter->type}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, 1, x-offsetX, newY, true);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.parameter->name}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, 1, x-offsetX, newY, true);
+            break;
+        }
+        case (AST_CONSTRUCTOR):{
+            double newY = displayNode("CONSTRUCTOR", x, y, color, font, xPere + offsetX, yPere, drawLine);
+            int nbChildren = 1 + ast.data.constructor->param_count;
+            for (int i = 0; i < ast.data.constructor->param_count; i++){
+                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.constructor->params[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i, nbChildren - 1, x-offsetX, newY, true);
+            }
+            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.constructor->body}, font, scale, offsetX, offsetY, depth+1, depthMax, nbChildren - 1, nbChildren - 1, x-offsetX, newY, true);
+            break;
+        }
+        case (AST_METHOD):{
+            double newY = displayNode("METHOD", x, y, color, font, xPere + offsetX, yPere, drawLine);
+            int nbChildren = 3 + ast.data.method->param_count;
+            int indexStart = 0;
+            if (isPublic(ast.data.method->modifiers)){
+                nbChildren ++;
+            }
+            if (isPrivate(ast.data.method->modifiers)){
+                nbChildren ++;
+            }
+            if (isStatic(ast.data.method->modifiers)){
+                nbChildren ++;
+            }
+            if (isPublic(ast.data.method->modifiers)){
+                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, depth+1, depthMax, indexStart, nbChildren - 1, x-offsetX, newY, true);
+                indexStart ++;
+            }
+            else if (isPrivate(ast.data.method->modifiers)){
+                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, depth+1, depthMax, indexStart, nbChildren - 1, x-offsetX, newY, true);
+                indexStart ++;
+            }
+            if (isStatic(ast.data.method->modifiers)){
+                displayAST((AST){.type = AST_NAME, .data.name = "static"}, font, scale, offsetX, offsetY, depth+1, depthMax, indexStart, nbChildren - 1, x-offsetX, newY, true);
+                indexStart ++;
+            }
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.method->return_type}, font, scale, offsetX, offsetY, depth+1, depthMax, indexStart, nbChildren - 1, x-offsetX, newY, true);
+            indexStart++;
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.method->name}, font, scale, offsetX, offsetY, depth+1, depthMax, indexStart, nbChildren - 1, x-offsetX, newY, true);
+            indexStart++;
+            for (int i = 0; i < ast.data.method->param_count; i++){
+                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.method->params[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i+indexStart, nbChildren - 1, x-offsetX, newY, true);
+            }
+            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.method->body}, font, scale, offsetX, offsetY, depth+1, depthMax, nbChildren - 1, nbChildren - 1, x-offsetX, newY, true);
+            break;
+        }
+        case (AST_FIELD):{
+            double newY = displayNode("ATTRIBUTE", x, y, color, font, xPere + offsetX, yPere, drawLine);
+            int nbChildren = 2 + (ast.data.field->initializer != NULL ? 1 : 0);
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.field->type}, font, scale, offsetX, offsetY, depth+1, depthMax, 0, nbChildren - 1, x-offsetX, newY, true);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.field->name}, font, scale, offsetX, offsetY, depth+1, depthMax, 1, nbChildren - 1, x-offsetX, newY, true);
+            if (ast.data.field->initializer != NULL){
+                displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.field->initializer}, font, scale, offsetX, offsetY, depth+1, depthMax, 2, nbChildren - 1, x-offsetX, newY, true);
+            }
+            break;
+        }
+        case (AST_CLASS_DECL):{
+            double newY = displayNode(ast.data.class_decl->name, x, y, color, font, xPere + offsetX, yPere, drawLine);
+            int nbChildren = ast.data.class_decl->field_count + ast.data.class_decl->constructor_count + ast.data.class_decl->method_count;
+            int index = 0;
+            for (int i = 0; i < ast.data.class_decl->field_count; i++){
+                displayAST((AST){.type = AST_FIELD, .data.field = ast.data.class_decl->fields[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, index, nbChildren - 1, x-offsetX, newY, true);
+                index++;
+            }
+            for (int i = 0; i < ast.data.class_decl->constructor_count; i++){
+                displayAST((AST){.type = AST_CONSTRUCTOR, .data.constructor = ast.data.class_decl->constructors[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, index, nbChildren - 1, x-offsetX, newY, true);
+                index++;
+            }
+            for (int i = 0; i < ast.data.class_decl->method_count; i++){
+                displayAST((AST){.type = AST_METHOD, .data.method = ast.data.class_decl->methods[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, index, nbChildren - 1, x-offsetX, newY, true);
+                index++;
+            }
+            break;
+        }
+        case (AST_FILE):{
+            double newY = displayNode("FILE", x, y, color, font, xPere + offsetX, yPere, drawLine);
+            int nbChildren = ast.data.file->class_count;
+            for (int i = 0; i < ast.data.file->class_count; i++){
+                displayAST((AST){.type = AST_CLASS_DECL, .data.class_decl = ast.data.file->classes[i]}, font, scale, offsetX, offsetY, depth+1, depthMax, i, nbChildren - 1, x-offsetX, newY, true);
+            }
+            break;
+        }
         default:
             break;
     }
 }
 
-void mainloop(AST *ast){
+void mainloop(File *ast){
     createWindow("AST", 50,50,WIDTH,HEIGHT);
     createRenderer();
     initTTF();
@@ -174,7 +413,7 @@ void mainloop(AST *ast){
     int offsetX = 0;
     int offsetY = DEFAULT_OFFSET_Y;
     double scale = 1;
-    int astDepth = depth(ast);
+    int astDepth = depthFile(ast);
     bool mouseMoving = false;
     int xMouse;
     int yMouse;
@@ -245,7 +484,7 @@ void mainloop(AST *ast){
         }
         SDL_SetRenderDrawColor(ren, 255, 255, 255, 255);
         SDL_RenderClear(ren);
-        displayAST(ast, font, scale, offsetX*scale, offsetY*scale, 0, astDepth, 0, 0, WIDTH/2, -1, false);
+        displayAST((AST){.type = AST_FILE, .data.file = ast} , font, scale, offsetX*scale, offsetY*scale, 0, astDepth, 0, 0, WIDTH/2, -1, false);
         SDL_RenderPresent(ren);
     }
     TTF_CloseFont(font);

@@ -265,7 +265,34 @@ typedef struct {
 	ClassDecl** classes;
 } File;
 
+typedef enum{
+	AST_TYPE,
+	AST_NAME,
+	AST_EXPRESSION,
+	AST_STATEMENT,
+	AST_PARAMETER,
+	AST_METHOD,
+	AST_CONSTRUCTOR,
+	AST_CLASS_DECL,
+	AST_FIELD,
+	AST_FILE,
+} TYPE_AST;
 
+typedef struct{
+	TYPE_AST type;
+	union{
+		Type *type;
+		Expression *expression;
+		Statement *statement;
+		ClassDecl *class_decl;
+		File *file;
+		Parameter *parameter;
+		Method *method;
+		Constructor *constructor;
+		Field *field;
+		char *name;
+	} data;
+} AST;
 
 Type* create_type(TypeKind kind);
 Type* create_class_type(char* class_name);
@@ -313,10 +340,11 @@ void class_add_method(ClassDecl* cls, Method* method);
 File* create_file();
 void file_add_class(File* file, ClassDecl* cls);
 
-
-File* example1();
-File* example2();
-
+int depthCallExpr(CallExpr *callExpr);
+int depthNewExpr(NewExpr *newExpr);
+int depthExpression(Expression* expr);
+int depthStatement(Statement* stmt);
+int depthFile(File* file);
 
 void freeFile(File* file);
 void freeClass(ClassDecl* class);
