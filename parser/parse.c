@@ -85,6 +85,9 @@ Type* parse_type(Lexer* lex)
 	{
 	case TOKEN_ID_TYPE: {
 		char buff[32]; token_text(lex, t, buff, 32);
+		if (strcmp(buff, "String") == 0) {
+			return create_type(TYPE_STRING);
+		}
 		return create_class_type(buff);
 	}
 	case TOKEN_BOOLEAN: return create_type(TYPE_BOOLEAN);
@@ -466,7 +469,7 @@ Expression* parse_expr_opt(Lexer* lex)
 // block -> "{" stmt_list "}" .
 Statement* parse_block(Lexer* lex)
 {
-	printf("parsing block\n");
+
 	int cpt = 0;
 	Statement** stmts = parse_stmt_list(lex, &cpt);
 	return create_block(stmts, cpt);
@@ -578,6 +581,10 @@ Parameter** parse_params_opt(Lexer* lex, int* param_cpt)
 	return parse_params(lex, param_cpt);
 }
 
+
+
+
+
 // stmt -> ";" .
 // stmt -> type "ident" assignement ";" .
 // stmt -> "ident" stmt_ident .
@@ -585,7 +592,7 @@ Parameter** parse_params_opt(Lexer* lex, int* param_cpt)
 // stmt -> block .
 // stmt -> "return" expr_opt ";" .
 // stmt -> "if" "(" expr ")" block stmt_if .
-Statement* parse_stmt(Lexer* lex)
+Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 {
 	Token t = lexer_giveToken(lex);
 	switch (t.type)
@@ -595,10 +602,13 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_INT:
 	case TOKEN_VOID:
 	case TOKEN_ID_TYPE: {
+
 		Type* t = parse_type(lex);
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
 		char name[32]; token_text(lex, id, name, 32);
 		Expression* expr = parse_assignement(lex);
+		if (!from_for_loop) { match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");}
+
 		return create_var_decl(
 			t,
 			name,
@@ -621,15 +631,14 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_FOR: {
 		match(lex, (TokenType[]) {TOKEN_FOR, TOKENTYPE_SIZE});
 		match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE}, "unexpected token: expected (");
-		Statement* init = parse_stmt(lex);
+		Statement* init = parse_stmt(lex, true);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		Expression* cond = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		Expression* incr = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
 
-		Statement* stmt = parse_stmt(lex); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		printf("passed for stmt\n");
+		Statement* stmt = parse_stmt(lex, true); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 		return create_for_stmt(
 			init,
@@ -651,7 +660,7 @@ Statement* parse_stmt(Lexer* lex)
 		match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE}, "unexpected token: expected (");
 		Expression* cond = parse_expr(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
-		Statement* then_branch = parse_stmt(lex);
+		Statement* then_branch = parse_stmt(lex, false);
 		return parse_stmt_if(lex, cond, then_branch);
 	}
 	default:
@@ -665,11 +674,12 @@ Statement* parse_stmt_if(Lexer* lex, Expression* condition, Statement* then_bran
 {
 	Token t = match(lex, (TokenType[]) {TOKEN_ELSE, TOKENTYPE_SIZE});
 	if (!iserr(t)) {
-		Statement* else_branch = parse_stmt(lex);
+		Statement* else_branch = parse_stmt(lex, false);
 		return create_if_stmt(condition, then_branch, else_branch);
 	}
 	return create_if_stmt(condition, then_branch, NULL);
 }
+
 
 // stmt_list -> stmt stmt_list .
 // stmt_list -> .
@@ -681,7 +691,7 @@ Statement** parse_stmt_list(Lexer* lex, int* stmts_count)
 		(*stmts_count)++;
 		stmt_list = realloc(stmt_list, *stmts_count*sizeof(Statement*));
 
-		Statement* stmt = parse_stmt(lex);
+		Statement* stmt = parse_stmt(lex, false);
 		stmt_list[*stmts_count - 1] = stmt;
 		t = lexer_giveToken(lex);
 	}
