@@ -109,7 +109,7 @@ void lexer_next(Lexer* lex)
 	if (c == '\"') {
 		if (good_string(lex)) {
 			lex->tok.type = TOKEN_STR;
-			lex->tok.position = start;
+			lex->tok.position = start+1;
 		}
 		else {
 			exit(0); //pour arrêter la fonction main qui lit le code source
@@ -284,7 +284,7 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 		while (end < lex->length && isdigit(lex->source[end])) {
 			end++;
 		}
-	} else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
+	} else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE || tok.type == TOKEN_STR) {
 		while (end < lex->length && isalnum(lex->source[end])) {
 			end++;
 		}

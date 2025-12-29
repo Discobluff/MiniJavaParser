@@ -437,6 +437,7 @@ Expression* parse_expr_opt(Lexer* lex)
 		expr = parse_expr(lex);
 	else
 		expr = NULL;
+
 	return expr;
 }
 

@@ -84,6 +84,6 @@ void test_basic2() {
 
 
 int main(int argc, char** argv) {
-    test_parse_file();
+    test_basic2();
     return 0;
 }

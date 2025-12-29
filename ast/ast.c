@@ -48,6 +48,7 @@ Expression* create_literal_string(char* val)
 	e->type = create_type(TYPE_STRING);
 	e->literal.kind = LIT_STRING;
 	e->literal.string_val = strdup(val);
+
 	return e;
 }
 
