@@ -18,10 +18,7 @@ void panicmode(Lexer *lex) {
 		t = lexer_giveToken(lex);
 	}
 	if (t.type != TOKEN_EOF) lexer_next(lex);
-	
 }
-
-
 
 /**
  * matches the lexer position with the type of the token expected. Advances the token on
@@ -58,9 +55,8 @@ Token match_nofail(Lexer* lex, TokenType* values, const char* msg)
 
 	for (; *values != TOKENTYPE_SIZE; values++)
 		if (t.type == *values) {lexer_next(lex); return t;}
-	printf("%s\n", token_type_name(t.type));
 	error_under_token(lex->source, lex->tok, msg);
-	exit(0);
+	exit(1);
 }
 
 Statement** parse_stmt_list(Lexer* lex, int* stmts_count);
@@ -171,7 +167,8 @@ void parse_lexpr_expr(Lexer* lex, Expression*** args, int* count, int* capacity)
 		*args = realloc(*args, *capacity * sizeof(Expression*));
 	}
 
-	(*args)[*count++] = parse_expr(lex);
+	(*args)[*count] = parse_expr(lex);
+	(*count)++;
 
 	parse_lexpr_expr(lex, args, count, capacity);
 }
@@ -472,7 +469,7 @@ Statement* parse_block(Lexer* lex)
 	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
 	int cpt = 0;
 	Statement** stmts = parse_stmt_list(lex, &cpt);
-	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected }");
 	return create_block(stmts, cpt);
 }
 
@@ -617,10 +614,7 @@ Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 		);
 	}
 	case TOKEN_LACC: {
-		match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
-		Statement* block = parse_block(lex);
-		match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected }");
-		return block;
+		return parse_block(lex);
 	}
 	case TOKEN_ID: {
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
