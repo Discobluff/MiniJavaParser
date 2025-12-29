@@ -18,6 +18,12 @@ Type* create_class_type(char* class_name)
 	return t;
 }
 
+Type* create_string_type() {
+	Type* t = malloc(sizeof(Type));
+	t->kind = TYPE_STRING;
+	t->class_name = NULL;
+	return t;
+}
 
 // ======================================= Expression Constructors =======================================
 

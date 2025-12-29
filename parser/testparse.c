@@ -84,6 +84,6 @@ void test_basic2() {
 
 
 int main(int argc, char** argv) {
-    test_basic2();
+    test_parse_classwithmethod();
     return 0;
 }

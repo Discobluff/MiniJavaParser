@@ -425,6 +425,7 @@ void advancetonextline(Lexer *lex) {
 	lexer_next(lex);
 }
 
+
 void lexerfree(Lexer *lex) {
 	free(lex->decl_type_list);
 	free(lex->source);
