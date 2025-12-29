@@ -431,7 +431,7 @@ Expression* parse_expr(Lexer* lex)
 // expr_opt -> .
 Expression* parse_expr_opt(Lexer* lex)
 {
-	Token t = match(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_RACC, TOKENTYPE_SIZE});
+	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_RACC, TOKENTYPE_SIZE});
 	Expression* expr;
 	if (iserr(t))
 		expr = parse_expr(lex);
@@ -444,8 +444,10 @@ Expression* parse_expr_opt(Lexer* lex)
 // block -> "{" stmt_list "}" .
 Statement* parse_block(Lexer* lex)
 {
+	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
 	int cpt = 0;
 	Statement** stmts = parse_stmt_list(lex, &cpt);
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
 	return create_block(stmts, cpt);
 }
 
@@ -703,7 +705,7 @@ void parse_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type, char* name)
 	}
 
 	t = lexer_giveToken(lex);
-	if (t.type == TOKEN_LACC) {
+	if (t.type == TOKEN_LPAR) {
 		// on a Method
 		return parse_function_tail(lex, class, type, name, MOD_PUBLIC, false);
 	}
@@ -711,7 +713,7 @@ void parse_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type, char* name)
 		// on an assignement
 		Expression* expr = parse_assignement(lex);
 		Field* field = create_field(
-			MOD_PUBLIC,
+			MOD_PUBLIC,	
 			type,
 			name,
 			expr
@@ -750,7 +752,7 @@ void parse_decl_public(Lexer* lex, ClassDecl* class)
 {
 	Token t = match(lex, (TokenType[]) {TOKEN_STATIC, TOKENTYPE_SIZE});
 	if (!iserr(t)) {
-		parse_const_or_meth(lex, class, MOD_STATIC | MOD_PUBLIC);
+		return parse_const_or_meth(lex, class, MOD_STATIC | MOD_PUBLIC);
 	}
 	parse_const_or_meth(lex, class, MOD_PUBLIC);
 }
@@ -760,9 +762,9 @@ void parse_decl_public(Lexer* lex, ClassDecl* class)
 void parse_const_or_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type)
 {
 	Token t = match(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE});
-	if (iserr(t)) {
+	if (!iserr(t)) {
 		char name[32]; token_text(lex, t, name, 32);
-		parse_meth_or_attr(lex, class, type, name);
+		return parse_meth_or_attr(lex, class, type, name);
 	}
 	// on a constructor
 	parse_function_tail(lex, class, type, NULL, MOD_PUBLIC, true);
@@ -792,10 +794,9 @@ void parse_decl_list(Lexer* lex, ClassDecl* class)
 	if (lex->tok.type == TOKEN_RACC) {
 		return;
 	}
-	Token t = match_nofail(
+	Token t = match_without_consuming(
 		lex, 
-		(TokenType[]) {TOKEN_LCRO, TOKEN_ID_TYPE, TOKEN_PUBLIC, TOKEN_STATIC, TOKEN_BOOLEAN, TOKEN_INT, TOKEN_VOID, TOKENTYPE_SIZE},
-		"unexpected token: expected a declaration"
+		(TokenType[]) {TOKEN_ID_TYPE, TOKEN_PUBLIC, TOKEN_STATIC, TOKEN_BOOLEAN, TOKEN_INT, TOKEN_VOID, TOKENTYPE_SIZE}
 	);
 	if (t.type == TOKEN_LCRO)
 		return;
@@ -840,9 +841,9 @@ ClassDecl* parse_class(Lexer* lex)
 		class_set_superclass(class, buff);
 	}
 
-	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected (");
+	match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
 	parse_decl_list(lex, class);
-	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
+	match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected a closing accolade");
 
 	return class;
 }
