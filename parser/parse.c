@@ -625,7 +625,7 @@ Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 		Expression* expr = parse_stmt_ident(lex, name);
 		return create_expr_stmt(expr);
 	}
-	case TOKEN_PTSVG: return NULL;
+	case TOKEN_PTSVG: match(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}); return NULL;
 	case TOKEN_FOR: {
 		match(lex, (TokenType[]) {TOKEN_FOR, TOKENTYPE_SIZE});
 		match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE}, "unexpected token: expected (");

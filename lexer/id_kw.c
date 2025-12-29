@@ -60,8 +60,6 @@ Token id_kw_class (Lexer* lex, int start) {
     return tok;
     
 }
-    
-    
 
 TokenType get_keyword_token(const char *keyword) {
     if (strcmp(keyword, "Boolean") == 0 || strcmp(keyword, "boolean") == 0) {
@@ -98,4 +96,3 @@ TokenType get_keyword_token(const char *keyword) {
         return TOKEN_ID;
     }
 }
-
