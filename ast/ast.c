@@ -18,6 +18,12 @@ Type* create_class_type(char* class_name)
 	return t;
 }
 
+Type* create_string_type() {
+	Type* t = malloc(sizeof(Type));
+	t->kind = TYPE_STRING;
+	t->class_name = NULL;
+	return t;
+}
 
 // ======================================= Expression Constructors =======================================
 
@@ -48,6 +54,7 @@ Expression* create_literal_string(char* val)
 	e->type = create_type(TYPE_STRING);
 	e->literal.kind = LIT_STRING;
 	e->literal.string_val = strdup(val);
+
 	return e;
 }
 
@@ -542,14 +549,14 @@ void freeNew(NewExpr n)
 {
 	freeType(n.type);
 	while(n.arg_count-- > 0)
-		freeExpression(n.args[n.arg_count-1]);
+		freeExpression(n.args[n.arg_count]);
 }
 
 void freeCallExpr(CallExpr cexpr)
 {
 	freeExpression(cexpr.callee);
 	while(cexpr.arg_count-- > 0)
-		freeExpression(cexpr.args[cexpr.arg_count-1]);
+		freeExpression(cexpr.args[cexpr.arg_count]);
 }
 
 void freeStatement(Statement*);
@@ -557,7 +564,7 @@ void freeStatement(Statement*);
 void freeBlock(Block blk)
 {
 	while (blk.count-- > 0)
-		freeStatement(blk.stmts[blk.count-1]);	
+		freeStatement(blk.stmts[blk.count]);	
 }
 
 void freeFor(ForStmt forstmt)
@@ -658,13 +665,13 @@ void freeClass(ClassDecl* class)
 	if (class->super_class) free(class->super_class);
 
 	while (class->field_count-- > 0) {
-		freeField(class->fields[class->field_count-1]);
+		freeField(class->fields[class->field_count]);
 	}
 	while (class->constructor_count-- > 0) {
-		freeConstructor(class->constructors[class->constructor_count-1]);
+		freeConstructor(class->constructors[class->constructor_count]);
 	}
 	while (class->method_count-- > 0) {
-		freeMethod(class->methods[class->method_count-1]);
+		freeMethod(class->methods[class->method_count]);
 	}
 	free(class);
 }
@@ -672,7 +679,7 @@ void freeClass(ClassDecl* class)
 void freeFile(File* file)
 {
 	while (file->class_count-- > 0) {
-		freeClass(file->classes[file->class_count-1]);
+		freeClass(file->classes[file->class_count]);
 	}
 	free(file);
 }

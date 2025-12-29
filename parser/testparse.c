@@ -64,14 +64,21 @@ void test_example1() { //PASSED
 
 void test_parse_file() { //PASSED
     Lexer* lex = lexer_init_for_test("tests/todo/success/basic1.java");
-    File* unit = parse_fichier(lex);
+    File* unit = parse_file(lex);
     //freeFile(unit); problème dans freeFile OU free(lex)
     free(lex);
 }
 
 void test_parse_classwithmethod() {
     Lexer *lex = lexer_init_for_test("parser/testparser.java");
-    File* unit = parse_fichier(lex);
+    File* unit = parse_file(lex);
+    free(lex);
+}
+
+
+void test_basic2() {
+    Lexer* lex = lexer_init_for_test("tests/todo/success/basic2.java");
+    File* unit = parse_file(lex);
     free(lex);
 }
 

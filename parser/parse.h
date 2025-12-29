@@ -8,7 +8,7 @@
 File* parse_file(Lexer* lex);
 bool iserr(Token t);
 Token match(Lexer* lex, TokenType* values);
-Token match_nofail(Lexer* lex, TokenType* values);
+Token match_nofail(Lexer* lex, TokenType* values, const char* msg);
 Type* parse_type(Lexer* lex);
 void parse_cro_opt(Lexer* lex);
 bool parse_public_opt(Lexer* lex);
