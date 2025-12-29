@@ -1,8 +1,8 @@
 #ifndef DISPLAY_AST_H
 #define DISPLAY_AST_H
 
-#include <ast/astold.h>
+#include <ast/ast.h>
 
-void mainloop(AST *ast);
+void mainloop(File *ast);
 
 #endif
