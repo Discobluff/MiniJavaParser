@@ -476,7 +476,6 @@ Statement* parse_block(Lexer* lex)
 // stmt_ident -> postfix_tail ";" .
 Expression* parse_stmt_ident(Lexer* lex, char* name)
 {	
-	
 	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_LPAR, TOKEN_PTS, TOKENTYPE_SIZE});
 	Expression* expr;
 	if (!iserr(t)) {
@@ -517,8 +516,7 @@ Expression* parse_assignement(Lexer* lex)
 		Expression* expr = parse_expr(lex);
 		Expression* assign_expr = parse_assignement(lex);
 		if (assign_expr != NULL) {
-			Expression *right = create_binary_op(OP_ASSIGN, expr, assign_expr);
-			return create_binary_op(OP_ASSIGN, expr, right);
+			return create_binary_op(OP_ASSIGN, expr, assign_expr);
 		}
 		else {
 			return expr;
@@ -693,10 +691,6 @@ Statement** parse_stmt_list(Lexer* lex, int* stmts_count)
 		Statement* stmt = parse_stmt(lex, false);
 		stmt_list[*stmts_count - 1] = stmt;
 		t = lexer_giveToken(lex);
-	}
-	if (*stmts_count == 0) {
-		free(stmt_list);
-		return NULL;
 	}
 	return stmt_list;
 }
