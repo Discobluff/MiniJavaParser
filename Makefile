@@ -119,8 +119,9 @@ failTodo: $(TARGET)
 successTodo: $(TARGET)
 	@for file in tests/todo/success/*; do \
 		echo "Running $$file"; \
-		if make run file=$$file; then \
+		if ./main $$file; then \
 			echo "Test $$file succeeded cool"; \
+			mv $$file tests/implemented/success/; \
 		fi; \
 	done
 
