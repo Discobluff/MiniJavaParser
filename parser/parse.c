@@ -6,6 +6,23 @@ Token err = (Token) {.position = -1, .type = TOKENTYPE_SIZE};
 
 bool iserr(Token t) {return t.type == err.type || t.position == err.position;}
 
+bool panictriggered = false;
+
+/**
+* if syntaxic error encountered, advance lex to next PTSVG or RACC to continue parsing
+*/
+void panicmode(Lexer *lex) {
+	Token t = lexer_giveToken(lex);
+	while (t.type != TOKEN_PTSVG && t.type != TOKEN_RACC) {
+		lexer_next(lex);
+		t = lexer_giveToken(lex);
+	}
+	if (t.type != TOKEN_EOF) lexer_next(lex);
+	
+}
+
+
+
 /**
  * matches the lexer position with the type of the token expected. Advances the token on
  * consumtion
@@ -427,23 +444,29 @@ Expression* parse_expr(Lexer* lex)
 	return parse_lor_expr(lex);
 }
 
-// expr_opt -> expr .
+// expr_opt -> expr assignement .
 // expr_opt -> .
 Expression* parse_expr_opt(Lexer* lex)
 {
 	Token t = match(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_RACC, TOKENTYPE_SIZE});
 	Expression* expr;
-	if (iserr(t))
+	if (iserr(t)) {
 		expr = parse_expr(lex);
-	else
-		expr = NULL;
+		Expression* assign_expr = parse_assignement(lex);
+		if (assign_expr != NULL) 
+			return create_binary_op(OP_ASSIGN, expr, assign_expr);
+		
+		return expr; 
+	}
+	else 
+		{return NULL;}
 
-	return expr;
 }
 
 // block -> "{" stmt_list "}" .
 Statement* parse_block(Lexer* lex)
 {
+	printf("parsing block\n");
 	int cpt = 0;
 	Statement** stmts = parse_stmt_list(lex, &cpt);
 	return create_block(stmts, cpt);
@@ -452,7 +475,8 @@ Statement* parse_block(Lexer* lex)
 // stmt_ident -> assignement ";" .
 // stmt_ident -> postfix_tail ";" .
 Expression* parse_stmt_ident(Lexer* lex, char* name)
-{
+{	
+	
 	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_LACC, TOKEN_PTS, TOKENTYPE_SIZE});
 	Expression* expr;
 	if (!iserr(t)) {
@@ -469,14 +493,34 @@ Expression* parse_stmt_ident(Lexer* lex, char* name)
 	return expr;
 }
 
-// assignement -> "=" expr .
+// assignement -> "=" expr assignement .
+// assignement -> .
 Expression* parse_assignement(Lexer* lex)
 {
-	match_nofail(lex, (TokenType[]) {TOKEN_BINOP_EQ, TOKENTYPE_SIZE}, "unexpected token: expected =");
-	Expression* expr = parse_expr(lex);
-	return expr;
+	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_BINOP_EQ, TOKEN_RPAR, TOKEN_PTSVG, TOKENTYPE_SIZE});
+	switch(t.type)
+	{
+	case TOKEN_RPAR:
+		return NULL;
+	case TOKEN_PTSVG:
+		return NULL;
+	case TOKEN_BINOP_EQ: 
+		match_nofail(lex, (TokenType[]) {TOKEN_BINOP_EQ, TOKENTYPE_SIZE}, "unexpected token: expected =");
+		Expression* expr = parse_expr(lex);
+		Expression* assign_expr = parse_assignement(lex);
+		if (assign_expr != NULL) {
+			Expression *right = create_binary_op(OP_ASSIGN, expr, assign_expr);
+			return create_binary_op(OP_ASSIGN, expr, right);
+		}
+		else {
+			return expr;
+		}
+	default: {
+		error_under_token(lex->source, lex->tok, "unexpected token: expected =");
+		return NULL;
+		}
+	}
 }
-
 // cro_opt -> "[" "]" .
 // cro_opt -> .
 void parse_cro_opt(Lexer* lex)
@@ -561,7 +605,12 @@ Statement* parse_stmt(Lexer* lex)
 			expr
 		);
 	}
-	case TOKEN_LACC: return parse_block(lex);
+	case TOKEN_LACC: {
+		match_nofail(lex, (TokenType[]) {TOKEN_LACC, TOKENTYPE_SIZE}, "unexpected token: expected {");
+		Statement* block = parse_block(lex);
+		match_nofail(lex, (TokenType[]) {TOKEN_RACC, TOKENTYPE_SIZE}, "unexpected token: expected }");
+		return block;
+	}
 	case TOKEN_ID: {
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
 		char name[32]; token_text(lex, id, name, 32);
@@ -577,9 +626,11 @@ Statement* parse_stmt(Lexer* lex)
 		Expression* cond = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		Expression* incr = parse_expr_opt(lex);
-		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
-		Statement* stmt = parse_stmt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
+
+		Statement* stmt = parse_stmt(lex); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		printf("passed for stmt\n");
+
 		return create_for_stmt(
 			init,
 			cond,
