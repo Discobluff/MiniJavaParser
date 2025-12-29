@@ -367,7 +367,6 @@ const char* token_type_name(TokenType type)
         case TOKEN_PUBLIC:     return "PUBLIC";
         case TOKEN_RETURN:     return "RETURN";
         case TOKEN_STATIC:     return "STATIC";
-        case TOKEN_THIS:       return "THIS";
         case TOKEN_TRUE:       return "TRUE";
         case TOKEN_VOID:       return "VOID";
         case TOKEN_ID:         return "IDENTIFIER";

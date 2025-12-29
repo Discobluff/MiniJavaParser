@@ -64,7 +64,7 @@ Token id_kw_class (Lexer* lex, int start) {
     
 
 TokenType get_keyword_token(const char *keyword) {
-    if (strcmp(keyword, "boolean") == 0) {
+    if (strcmp(keyword, "Boolean") == 0 || strcmp(keyword, "boolean") == 0) {
         return TOKEN_BOOLEAN;
     } else if (strcmp(keyword, "else") == 0) {
         return TOKEN_ELSE;
@@ -90,8 +90,6 @@ TokenType get_keyword_token(const char *keyword) {
         return TOKEN_RETURN;
     } else if (strcmp(keyword, "static") == 0) {
         return TOKEN_STATIC;
-    } else if (strcmp(keyword, "this") == 0) {
-        return TOKEN_THIS;
     } else if (strcmp(keyword, "true") == 0) {
         return TOKEN_TRUE;
     } else if (strcmp(keyword, "void") == 0) {

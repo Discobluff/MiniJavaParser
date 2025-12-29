@@ -90,6 +90,8 @@ Type* parse_type(Lexer* lex)
 	case TOKEN_INT: 	return create_type(TYPE_INT);
 	case TOKEN_VOID: 	return create_type(TYPE_VOID);
 	default:
+		error_print(lex, "no way this fails / the programmer is an idiot / google ");
+		exit(1);
 		return NULL; // shuddap compiler
 	}
 }
@@ -105,7 +107,7 @@ Type* parse_type(Lexer* lex)
 Expression* parse_primary(Lexer* lex)
 {
 	Token t = match_nofail(lex,
-		(TokenType[]) {TOKEN_NUMBER, TOKEN_STR, TOKEN_TRUE, TOKEN_FALSE, TOKEN_THIS, TOKEN_NULL, TOKEN_ID, TOKEN_NEW, TOKENTYPE_SIZE},
+		(TokenType[]) {TOKEN_NUMBER, TOKEN_STR, TOKEN_TRUE, TOKEN_FALSE, TOKEN_NULL, TOKEN_ID, TOKEN_NEW, TOKENTYPE_SIZE},
 		"unexpected token: expected a literal or an instanciation"
 	);
 	
@@ -123,9 +125,6 @@ Expression* parse_primary(Lexer* lex)
 			return create_literal_boolean(1);
 		case TOKEN_FALSE:
 			return create_literal_boolean(0);
-		case TOKEN_THIS: {
-			return create_variable("this");
-		}
 		case TOKEN_NULL:
 			return create_literal_null();
 		case TOKEN_ID: {
@@ -478,10 +477,18 @@ Statement* parse_block(Lexer* lex)
 Expression* parse_stmt_ident(Lexer* lex, char* name)
 {	
 	
-	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_LACC, TOKEN_PTS, TOKENTYPE_SIZE});
+	Token t = match_without_consuming(lex, (TokenType[]) {TOKEN_PTSVG, TOKEN_LPAR, TOKEN_PTS, TOKENTYPE_SIZE});
 	Expression* expr;
 	if (!iserr(t)) {
-		expr = parse_postfix_tail(lex, NULL);
+		expr = parse_postfix_tail(lex, create_variable(name));
+		// stmt_ident -> postfix_tail assignement .
+		if ((lexer_giveToken(lex)).type == TOKEN_BINOP_EQ) {
+			expr = create_binary_op(
+				OP_EQ,
+				parse_assignement(lex),
+				create_variable(name)
+			);
+		}
 	}
 	else {
 		expr = create_binary_op(
@@ -580,9 +587,6 @@ Parameter** parse_params_opt(Lexer* lex, int* param_cpt)
 }
 
 
-
-
-
 // stmt -> ";" .
 // stmt -> type "ident" assignement ";" .
 // stmt -> "ident" stmt_ident .
@@ -600,7 +604,6 @@ Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 	case TOKEN_INT:
 	case TOKEN_VOID:
 	case TOKEN_ID_TYPE: {
-
 		Type* t = parse_type(lex);
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
 		char name[32]; token_text(lex, id, name, 32);
@@ -633,7 +636,7 @@ Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 		Expression* incr = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
 
-		Statement* stmt = parse_stmt(lex, true); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		Statement* stmt = parse_stmt(lex, true);
 
 		return create_for_stmt(
 			init,
@@ -659,7 +662,8 @@ Statement* parse_stmt(Lexer* lex, bool from_for_loop)
 		return parse_stmt_if(lex, cond, then_branch);
 	}
 	default:
-		return NULL;
+		error_under_token(lex->source, t, "expected a statement");
+		exit(1);
 	}
 }
 
