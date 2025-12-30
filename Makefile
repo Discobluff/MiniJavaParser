@@ -34,6 +34,11 @@ TESTPARSE_SRC = parser/testparse.c
 TESTPARSE_OBJ = parser/testparse.o
 TESTPARSE_BIN = testparse
 
+# Print AST test
+PRINTAST_SRC = ast/print_ast_main.c
+PRINTAST_OBJ = ast/print_ast_main.o
+PRINTAST_BIN = printast
+
 file ?= tests/implemented/success/op.java
 
 # Default target
@@ -76,6 +81,10 @@ run: $(TARGET)
 # Compile and link testparse (uses existing objects)
 $(TESTPARSE_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ)
 	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ) $(ERROR_OBJS) -o $(TESTPARSE_BIN)
+
+# Compile and link printast: parses a file and prints AST to stdout
+$(PRINTAST_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(PRINTAST_OBJ) ast/print_ast.o
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) ast/print_ast.o $(PARSER_OBJS) $(PRINTAST_OBJ) $(ERROR_OBJS) -o $(PRINTAST_BIN)
 
 # Compile testparse.c -> testparse.o
 $(TESTPARSE_OBJ): $(TESTPARSE_SRC)
@@ -150,6 +159,7 @@ successTodo: $(TARGET)
 clean:
 	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
 	rm -f $(TESTPARSE_OBJ) $(TESTPARSE_BIN)
+	rm -f $(PRINTAST_OBJ) $(PRINTAST_BIN)
 
 # Rebuild everything
 rebuild: clean all
