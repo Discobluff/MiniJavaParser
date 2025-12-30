@@ -652,7 +652,8 @@ Statement* parse_stmt(Lexer* lex)
 		match(lex, (TokenType[]) {TOKEN_FOR, TOKENTYPE_SIZE});
 		match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE}, "unexpected token: expected (");
 		Statement* init = parse_stmt(lex);
-		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
+		// Noah ici c'est normal que le ptsvg ne soit pas match car le stmt le match tout le temps
+		// un stmt c'est qqch qui se termine par un ";"
 		Expression* cond = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		Expression* incr = parse_expr_opt(lex);

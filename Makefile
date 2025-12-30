@@ -103,12 +103,19 @@ showAst: all
 	./$(TARGET) --show-ast $(file)
 
 successTests: $(TARGET)
-	@for file in tests/implemented/success/*; do \
+	@status=0; \
+	for file in tests/implemented/success/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
 		fi; \
-	done
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Successes has failed (some files failed)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mTest Success succeeded\033[0m\n"; \
+	fi
 	
 successMemory: $(TARGET)
 	@status=0; \
@@ -129,12 +136,20 @@ successMemory: $(TARGET)
 	fi
 
 failTests: $(TARGET)
-	@for file in tests/implemented/fail/*; do \
+	@status=0; \
+	for file in tests/implemented/fail/*; do \
 		echo "Running $$file"; \
 		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
+			status=1; \
 		fi; \
-	done
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failues has failed (some file succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mTest Failures succeeded\033[0m\n"; \
+	fi
 
 
 failTodo: $(TARGET)
