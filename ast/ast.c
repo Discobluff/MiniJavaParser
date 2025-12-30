@@ -258,11 +258,11 @@ Method* create_method(int modifiers, Type* return_type, char* name, Parameter** 
 
 // ======================================= Constructor Constructor =======================================
 
-Constructor* create_constructor(int modifiers, char* name, Parameter** params, int param_count, Statement* body)
+Constructor* create_constructor(int modifiers, Type* type, Parameter** params, int param_count, Statement* body)
 {
 	Constructor* c = malloc(sizeof(Constructor));
 	c->modifiers = modifiers;
-	c->name = strdup(name);
+	c->type = type;
 	c->params = params;
 	c->param_count = param_count;
 	c->body = body;
@@ -511,31 +511,38 @@ void freeExpression(Expression* expr)
 	{
 	case EXPR_LITERAL:
 		freeLiteral(expr->literal);
+		freeType(expr->type);
 		break;
 	case EXPR_VARIABLE:
 		free(expr->var_name);
+		freeType(expr->type);
 		break;
 	case EXPR_BINARY_OP:
 		freeExpression(expr->binary.left);
 		freeExpression(expr->binary.right);
+		freeType(expr->type);
 		break;
 	case EXPR_UNARY_OP:
 		freeExpression(expr->unary.operand);
+		freeType(expr->type);
 		break;
 	case EXPR_CALL:
-		freeExpression(expr->instof.val);
-		freeType(expr->instof.comp);
+		freeCallExpr(expr->call);
+		freeType(expr->type);
 		break;
 	case EXPR_INSTOF:
 		freeExpression(expr->instof.val);
 		freeType(expr->instof.comp);
+		freeType(expr->type);
 		break;
 	case EXPR_NEW:
 		freeNew(expr->new_expr);
+		freeType(expr->type);
 		break;
 	case EXPR_FIELD_ACCESS:
 		free(expr->field_access.field_name);
 		freeExpression(expr->field_access.object);
+		freeType(expr->type);
 		break;
 	case EXPR_CAST:
 		freeType(expr->cast.target_type);
@@ -547,9 +554,9 @@ void freeExpression(Expression* expr)
 
 void freeNew(NewExpr n)
 {
-	freeType(n.type);
 	while(n.arg_count-- > 0)
 		freeExpression(n.args[n.arg_count]);
+	if (n.args) free(n.args);
 }
 
 void freeCallExpr(CallExpr cexpr)
@@ -557,6 +564,7 @@ void freeCallExpr(CallExpr cexpr)
 	freeExpression(cexpr.callee);
 	while(cexpr.arg_count-- > 0)
 		freeExpression(cexpr.args[cexpr.arg_count]);
+	if (cexpr.args) free(cexpr.args);
 }
 
 void freeStatement(Statement*);
@@ -565,6 +573,7 @@ void freeBlock(Block blk)
 {
 	while (blk.count-- > 0)
 		freeStatement(blk.stmts[blk.count]);	
+	if (blk.stmts) free(blk.stmts);
 }
 
 void freeFor(ForStmt forstmt)
@@ -638,11 +647,12 @@ void freeField(Field* field)
 
 void freeConstructor(Constructor* constr)
 {
-	free(constr->name);
+	freeType(constr->type);
 
 	while (constr->param_count-- > 0)
 		freeParameter(constr->params[constr->param_count]);
-	
+	if (constr->params) free(constr->params);
+	freeStatement(constr->body);
 	free(constr);
 }
 
@@ -654,7 +664,8 @@ void freeMethod(Method* meth)
 	freeType(meth->return_type);
 	while (meth->param_count-- > 0)
 		freeParameter(meth->params[meth->param_count]);
-	
+	if (meth->params) free(meth->params);
+
 	freeStatement(meth->body);
 	free(meth);
 }
@@ -664,22 +675,26 @@ void freeClass(ClassDecl* class)
 	free(class->name);
 	if (class->super_class) free(class->super_class);
 
-	while (class->field_count-- > 0) {
+	while (class->field_count-- > 0)
 		freeField(class->fields[class->field_count]);
-	}
-	while (class->constructor_count-- > 0) {
+	if (class->fields) free(class->fields);
+
+	while (class->constructor_count-- > 0)
 		freeConstructor(class->constructors[class->constructor_count]);
-	}
-	while (class->method_count-- > 0) {
+	if (class->constructors) free(class->constructors);
+
+	while (class->method_count-- > 0)
 		freeMethod(class->methods[class->method_count]);
-	}
+	if (class->methods) free(class->methods);
+
 	free(class);
 }
 
 void freeFile(File* file)
 {
-	while (file->class_count-- > 0) {
+	while (file->class_count-- > 0)
 		freeClass(file->classes[file->class_count]);
-	}
+	if (file->classes) free(file->classes);
+
 	free(file);
 }

@@ -1,6 +1,6 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
-LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
+CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O2 -I.
+LDFLAGS = -Wall -Wextra -lm
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages
@@ -21,6 +21,9 @@ AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
 PARSER_SRCS = $(PARSER_DIR)/parse.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
+
+# Valgrind memckeck flags
+MEMCHECK_FLAGS = --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1
 
 TARGET = main
 
@@ -98,6 +101,23 @@ successTests: $(TARGET)
 		fi; \
 	done
 	
+successMemory: $(TARGET)
+	@status=0; \
+	for file in tests/implemented/success/*; do \
+		printf "%-55s " "$$file"; \
+		if valgrind $(MEMCHECK_FLAGS) ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;77mOK\033[0m"; \
+		else \
+			echo "\033[38;5;196mLEAK\033[0m"; \
+			status=1; \
+		fi; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mMemory check failed\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll memory checks passed\033[0m\n"; \
+	fi
 
 failTests: $(TARGET)
 	@for file in tests/implemented/fail/*; do \

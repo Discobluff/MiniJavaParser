@@ -89,6 +89,6 @@ int main(int argc, char** argv)
 
     freeFile(unit);
     free(source);
-    free(lex);
+    lexerfree(lex);
     return 0;
 }

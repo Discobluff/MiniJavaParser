@@ -27,7 +27,7 @@ Lexer* lexer_init(char* src, int len)
 	int pos = 0, size=1;
 	while (lex->tok.type != TOKEN_EOF) {
 		if (pos >= size * MAX_INIT_TYPE_BUFFER) {
-			lex->decl_type_list = realloc(lex->decl_type_list, (size++)*MAX_INIT_TYPE_BUFFER);
+			lex->decl_type_list = realloc(lex->decl_type_list, (++size)*MAX_INIT_TYPE_BUFFER * sizeof(int));
 		}
 		if (lex->tok.type == TOKEN_CLASS) {
 			lexer_next(lex);
@@ -48,7 +48,7 @@ Lexer* lexer_init(char* src, int len)
 }
 
 // Peek at current character without consuming
- char peek(Lexer* lex)
+char peek(Lexer* lex)
 {
 	if (lex->pos >= lex->length) {
 		return '\0';
@@ -424,9 +424,11 @@ void advancetonextline(Lexer *lex) {
 	lexer_next(lex);
 }
 
-
+/**
+ * free the list of object decorators and the lexer
+ * Doesn't free the source file
+ */
 void lexerfree(Lexer *lex) {
 	free(lex->decl_type_list);
-	free(lex->source);
 	free(lex);
 }

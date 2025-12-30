@@ -734,13 +734,9 @@ void parse_function_tail(Lexer* lex, ClassDecl* class, Type* type, char* name, i
 
 	if (is_constr) {
 		// Constructeur
-		if (type->kind != TYPE_CLASS) {
-			error_print(lex, "no way this fails");
-			exit(0);
-		}
 		Constructor* constr = create_constructor(
 			modifier,
-			type->class_name,
+			type,
 			params,
 			params_count,
 			body
