@@ -130,6 +130,8 @@ Expression* parse_primary(Lexer* lex)
 		case TOKEN_ID: {
 			char id_name[256];
 			token_identifier(lex, t, id_name, 256);
+			// !!!!!!!!!!!!		id_name appears null 	!!!!!!!!!!!!!!
+			printf("FIELD2 : %s\n", id_name);
 			return create_variable(id_name);
 		}
 		case TOKEN_NEW: {
@@ -222,8 +224,6 @@ Expression* parse_postfix_tail(Lexer* lex, Expression* expr)
 	} else if (t.type == TOKEN_LPAR) {
 		int arg_count = 0;
 		Expression** args = parse_lexpr_opt(lex, &arg_count);
-		printf("%s\n", token_type_name(lexer_giveToken(lex).type));
-		printf("Lex on %c##", peek(lex));
 		match_nofail(lex, (TokenType[]) {TOKEN_RPAR, TOKENTYPE_SIZE}, "unexpected token: expected a closing parenthese");
 		expr = create_call(expr, args, arg_count);
 		return parse_postfix_tail(lex, expr);
