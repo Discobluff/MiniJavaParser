@@ -113,6 +113,7 @@ failTodo: $(TARGET)
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
+			mv $$file tests/implemented/fail/; \
 		fi; \
 	done
 
