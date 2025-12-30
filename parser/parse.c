@@ -230,10 +230,27 @@ Expression* parse_postfix_tail(Lexer* lex, Expression* expr)
 	return expr;
 }
 
-// postfix_expr -> primary postfix_tail .
+// primary_with_prefix -> "!" primary_with_prefix .
+// primary_with_prefix -> "-" primary_with_prefix .
+// primary_with_prefix -> "+" primary_with_prefix .
+// primary_with_prefix -> primary .
+Expression* parse_primary_with_prefix(Lexer* lex)
+{
+	Token t = match(lex, (TokenType[]) {TOKEN_OPP, TOKEN_BINOP_SUB, TOKEN_BINOP_ADD, TOKENTYPE_SIZE});
+	if (!iserr(t)) {
+		if (t.type == TOKEN_BINOP_ADD)
+			return parse_primary_with_prefix(lex);
+		UnaryOp op = (t.type == TOKEN_OPP) ? UNARY_NOT : UNARY_NEG;
+		Expression* operand = parse_primary_with_prefix(lex);
+		return create_unary_op(op, operand);
+	}
+	return parse_primary(lex);
+}
+
+// postfix_expr -> primary_with_prefix postfix_tail .
 Expression* parse_postfix_expr(Lexer* lex)
 {
-	Expression* expr = parse_primary(lex);
+	Expression* expr = parse_primary_with_prefix(lex);
 	return parse_postfix_tail(lex, expr);
 }
 
@@ -281,12 +298,8 @@ Expression* parse_unary(Lexer* lex)
 {
 	Token t = match(lex, (TokenType[]) {TOKEN_OPP, TOKEN_BINOP_SUB, TOKEN_BINOP_ADD, TOKENTYPE_SIZE});
 	if (!iserr(t)) {
-		TokenType ty;
-		if (t.type == TOKEN_OPP) 			ty = UNARY_NOT;
-		else if (t.type == TOKEN_BINOP_SUB) ty = UNARY_NEG;
-		else {
+		if (t.type == TOKEN_BINOP_ADD)
 			return parse_unary(lex);
-		}
 		UnaryOp op = (t.type == TOKEN_OPP) ? UNARY_NOT : UNARY_NEG;
 		Expression* operand = parse_unary(lex);
 		return create_unary_op(op, operand);
