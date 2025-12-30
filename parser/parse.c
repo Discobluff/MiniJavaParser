@@ -147,6 +147,7 @@ Expression* parse_primary(Lexer* lex)
 			return create_new(type, args, arg_count);
 		}
 		default:
+			// error handeled by nofail
 			return NULL;
 	}
 }
@@ -274,11 +275,18 @@ Expression* parse_cast_or_postfix(Lexer* lex)
 
 // unary -> "!" unary .
 // unary -> "-" unary .
+// unary -> "+" unary .
 // unary -> cast_or_postfix .
 Expression* parse_unary(Lexer* lex)
 {
-	Token t = match(lex, (TokenType[]) {TOKEN_OPP, TOKEN_BINOP_SUB, TOKENTYPE_SIZE});
+	Token t = match(lex, (TokenType[]) {TOKEN_OPP, TOKEN_BINOP_SUB, TOKEN_BINOP_ADD, TOKENTYPE_SIZE});
 	if (!iserr(t)) {
+		TokenType ty;
+		if (t.type == TOKEN_OPP) 			ty = UNARY_NOT;
+		else if (t.type == TOKEN_BINOP_SUB) ty = UNARY_NEG;
+		else {
+			return parse_unary(lex);
+		}
 		UnaryOp op = (t.type == TOKEN_OPP) ? UNARY_NOT : UNARY_NEG;
 		Expression* operand = parse_unary(lex);
 		return create_unary_op(op, operand);
@@ -585,9 +593,8 @@ Parameter** parse_params_opt(Lexer* lex, int* param_cpt)
 }
 
 
-// stmt -> ";" .
 // stmt -> type "ident" assignement ";" .
-// stmt -> "ident" stmt_ident .
+// stmt -> expr_opt ";" .
 // stmt -> "for" "(" expr_opt ";" expr_opt ";" expr_opt ")" stmt .
 // stmt -> block .
 // stmt -> "return" expr_opt ";" .
@@ -616,13 +623,16 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_LACC: {
 		return parse_block(lex);
 	}
-	case TOKEN_ID: {
-		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
-		char name[32]; token_text(lex, id, name, 32);
-		Expression* expr = parse_stmt_ident(lex, name);
+	case TOKEN_NEW: 	case TOKEN_NULL:
+	case TOKEN_TRUE:	case TOKEN_FALSE:
+	case TOKEN_STR:		case TOKEN_NUMBER:
+	case TOKEN_OPP:		case TOKEN_BINOP_SUB:
+	case TOKEN_PTSVG: 	case TOKEN_ID: 
+	case TOKEN_LPAR:{
+		Expression* expr = parse_expr_opt(lex);
+		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		return create_expr_stmt(expr);
 	}
-	case TOKEN_PTSVG: match(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}); return NULL;
 	case TOKEN_FOR: {
 		match(lex, (TokenType[]) {TOKEN_FOR, TOKENTYPE_SIZE});
 		match_nofail(lex, (TokenType[]) {TOKEN_LPAR, TOKENTYPE_SIZE}, "unexpected token: expected (");
