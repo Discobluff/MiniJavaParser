@@ -106,7 +106,7 @@ void lexer_next(Lexer* lex)
 	}
 
 	/* ---------On lit un string ---------*/
-	if (c == '\"') {
+	if (c == '"') {
 		if (good_string(lex)) {
 			lex->tok.type = TOKEN_STR;
 			lex->tok.position = start+1;

@@ -15,47 +15,48 @@ bool good_string(Lexer* lex) {
 
 
     advance(lex);
-    char c; 
+    char c = peek(lex);
 
-    while(lex->pos < lex->length) {
-        c = peek(lex);
+    while (lex->pos < lex->length) {
         if (c == '\\') {
+            /* backslash: consume it and the escaped character, ignoring escaped quotes */
             if (lex->pos == lex->length - 1) {
-                char msg[46];
-                sprintf(msg, "End of file before end of string");
+                char msg[64];
+                snprintf(msg, sizeof(msg), "End of file before end of string");
+                lex->tok.position = lex->pos;
                 error_print(lex, msg);
                 return false;
             }
-
-            advance(lex); 
+            /* consume backslash */
+            advance(lex);
+            /* consume escaped char if present */
             c = peek(lex);
-            if (strchr("n\\\"r\'0", c) == NULL) {
-
-                //c n'est pas dans [n, \, ", ', 0]
-                char msg[46];
-                sprintf(msg, "Undefined escape character : %c \n", c);
+            /* optional: validate escape characters */
+            if (strchr("ntr\\\"'0", c) == NULL) {
+                char msg[80];
+                snprintf(msg, sizeof(msg), "Undefined escape character: %c", c);
+                lex->tok.position = lex->pos;
                 error_print(lex, msg);
                 return false;
             }
-            
+            advance(lex);
+            c = peek(lex);
+            continue;
         }
 
-        // on n'a pas lu antislash
-        if (c == '\"') {
+        if (c == '"') {
             advance(lex);
             return true;
         }
 
-        else { advance(lex); }
-
-
+        advance(lex);
+        c = peek(lex);
     }
-    char msg[46];
-    sprintf(msg, "End of file before end of string");
-    error_print(lex, msg);
+
+    char msg[64];
+    snprintf(msg, sizeof(msg), "End of file before end of string");
     lex->tok.position = lex->pos;
-
-
+    error_print(lex, msg);
     return false;
 }
 
