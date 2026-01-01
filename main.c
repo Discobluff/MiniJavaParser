@@ -1,4 +1,5 @@
 #include <lexer/lexer.h>
+#include <ast/displayAst.h>
 #include <error/print_error.h>
 #include <parser/parse.h>
 #include <ast/ast.h>
@@ -26,8 +27,6 @@ int main(int argc, char** argv)
         } else if (strcmp(argv[i], "--debug-parser") == 0) {
             debug_parser = 1;
         } else if (strcmp(argv[i], "--show-ast") == 0) {
-            perror("show ast not implemented");
-            exit(0);
             show_ast = 1;
         } else if (argv[i][0] != '-') {
             filename = argv[i];
@@ -87,6 +86,10 @@ int main(int argc, char** argv)
 
     File* unit = parse_file(lex);
 
+    if (show_ast){
+        AST ast = (AST){ .type = AST_FILE, .data.file = unit };
+        mainloop(ast);
+    }
 
     freeFile(unit);
     free(source);
