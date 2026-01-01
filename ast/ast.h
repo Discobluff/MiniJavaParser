@@ -340,12 +340,6 @@ void class_add_method(ClassDecl* cls, Method* method);
 File* create_file();
 void file_add_class(File* file, ClassDecl* cls);
 
-int depthCallExpr(CallExpr *callExpr);
-int depthNewExpr(NewExpr *newExpr);
-int depthExpression(Expression* expr);
-int depthStatement(Statement* stmt);
-int depthFile(File* file);
-
 void freeFile(File* file);
 void freeClass(ClassDecl* class);
 void freeMethod(Method* meth);

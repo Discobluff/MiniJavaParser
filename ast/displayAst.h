@@ -3,6 +3,6 @@
 
 #include <ast/ast.h>
 
-void mainloop(File *ast);
+void mainloop(AST ast);
 
 #endif

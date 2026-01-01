@@ -158,8 +158,8 @@ File* example2()
 		MOD_PUBLIC | MOD_STATIC,
 		create_type(TYPE_VOID),
 		"main",
-		NULL,
-		0,
+		main_params,
+		1,
 		main_body
 	);
 	class_add_method(Main, main_method);
@@ -234,7 +234,7 @@ File *example5(){
 
 /*
 *   class A {
-*       int a;
+*       private int a;
 *       int b = 1;
 *       A(int c) {
 *           a = c;
@@ -249,7 +249,7 @@ File *example6(){
 
     ClassDecl* classA = create_class("A");
 
-    Field* field_a = create_field(0, create_type(TYPE_INT), "a", NULL);
+    Field* field_a = create_field(MOD_PRIVATE, create_type(TYPE_INT), "a", NULL);
     class_add_field(classA, field_a);
 
     Field* field_b = create_field(0, create_type(TYPE_INT), "b", create_literal_int(1));
@@ -307,8 +307,28 @@ File *example7(){
     return file;
 }
 
+AST example8(){
+	Expression *expr1 = create_binary_op(OP_ADD, create_literal_int(5), create_literal_int(10));
+	Expression *expr2 = create_binary_op(OP_MUL, create_literal_int(2), create_literal_int(3));
+	Expression *expr3 = create_binary_op(OP_SUB, expr1, expr2);
+	Expression *expr4 = create_binary_op(OP_ADD, expr3, create_literal_int(0));
+	Expression *expr5 = create_binary_op(OP_ADD, expr4, create_literal_int(4));
+	Expression *expr6 = create_binary_op(OP_DIV, expr5, create_literal_int(2));
+	Expression *expr7 = create_binary_op(OP_MOD, create_literal_int(3), expr6);
+	return (AST){ .type = AST_EXPRESSION, .data.expression = expr7 };
+}
+
+AST example9(){
+	File *file = create_file();
+	for (int i = 0; i < 20; i++){
+		ClassDecl *cls = create_class("A");
+		file_add_class(file, cls);
+	}
+	return (AST){ .type = AST_FILE, .data.file = file };
+}
+
 int main(void){
-    File *ast = example1();
-    mainloop(ast);
+    File *ast = example6();
+	mainloop((AST){ .type = AST_FILE, .data.file = ast });
     return 0;
 }

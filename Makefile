@@ -19,7 +19,7 @@ ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
 AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse.c
+PARSER_SRCS = $(PARSER_DIR)/parse.c $(AST_DIR)/displayAst.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 # Valgrind memckeck flags
@@ -39,14 +39,14 @@ PRINTAST_SRC = ast/print_ast_main.c
 PRINTAST_OBJ = ast/print_ast_main.o
 PRINTAST_BIN = printast
 
-file ?= tests/implemented/success/op.java
+file ?= tests/implemented/success/call1.java
 
 # Default target
 all: $(TARGET)
 
 # Build the executable
 $(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
-	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL) 
 
 # Compile main.c
 main.o: main.c
