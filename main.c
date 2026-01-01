@@ -87,8 +87,9 @@ int main(int argc, char** argv)
 
     File* unit = parse_file(lex);
 
+
     freeFile(unit);
     free(source);
-    free(lex);
+    lexerfree(lex);
     return 0;
 }

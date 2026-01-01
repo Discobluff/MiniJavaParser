@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
-LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
+LDFLAGS = -Wall -Wextra -lm
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages
@@ -22,6 +22,9 @@ AST_OBJS = $(AST_SRCS:.c=.o)
 PARSER_SRCS = $(PARSER_DIR)/parse.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
+# Valgrind memckeck flags
+MEMCHECK_FLAGS = --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1
+
 TARGET = main
 
 MAIN_OBJ = main.o
@@ -30,6 +33,11 @@ MAIN_OBJ = main.o
 TESTPARSE_SRC = parser/testparse.c
 TESTPARSE_OBJ = parser/testparse.o
 TESTPARSE_BIN = testparse
+
+# Print AST test
+PRINTAST_SRC = ast/print_ast_main.c
+PRINTAST_OBJ = ast/print_ast_main.o
+PRINTAST_BIN = printast
 
 file ?= tests/implemented/success/op.java
 
@@ -74,6 +82,10 @@ run: $(TARGET)
 $(TESTPARSE_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ)
 	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ) $(ERROR_OBJS) -o $(TESTPARSE_BIN)
 
+# Compile and link printast: parses a file and prints AST to stdout
+$(PRINTAST_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(PRINTAST_OBJ) ast/print_ast.o
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) ast/print_ast.o $(PARSER_OBJS) $(PRINTAST_OBJ) $(ERROR_OBJS) -o $(PRINTAST_BIN)
+
 # Compile testparse.c -> testparse.o
 $(TESTPARSE_OBJ): $(TESTPARSE_SRC)
 	$(CC) $(CFLAGS) -c $(TESTPARSE_SRC) -o $(TESTPARSE_OBJ)
@@ -91,33 +103,66 @@ showAst: all
 	./$(TARGET) --show-ast $(file)
 
 successTests: $(TARGET)
-	@for file in tests/implemented/success/*; do \
+	@status=0; \
+	for file in tests/implemented/*/success/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
 		fi; \
-	done
-	
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Successes has failed (some files failed)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mTest Success succeeded\033[0m\n"; \
+	fi
+
+successMemory: $(TARGET)
+	@status=0; \
+	for file in tests/implemented/*/success/*; do \
+		printf "%-55s " "$$file"; \
+		if valgrind $(MEMCHECK_FLAGS) ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;77mOK\033[0m"; \
+		else \
+			echo "\033[38;5;196mLEAK\033[0m"; \
+			status=1; \
+		fi; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mMemory check failed\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll memory checks passed\033[0m\n"; \
+	fi
 
 failTests: $(TARGET)
-	@for file in tests/implemented/fail/*; do \
+	@status=0; \
+	for file in tests/implemented/*/fail/*; do \
 		echo "Running $$file"; \
 		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
+			status=1; \
 		fi; \
-	done
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failues has failed (some file(s) succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mTest Failures succeeded\033[0m\n"; \
+	fi
 
 
 failTodo: $(TARGET)
-	@for file in tests/todo/fail/*; do \
+	@for file in tests/todo/*/fail/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
+			mv $$file tests/implemented/fail/; \
 		fi; \
 	done
 
 successTodo: $(TARGET)
-	@for file in tests/todo/success/*; do \
+	@for file in tests/todo/*/success/*; do \
 		echo "Running $$file"; \
 		if ./main $$file; then \
 			echo "Test $$file succeeded cool"; \
@@ -129,6 +174,7 @@ successTodo: $(TARGET)
 clean:
 	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
 	rm -f $(TESTPARSE_OBJ) $(TESTPARSE_BIN)
+	rm -f $(PRINTAST_OBJ) $(PRINTAST_BIN)
 
 # Rebuild everything
 rebuild: clean all

@@ -58,7 +58,6 @@ typedef enum {
     TOKEN_PUBLIC,
     TOKEN_RETURN,
     TOKEN_STATIC,
-    TOKEN_THIS,
     TOKEN_TRUE,
     TOKEN_VOID,
 

@@ -16,8 +16,8 @@ typedef enum {
 	TYPE_BOOLEAN,
 	TYPE_STRING,
 	TYPE_VOID,
-
 	TYPE_CLASS,
+	TYPE_ERROR,
 } TypeKind;
 
 /**
@@ -226,7 +226,7 @@ typedef struct {
 typedef struct {
 	int modifiers;
 	
-	char* name;
+	Type* type;
 
 	Parameter** params;
 	int param_count;
@@ -327,7 +327,7 @@ Field* create_field(int modifiers, Type* type, char* name, Expression* initializ
 
 Method* create_method(int modifiers, Type* return_type, char* name, Parameter** params, int param_count, Statement* body);
 
-Constructor* create_constructor(int modifiers, char* name, Parameter** params, int param_count, Statement* body);
+Constructor* create_constructor(int modifiers, Type* type, Parameter** params, int param_count, Statement* body);
 
 ClassDecl* create_class(char* name);
 void class_set_superclass(ClassDecl* cls, char* super_class);
