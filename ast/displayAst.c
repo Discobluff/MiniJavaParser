@@ -328,12 +328,19 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                 case (STMT_VAR_DECL):{
                     int newYPere = displayNode("VAR_DECL", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine);
                     int nbChildren = 2;
+                    if (ast.data.statement->var_decl.initializer != NULL){
+                        nbChildren = 3;
+                    }
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xType = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xName = calculateXChildren(xMin, xMax, nbChildren, 1);
                     displayAST((AST){.type = AST_TYPE, .data.type = ast.data.statement->var_decl.type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, newY, xCurrent + offsetX, newYPere, true);
                     displayAST((AST){.type = AST_NAME, .data.name = ast.data.statement->var_decl.name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true);
+                    if (ast.data.statement->var_decl.initializer != NULL){
+                        int xInit = calculateXChildren(xMin, xMax, nbChildren, 2);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->var_decl.initializer}, font, scale, offsetX, offsetY, xInit - gap/2, xInit + gap/2, xInit, newY, xCurrent + offsetX, newYPere, true);
+                    }
                     break;
                 }
                 case (STMT_FOR):{
