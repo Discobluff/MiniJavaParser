@@ -16,8 +16,8 @@ typedef enum {
 	TYPE_BOOLEAN,
 	TYPE_STRING,
 	TYPE_VOID,
-
 	TYPE_CLASS,
+	TYPE_ERROR,
 } TypeKind;
 
 /**
