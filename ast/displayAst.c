@@ -607,14 +607,15 @@ void mainloop(AST ast){
                     running = false;
                     break;
                 case SDL_MOUSEWHEEL:
+                    SDL_GetMouseState(&xMouse, &yMouse);
                     if (event.wheel.y > 0 && scale < ZOOM_IN_MAX) { // Scroll up
                         scale *= 1.1;
-                        offsetX += (offsetX - WIDTH/2) * 0.1;
-                        offsetY += (offsetY - HEIGHT/2) * 0.1;
+                        offsetX += (offsetX - xMouse) * 0.1;
+                        offsetY += (offsetY - yMouse) * 0.1;
                     } else if (event.wheel.y < 0 && scale > ZOOM_OUT_MAX) { // Scroll down
                         scale /= 1.1;
-                        offsetX -= (offsetX - WIDTH/2) * 0.1;
-                        offsetY -= (offsetY - HEIGHT/2) * 0.1;
+                        offsetX -= (offsetX - xMouse) * 0.1;
+                        offsetY -= (offsetY - yMouse) * 0.1;
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
