@@ -427,7 +427,7 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             int gap = gapBetweenChildren(xMin, xMax, nbChildren);
             int newY = yCurrent + GAP_VER*scale;
             if (isPublic(ast.data.constructor->modifiers)){
-                int xModifier = calculateXChildren(xMin, xMax, nbChildren, 0);
+                int xModifier = calculateXChildren(xMin, xMax, 1, 0);
                 displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true);
                 newY += GAP_VER*scale;
                 newYPere += GAP_VER*scale;
