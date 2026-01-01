@@ -619,7 +619,6 @@ Statement* parse_stmt(Lexer* lex)
 	Token t = lexer_giveToken(lex);
 	switch (t.type)
 	{
-	case TOKEN_RACC : return NULL;
 	case TOKEN_BOOLEAN:
 	case TOKEN_INT:
 	case TOKEN_VOID:
@@ -628,7 +627,7 @@ Statement* parse_stmt(Lexer* lex)
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
 		char name[32]; token_text(lex, id, name, 32);
 		Expression* expr = parse_assignement(lex);
-		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;"); // BECAUSE ASSIGNEMENT DOESNT CONSUME PTSVG
+		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 
 		return create_var_decl(
 			t,
@@ -639,13 +638,12 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_LACC: {
 		return parse_block(lex);
 	}
+	case TOKEN_PTSVG: match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;"); return NULL;	
 	case TOKEN_NEW: 	case TOKEN_NULL:
 	case TOKEN_TRUE:	case TOKEN_FALSE:
 	case TOKEN_STR:		case TOKEN_NUMBER:
 	case TOKEN_OPP:		case TOKEN_BINOP_SUB:
-	case TOKEN_PTSVG: match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");return NULL;	
-	case TOKEN_ID: 
-	case TOKEN_LPAR:{
+	case TOKEN_ID: case TOKEN_LPAR:{
 		Expression* expr = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");
 		return create_expr_stmt(expr);
