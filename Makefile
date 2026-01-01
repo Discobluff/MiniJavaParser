@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O2 -I.
+CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
@@ -104,7 +104,7 @@ showAst: all
 
 successTests: $(TARGET)
 	@status=0; \
-	for file in tests/implemented/success/*; do \
+	for file in tests/implemented/*/success/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
@@ -116,10 +116,10 @@ successTests: $(TARGET)
 	else \
 		echo "\t\t\033[38;5;77mTest Success succeeded\033[0m\n"; \
 	fi
-	
+
 successMemory: $(TARGET)
 	@status=0; \
-	for file in tests/implemented/success/*; do \
+	for file in tests/implemented/*/success/*; do \
 		printf "%-55s " "$$file"; \
 		if valgrind $(MEMCHECK_FLAGS) ./main $$file > /dev/null 2>&1; then \
 			echo "\033[38;5;77mOK\033[0m"; \
@@ -137,7 +137,7 @@ successMemory: $(TARGET)
 
 failTests: $(TARGET)
 	@status=0; \
-	for file in tests/implemented/fail/*; do \
+	for file in tests/implemented/*/fail/*; do \
 		echo "Running $$file"; \
 		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
@@ -145,7 +145,7 @@ failTests: $(TARGET)
 		fi; \
 	done; \
 	if [ $$status -ne 0 ]; then \
-		echo "\n\t\t\033[38;5;196mTest Failues has failed (some file succeeded)\033[0m\n"; \
+		echo "\n\t\t\033[38;5;196mTest Failues has failed (some file(s) succeeded)\033[0m\n"; \
 		exit 1; \
 	else \
 		echo "\t\t\033[38;5;77mTest Failures succeeded\033[0m\n"; \
@@ -153,7 +153,7 @@ failTests: $(TARGET)
 
 
 failTodo: $(TARGET)
-	@for file in tests/todo/fail/*; do \
+	@for file in tests/todo/*/fail/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
@@ -162,7 +162,7 @@ failTodo: $(TARGET)
 	done
 
 successTodo: $(TARGET)
-	@for file in tests/todo/success/*; do \
+	@for file in tests/todo/*/success/*; do \
 		echo "Running $$file"; \
 		if ./main $$file; then \
 			echo "Test $$file succeeded cool"; \
