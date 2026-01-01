@@ -284,7 +284,21 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 		while (end < lex->length && isdigit(lex->source[end])) {
 			end++;
 		}
-	} else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE || tok.type == TOKEN_STR) {
+	}
+	else if (tok.type == TOKEN_STR) {
+		while (end < lex->length) {
+			if (lex->source[end] == '\\') {
+				end = end + 2;
+				}
+			else {
+				if (lex->source[end] == '"') {
+					break;
+				}
+				end++;
+			}
+		}
+	}
+	else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
 		while (end < lex->length && isalnum(lex->source[end])) {
 			end++;
 		}

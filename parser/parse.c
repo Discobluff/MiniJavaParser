@@ -131,7 +131,7 @@ Expression* parse_primary(Lexer* lex)
 			char id_name[256];
 			token_identifier(lex, t, id_name, 256);
 			// !!!!!!!!!!!!		id_name appears null 	!!!!!!!!!!!!!!
-			printf("FIELD2 : %s\n", id_name);
+
 			return create_variable(id_name);
 		}
 		case TOKEN_NEW: {
@@ -628,7 +628,8 @@ Statement* parse_stmt(Lexer* lex)
 		Token id = match_nofail(lex, (TokenType[]) {TOKEN_ID, TOKENTYPE_SIZE}, "unexpected token: expected an identifier");
 		char name[32]; token_text(lex, id, name, 32);
 		Expression* expr = parse_assignement(lex);
-		
+		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;"); // BECAUSE ASSIGNEMENT DOESNT CONSUME PTSVG
+
 		return create_var_decl(
 			t,
 			name,
@@ -642,7 +643,8 @@ Statement* parse_stmt(Lexer* lex)
 	case TOKEN_TRUE:	case TOKEN_FALSE:
 	case TOKEN_STR:		case TOKEN_NUMBER:
 	case TOKEN_OPP:		case TOKEN_BINOP_SUB:
-	case TOKEN_PTSVG: 	case TOKEN_ID: 
+	case TOKEN_PTSVG: match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");return NULL;	
+	case TOKEN_ID: 
 	case TOKEN_LPAR:{
 		Expression* expr = parse_expr_opt(lex);
 		match_nofail(lex, (TokenType[]) {TOKEN_PTSVG, TOKENTYPE_SIZE}, "unexpected token: expected ;");

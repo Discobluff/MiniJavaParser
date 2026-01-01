@@ -10,14 +10,23 @@
 #include <error/print_error.h>
 
 
+/*
+when lex meets space, ', "
+it ends the string
+for example : "ok ok" results in "ok"
+
+*/
+
 bool good_string(Lexer* lex) {
     //on vient de lire " dans le lexeur
 
 
     advance(lex);
-    char c = peek(lex);
+    
 
     while (lex->pos < lex->length) {
+        char c = peek(lex);
+
         if (c == '\\') {
             /* backslash: consume it and the escaped character, ignoring escaped quotes */
             if (lex->pos == lex->length - 1) {
@@ -28,11 +37,13 @@ bool good_string(Lexer* lex) {
                 return false;
             }
             /* consume backslash */
+            
             advance(lex);
             /* consume escaped char if present */
             c = peek(lex);
+            
             /* optional: validate escape characters */
-            if (strchr("ntr\\\"'0", c) == NULL) {
+            if (strchr("ntr\\\"0", c) == NULL) {
                 char msg[80];
                 snprintf(msg, sizeof(msg), "Undefined escape character: %c", c);
                 lex->tok.position = lex->pos;
@@ -40,17 +51,16 @@ bool good_string(Lexer* lex) {
                 return false;
             }
             advance(lex);
-            c = peek(lex);
+
             continue;
         }
 
         if (c == '"') {
             advance(lex);
+            
             return true;
         }
-
         advance(lex);
-        c = peek(lex);
     }
 
     char msg[64];
