@@ -13,13 +13,13 @@ SDL_Renderer *ren;
 #define GAP_VER 100
 #define MOVE_ARROW 25
 #define PADDING 5
-#define ZOOM_IN_MAX 50
+#define ZOOM_IN_MAX 200
 #define ZOOM_OUT_MAX 0.00001
 #define DEFAULT_FONT_SIZE 16
 #define FONT_PATH "ast/font.ttf"
 #define FONT_SIZE_MIN 8
 #define DEFAULT_OFFSET_X WIDTH/2
-#define DEFAULT_OFFSET_Y 50
+#define DEFAULT_OFFSET_Y 25
 
 void destroyWindow(void){
     SDL_DestroyWindow(win);
@@ -174,6 +174,7 @@ int calculateXChildren(int xMin, int xMax, int nbChildren, int indexChild){
 
 void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY, int xMin, int xMax, int xCurrent, int yCurrent, int xPere, int yPere, bool drawLine){
     SDL_Color color = {0, 0, 0, 255};
+    scale = 1;
     switch (ast.type){
         case (AST_EXPRESSION):{
             switch (ast.data.expression->kind){
@@ -618,11 +619,11 @@ void mainloop(AST ast){
                     if (event.wheel.y > 0 && scale < ZOOM_IN_MAX) { // Scroll up
                         scale *= 1.1;
                         offsetX += (offsetX - xMouse) * 0.1;
-                        offsetY += (offsetY - yMouse) * 0.1;
+                        // offsetY += (offsetY - yMouse) * 0.1;
                     } else if (event.wheel.y < 0 && scale > ZOOM_OUT_MAX) { // Scroll down
                         scale /= 1.1;
                         offsetX -= (offsetX - xMouse) * 0.1;
-                        offsetY -= (offsetY - yMouse) * 0.1;
+                        // offsetY -= (offsetY - yMouse) * 0.1;
                     }
                     break;
                 case SDL_MOUSEBUTTONDOWN:
