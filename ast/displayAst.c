@@ -184,7 +184,7 @@ int calculateXChildren(int xMin, int xMax, int nbChildren, int indexChild){
     return xMin + indexChild*gapBetweenChildren(xMin, xMax, nbChildren) + gapBetweenChildren(xMin, xMax, nbChildren)/2;
 }
 
-void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY, int xMin, int xMax, int xCurrent, int yCurrent, int xPere, int yPere, bool drawLine, int *newOffsetX, int *newOffsetY, double *newScale){
+void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY, int xMin, int xMax, int xCurrent, int yCurrent, int xPere, int yPere, bool drawLine, int *newOffsetX, int *newOffsetY, double *newScale, int depth){
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
     bool changeFocus = false;
@@ -195,122 +195,122 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             switch (ast.data.expression->kind){
                 case (EXPR_BINARY_OP):{
                     int newYPere = displayNode(stringBinaryOp(ast.data.expression->binary.op), xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     int x0 = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int x1 = calculateXChildren(xMin, xMax, nbChildren, 1);
                     int newY = yCurrent + GAP_VER*scale;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.left}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.right}, font, scale, offsetX, offsetY, x1 - gap/2, x1 + gap/2, x1, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.left}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->binary.right}, font, scale, offsetX, offsetY, x1 - gap/2, x1 + gap/2, x1, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (EXPR_UNARY_OP):{
                     int newYPere = displayNode(stringUnaryOp(ast.data.expression->unary.op), xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 1;
                     int x0 = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int newY = yCurrent + GAP_VER*scale;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->unary.operand}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->unary.operand}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (EXPR_VARIABLE):{
                     displayNode(ast.data.expression->var_name, xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     break;
                 }
                 case (EXPR_CALL):{
                     int newYPere = displayNode("CALL", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = ast.data.expression->call.arg_count + 1;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xCallee = calculateXChildren(xMin, xMax, nbChildren, 0);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.callee}, font, scale, offsetX, offsetY, xCallee - gap/2, xCallee + gap/2, xCallee, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.callee}, font, scale, offsetX, offsetY, xCallee - gap/2, xCallee + gap/2, xCallee, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     for (int i = 0; i < ast.data.expression->call.arg_count; i++){
                         int xArg = calculateXChildren(xMin, xMax, nbChildren, i+1);
-                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.args[i]}, font, scale, offsetX, offsetY, xArg - gap/2, xArg + gap/2, xArg, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->call.args[i]}, font, scale, offsetX, offsetY, xArg - gap/2, xArg + gap/2, xArg, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     break;
                 }
                 case (EXPR_INSTOF):{
                     int newYPere = displayNode("INSTANCEOF", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xVal = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xComp = calculateXChildren(xMin, xMax, nbChildren, 1);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->instof.val}, font, scale, offsetX, offsetY, xVal - gap/2, xVal + gap/2, xVal, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->instof.comp}, font, scale, offsetX, offsetY, xComp - gap/2, xComp + gap/2, xComp, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->instof.val}, font, scale, offsetX, offsetY, xVal - gap/2, xVal + gap/2, xVal, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->instof.comp}, font, scale, offsetX, offsetY, xComp - gap/2, xComp + gap/2, xComp, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (EXPR_NEW):{
                     int newYPere = displayNode("NEW", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = ast.data.expression->new_expr.arg_count + 1;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xType = calculateXChildren(xMin, xMax, nbChildren, 0);
-                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->new_expr.type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->new_expr.type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     for (int i = 0; i < ast.data.expression->new_expr.arg_count; i++){
                         int xArg = calculateXChildren(xMin, xMax, nbChildren, i+1);
-                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->new_expr.args[i]}, font, scale, offsetX, offsetY, xArg - gap/2, xArg + gap/2, xArg, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->new_expr.args[i]}, font, scale, offsetX, offsetY, xArg - gap/2, xArg + gap/2, xArg, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     break;
                 }
                 case (EXPR_FIELD_ACCESS):{
                     int newYPere = displayNode("DOT", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xObject = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xFieldName = calculateXChildren(xMin, xMax, nbChildren, 1);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->field_access.object}, font, scale, offsetX, offsetY, xObject - gap/2, xObject + gap/2, xObject, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.expression->field_access.field_name}, font, scale, offsetX, offsetY, xFieldName - gap/2, xFieldName + gap/2, xFieldName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->field_access.object}, font, scale, offsetX, offsetY, xObject - gap/2, xObject + gap/2, xObject, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.expression->field_access.field_name}, font, scale, offsetX, offsetY, xFieldName - gap/2, xFieldName + gap/2, xFieldName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (EXPR_CAST):{
                     int newYPere = displayNode("CAST", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
                     int xTargetType = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xExpr = calculateXChildren(xMin, xMax, nbChildren, 1);
-                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->cast.target_type}, font, scale, offsetX, offsetY, xTargetType - gap/2, xTargetType + gap/2, xTargetType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->cast.expr}, font, scale, offsetX, offsetY, xExpr - gap/2, xExpr + gap/2, xExpr, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.expression->cast.target_type}, font, scale, offsetX, offsetY, xTargetType - gap/2, xTargetType + gap/2, xTargetType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.expression->cast.expr}, font, scale, offsetX, offsetY, xExpr - gap/2, xExpr + gap/2, xExpr, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (EXPR_LITERAL):{
                     switch (ast.data.expression->literal.kind){
                         case (LIT_INT):
                             displayNode(itoa(ast.data.expression->literal.int_val), xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                             break;
                         case (LIT_BOOLEAN):
                             if (ast.data.expression->literal.bool_val){
                                 displayNode("TRUE", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                                if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                                if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                             }
                             else{
                                 displayNode("FALSE", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                                if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                                if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                             }
                             break;
                         case (LIT_STRING):{
                             char *str = malloc(strlen(ast.data.expression->literal.string_val) + 3);
                             sprintf(str, "\"%s\"", ast.data.expression->literal.string_val);
                             displayNode(str, xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                             free(str);
                             break;
                         }
                         case (LIT_NULL):
                             displayNode("NULL", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                             break;
                     }
                 }
@@ -321,17 +321,17 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             switch (ast.data.statement->kind){
                 case (STMT_EXPR):{
                     int newYPere = displayNode("EXPR", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 1;
                     int x0 = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int newY = yCurrent + GAP_VER*scale;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->expr}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->expr}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (STMT_RETURN):{
                     int newYPere = displayNode("RETURN", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     if (ast.data.statement->return_val == NULL){
                         break;
                     }
@@ -339,12 +339,12 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                     int x0 = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int newY = yCurrent + GAP_VER*scale;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->return_val}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->return_val}, font, scale, offsetX, offsetY, x0 - gap/2, x0 + gap/2, x0, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (STMT_BLOCK):{
                     int newYPere = displayNode("BLOCK", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = ast.data.statement->block.count;
                     if (nbChildren == 0){
                         break;
@@ -353,13 +353,13 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                     int newY = yCurrent + GAP_VER*scale;
                     for (int i = 0; i < ast.data.statement->block.count; i++){
                         int xStmt = calculateXChildren(xMin, xMax, nbChildren, i);
-                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->block.stmts[i]}, font, scale, offsetX, offsetY, xStmt - gap/2, xStmt + gap/2, xStmt, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->block.stmts[i]}, font, scale, offsetX, offsetY, xStmt - gap/2, xStmt + gap/2, xStmt, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     break;
                 }
                 case (STMT_VAR_DECL):{
                     int newYPere = displayNode("VAR_DECL", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     if (ast.data.statement->var_decl.initializer != NULL){
                         nbChildren = 3;
@@ -368,17 +368,17 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                     int newY = yCurrent + GAP_VER*scale;
                     int xType = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xName = calculateXChildren(xMin, xMax, nbChildren, 1);
-                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.statement->var_decl.type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.statement->var_decl.name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_TYPE, .data.type = ast.data.statement->var_decl.type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_NAME, .data.name = ast.data.statement->var_decl.name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     if (ast.data.statement->var_decl.initializer != NULL){
                         int xInit = calculateXChildren(xMin, xMax, nbChildren, 2);
-                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->var_decl.initializer}, font, scale, offsetX, offsetY, xInit - gap/2, xInit + gap/2, xInit, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->var_decl.initializer}, font, scale, offsetX, offsetY, xInit - gap/2, xInit + gap/2, xInit, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     break;
                 }
                 case (STMT_FOR):{
                     int newYPere = displayNode("FOR_STMT", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 4;
                     int gap = gapBetweenChildren(xMin, xMax, nbChildren);
                     int newY = yCurrent + GAP_VER*scale;
@@ -386,33 +386,33 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                     int xCond = calculateXChildren(xMin, xMax, nbChildren, 1);
                     int xUpdate = calculateXChildren(xMin, xMax, nbChildren, 2);
                     if (ast.data.statement->for_stmt.init != NULL){
-                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.init}, font, scale, offsetX, offsetY, xInit - gap/2, xInit + gap/2, xInit, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.init}, font, scale, offsetX, offsetY, xInit - gap/2, xInit + gap/2, xInit, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     else{
                         displayNode("NIL", xInit + offsetX, newY + offsetY, color, font, xCurrent + offsetX, newYPere, true, mouseX, mouseY, &changeFocus);
-                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     }
                     if (ast.data.statement->for_stmt.condition != NULL){
-                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.condition}, font, scale, offsetX, offsetY, xCond - gap/2, xCond + gap/2, xCond, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.condition}, font, scale, offsetX, offsetY, xCond - gap/2, xCond + gap/2, xCond, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     else{
                         displayNode("NIL", xCond + offsetX, newY + offsetY, color, font, xCurrent + offsetX, newYPere, true, mouseX, mouseY, &changeFocus);
-                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     }
                     if (ast.data.statement->for_stmt.increment != NULL){
-                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.increment}, font, scale, offsetX, offsetY, xUpdate - gap/2, xUpdate + gap/2, xUpdate, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->for_stmt.increment}, font, scale, offsetX, offsetY, xUpdate - gap/2, xUpdate + gap/2, xUpdate, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     else{
                         displayNode("NIL", xUpdate + offsetX, newY + offsetY, color, font, xCurrent + offsetX, newYPere, true, mouseX, mouseY, &changeFocus);
-                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                        if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     }
                     int xBody = calculateXChildren(xMin, xMax, nbChildren, 3);
-                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.body}, font, scale, offsetX, offsetY, xBody - gap/2, xBody + gap/2, xBody, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.body}, font, scale, offsetX, offsetY, xBody - gap/2, xBody + gap/2, xBody, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     break;
                 }
                 case (STMT_IF):{
                     int newYPere = displayNode("IF_STMT", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     int nbChildren = 2;
                     if (ast.data.statement->if_stmt.else_branch != NULL){
                         nbChildren = 3;
@@ -421,22 +421,22 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                     int newY = yCurrent + GAP_VER*scale;
                     int xCond = calculateXChildren(xMin, xMax, nbChildren, 0);
                     int xThen = calculateXChildren(xMin, xMax, nbChildren, 1);
-                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->if_stmt.condition}, font, scale, offsetX, offsetY, xCond - gap/2, xCond + gap/2, xCond, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.then_branch}, font, scale, offsetX, offsetY, xThen - gap/2, xThen + gap/2, xThen, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                    displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.statement->if_stmt.condition}, font, scale, offsetX, offsetY, xCond - gap/2, xCond + gap/2, xCond, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.then_branch}, font, scale, offsetX, offsetY, xThen - gap/2, xThen + gap/2, xThen, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     if (ast.data.statement->if_stmt.else_branch != NULL){
                         int xElse = calculateXChildren(xMin, xMax, nbChildren, 2);
-                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.else_branch}, font, scale, offsetX, offsetY, xElse - gap/2, xElse + gap/2, xElse, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->if_stmt.else_branch}, font, scale, offsetX, offsetY, xElse - gap/2, xElse + gap/2, xElse, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                     }
                     break;
                 }
                 case (STMT_BREAK):{
                     displayNode("BREAK", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     break;
                 }
                 case (STMT_CONTINUE):{
                     displayNode("CONTINUE", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+                    if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     break;
                 }
             }
@@ -444,54 +444,54 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
         }
         case (AST_NAME):{
             displayNode(ast.data.name, xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             break;
         }
         case (AST_TYPE):{
             displayNode(stringType(ast.data.type), xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             break;
         }
         case (AST_PARAMETER):{
             int newYPere = displayNode("PARAM", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = 2;
             int gap = gapBetweenChildren(xMin, xMax, nbChildren);
             int xType = calculateXChildren(xMin, xMax, nbChildren, 0);
             int xName = calculateXChildren(xMin, xMax, nbChildren, 1);
-            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.parameter->type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
-            displayAST((AST){.type = AST_NAME, .data.name = ast.data.parameter->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.parameter->type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.parameter->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             break;
         }
         case (AST_CONSTRUCTOR):{
             int newYPere = displayNode("CONSTRUCTOR", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = ast.data.constructor->param_count + 1;
             int gap = gapBetweenChildren(xMin, xMax, nbChildren);
             int newY = yCurrent + GAP_VER*scale;
             if (isPublic(ast.data.constructor->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, 1, 0);
-                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 newY += GAP_VER*scale;
                 newYPere += GAP_VER*scale;
             }
             else if (isPrivate(ast.data.constructor->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, 0);
-                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 newY += GAP_VER*scale;
                 newYPere += GAP_VER*scale;
             }
             for (int i = 0; i < ast.data.constructor->param_count; i++){
                 int xParam = calculateXChildren(xMin, xMax, nbChildren, i+1);
-                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.constructor->params[i]}, font, scale, offsetX, offsetY, xParam - gap/2, xParam + gap/2, xParam, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.constructor->params[i]}, font, scale, offsetX, offsetY, xParam - gap/2, xParam + gap/2, xParam, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             }
             int xBlock = calculateXChildren(xMin, xMax, nbChildren, 0);
-            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.constructor->body}, font, scale, offsetX, offsetY, xBlock - gap/2, xBlock + gap/2, xBlock, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.constructor->body}, font, scale, offsetX, offsetY, xBlock - gap/2, xBlock + gap/2, xBlock, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             break;
         }
         case (AST_METHOD):{
             int newYPere = displayNode("METHOD", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = ast.data.method->param_count + 3;
             if (isPublic(ast.data.method->modifiers) || isPrivate(ast.data.method->modifiers)){
                 nbChildren += 1;
@@ -504,37 +504,37 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             int indexChild = 0;
             if (isPublic(ast.data.method->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             if (isPrivate(ast.data.method->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             if (isStatic(ast.data.method->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "static"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "static"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             int xReturnType = calculateXChildren(xMin, xMax, nbChildren, indexChild);
             indexChild++;
-            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.method->return_type}, font, scale, offsetX, offsetY, xReturnType - gap/2, xReturnType + gap/2, xReturnType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.method->return_type}, font, scale, offsetX, offsetY, xReturnType - gap/2, xReturnType + gap/2, xReturnType, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             int xName = calculateXChildren(xMin, xMax, nbChildren, indexChild);
             indexChild++;
-            displayAST((AST){.type = AST_NAME, .data.name = ast.data.method->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.method->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             for (int i = 0; i < ast.data.method->param_count; i++){
                 int xParam = calculateXChildren(xMin, xMax, nbChildren, indexChild);
                 indexChild++;
-                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.method->params[i]}, font, scale, offsetX, offsetY, xParam - gap/2, xParam + gap/2, xParam, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_PARAMETER, .data.parameter = ast.data.method->params[i]}, font, scale, offsetX, offsetY, xParam - gap/2, xParam + gap/2, xParam, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             }
             int xBlock = calculateXChildren(xMin, xMax, nbChildren, nbChildren - 1);
-            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.method->body}, font, scale, offsetX, offsetY, xBlock - gap/2, xBlock + gap/2, xBlock, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.method->body}, font, scale, offsetX, offsetY, xBlock - gap/2, xBlock + gap/2, xBlock, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             break;
         }
         case (AST_FIELD):{
             int newYPere = displayNode("FIELD", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = 2;
             if (isPublic(ast.data.field->modifiers) || isPrivate(ast.data.field->modifiers)){
                 nbChildren += 1;
@@ -549,34 +549,34 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             int indexChild = 0;
             if (isPublic(ast.data.field->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             if (isPrivate(ast.data.field->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             if (isStatic(ast.data.field->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "static"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "static"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             int xType = calculateXChildren(xMin, xMax, nbChildren, indexChild);
             indexChild++;
-            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.field->type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_TYPE, .data.type = ast.data.field->type}, font, scale, offsetX, offsetY, xType - gap/2, xType + gap/2, xType, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             int xName = calculateXChildren(xMin, xMax, nbChildren, indexChild);
             indexChild++;
             if (ast.data.field->initializer != NULL){
                 int xInitializer = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.field->initializer}, font, scale, offsetX, offsetY, xInitializer - gap/2, xInitializer + gap/2, xInitializer, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_EXPRESSION, .data.expression = ast.data.field->initializer}, font, scale, offsetX, offsetY, xInitializer - gap/2, xInitializer + gap/2, xInitializer, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             }
-            displayAST((AST){.type = AST_NAME, .data.name = ast.data.field->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.field->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, yCurrent + GAP_VER*scale, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             break;
         }
         case (AST_CLASS_DECL):{
             int newYPere = displayNode("CLASS", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = 1 + ast.data.class_decl->field_count + ast.data.class_decl->method_count + ast.data.class_decl->constructor_count;
             if (isPublic(ast.data.class_decl->modifiers) || isPrivate(ast.data.class_decl->modifiers)){
                 nbChildren += 1;
@@ -589,48 +589,48 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
             int indexChild = 0;
             if (isPublic(ast.data.class_decl->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "public"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             if (isPrivate(ast.data.class_decl->modifiers)){
                 int xModifier = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = "private"}, font, scale, offsetX, offsetY, xModifier - gap/2, xModifier + gap/2, xModifier, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             int xName = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-            displayAST((AST){.type = AST_NAME, .data.name = ast.data.class_decl->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+            displayAST((AST){.type = AST_NAME, .data.name = ast.data.class_decl->name}, font, scale, offsetX, offsetY, xName - gap/2, xName + gap/2, xName, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             indexChild++;
             if (ast.data.class_decl->super_class != NULL){
                 int xSuperClass = calculateXChildren(xMin, xMax, nbChildren, indexChild);
                 indexChild++;
-                displayAST((AST){.type = AST_NAME, .data.name = ast.data.class_decl->super_class}, font, scale, offsetX, offsetY, xSuperClass - gap/2, xSuperClass + gap/2, xSuperClass, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_NAME, .data.name = ast.data.class_decl->super_class}, font, scale, offsetX, offsetY, xSuperClass - gap/2, xSuperClass + gap/2, xSuperClass, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             }
             for (int i = 0; i < ast.data.class_decl->field_count; i++){
                 int xChild = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_FIELD, .data.field = ast.data.class_decl->fields[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_FIELD, .data.field = ast.data.class_decl->fields[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             for (int i = 0; i < ast.data.class_decl->constructor_count; i++){
                 int xChild = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_CONSTRUCTOR, .data.constructor = ast.data.class_decl->constructors[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_CONSTRUCTOR, .data.constructor = ast.data.class_decl->constructors[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             for (int i = 0; i < ast.data.class_decl->method_count; i++){
                 int xChild = calculateXChildren(xMin, xMax, nbChildren, indexChild);
-                displayAST((AST){.type = AST_METHOD, .data.method = ast.data.class_decl->methods[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_METHOD, .data.method = ast.data.class_decl->methods[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
                 indexChild++;
             }
             break;
         }
         case (AST_FILE):{
             int newYPere = displayNode("FILE", xCurrent + offsetX, yCurrent + offsetY, color, font, xPere, yPere, drawLine, mouseX, mouseY, &changeFocus);
-            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent;}
+            if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
             int nbChildren = ast.data.file->class_count;
             int gap = gapBetweenChildren(xMin, xMax, nbChildren);
             int newY = yCurrent + GAP_VER*scale;
             for (int i = 0; i < ast.data.file->class_count; i++){
                 int xChild = calculateXChildren(xMin, xMax, nbChildren, i);
-                displayAST((AST){.type = AST_CLASS_DECL, .data.class_decl = ast.data.file->classes[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale);
+                displayAST((AST){.type = AST_CLASS_DECL, .data.class_decl = ast.data.file->classes[i]}, font, scale, offsetX, offsetY, xChild - gap/2, xChild + gap/2, xChild, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
             }
 
             break;
@@ -735,11 +735,11 @@ void mainloop(AST ast){
         int newOffsetX = offsetX;
         int newOffsetY = offsetY;
         double newScale = scale;
-        displayAST(ast, font, scale, offsetX, offsetY, xMin, xMax, 0, 0, -1, -1, false, &newOffsetX, &newOffsetY, &newScale);
+        displayAST(ast, font, scale, offsetX, offsetY, xMin, xMax, 0, 0, -1, -1, false, &newOffsetX, &newOffsetY, &newScale, 0);
         if (clickedRight){
             offsetX = newOffsetX;
             offsetY = newOffsetY;
-            scale = newScale;
+            // scale = newScale;
         }
         SDL_RenderPresent(ren);
     }
