@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
+CFLAGS = -Wall -Wextra -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
@@ -153,10 +153,11 @@ failTests: $(TARGET)
 
 
 failTodo: $(TARGET)
-	@for file in tests/todo/*/fail/*; do \
+	@for file in tests/todo/syntax/fail/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
+			mv $$file tests/implemented/syntax/ ; \
 		fi; \
 	done
 
