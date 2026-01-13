@@ -545,8 +545,8 @@ Expression* parse_assignement(Lexer* lex)
 			return expr;
 		}
 	default: {
-		error_under_token(lex->source, lex->tok, "unexpected token: expected =");
-		return NULL;
+		error_under_token(lex->source, lex->tok, "unexpected token: expected an expression");
+		exit(1);
 		}
 	}
 }
@@ -796,7 +796,7 @@ void parse_meth_or_attr(Lexer* lex, ClassDecl* class, Type* type, char* name)
 	}
 	else {
 		error_under_token(lex->source, t, "expected a method or assignement");
-		exit(0);
+		exit(1);
 	}
 }
 
