@@ -17,9 +17,9 @@ LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c
 LEXER_OBJS = $(LEXER_SRCS:.c=.o)
 ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
-AST_SRCS = $(AST_DIR)/ast.c
+AST_SRCS = $(AST_DIR)/ast.c $(AST_DIR)/displayAst.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse.c $(AST_DIR)/displayAst.c
+PARSER_SRCS = $(PARSER_DIR)/parse.c 
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
 # Valgrind memckeck flags
