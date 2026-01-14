@@ -120,9 +120,11 @@ showAst: all
 successTests: $(TARGET)
 	@status=0; \
 	for file in tests/implemented/*/success/*; do \
-		echo "Running $$file"; \
-		if ! make run file=$$file; then \
-			echo "Test $$file unexpectedly failed"; \
+		printf "%-56s " "$$file"; \
+		if ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;77mOK\033[0m"; \
+		else \
+			echo "\033[38;5;196mFAIL\033[0m"; \
 			status=1; \
 		fi; \
 	done; \
@@ -130,13 +132,13 @@ successTests: $(TARGET)
 		echo "\n\t\t\033[38;5;196mTest Successes has failed (some files failed)\033[0m\n"; \
 		exit 1; \
 	else \
-		echo "\t\t\033[38;5;77mTest Success succeeded\033[0m\n"; \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
 	fi
 
 successMemory: $(TARGET)
 	@status=0; \
 	for file in tests/implemented/*/success/*; do \
-		printf "%-55s " "$$file"; \
+		printf "%-56s " "$$file"; \
 		if valgrind $(MEMCHECK_FLAGS) ./main $$file > /dev/null 2>&1; then \
 			echo "\033[38;5;77mOK\033[0m"; \
 		else \
@@ -154,17 +156,19 @@ successMemory: $(TARGET)
 failTests: $(TARGET)
 	@status=0; \
 	for file in tests/implemented/*/fail/*; do \
-		echo "Running $$file"; \
-		if make run file=$$file; then \
-			echo "Test $$file unexpectedly succeeded"; \
+		printf "%-69s " "$$file"; \
+		if ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;196mFAIL\033[0m"; \
 			status=1; \
+		else \
+			echo "\033[38;5;77mOK\033[0m"; \
 		fi; \
 	done; \
 	if [ $$status -ne 0 ]; then \
-		echo "\n\t\t\033[38;5;196mTest Failues has failed (some file(s) succeeded)\033[0m\n"; \
+		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
 		exit 1; \
 	else \
-		echo "\t\t\033[38;5;77mTest Failures succeeded\033[0m\n"; \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
 	fi
 
 failTodo: $(TARGET)
@@ -172,7 +176,6 @@ failTodo: $(TARGET)
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
-			mv $$file tests/implemented/syntax/fail/; \
 		fi; \
 	done
 

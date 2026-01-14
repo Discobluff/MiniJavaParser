@@ -28,6 +28,7 @@ static TokenType CLASS_ERROR[] = {
     TOKEN_RACC,       // }
     TOKEN_PUBLIC,
     TOKEN_STATIC,
+	TOKEN_CLASS,
     TOKEN_EOF,
     TOKENTYPE_SIZE
 };
