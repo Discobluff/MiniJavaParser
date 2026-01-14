@@ -5,6 +5,17 @@
 #include <ast/ast.h>
 #include <error/print_error.h>
 
+
+/**
+ * biteflags for the type of errors and the synchronation token(s) associated with it
+ */
+typedef enum {
+	STMT_ERROR			= 1 << TOKEN_PTSVG,
+	BODY_ERROR			= 1 << TOKEN_RACC,
+	CLASS_BODY_ERROR	= 1 << TOKEN_RACC | 1 << TOKEN_PTSVG,
+	CLASS_ERROR			= 1 << TOKEN_CLASS
+} error_type;
+
 File* parse_file(Lexer* lex);
 bool iserr(Token t);
 Token match(Lexer* lex, TokenType* values);
