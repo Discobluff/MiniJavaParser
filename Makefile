@@ -39,7 +39,7 @@ PRINTAST_SRC = ast/print_ast_main.c
 PRINTAST_OBJ = ast/print_ast_main.o
 PRINTAST_BIN = printast
 
-file ?= tests/implemented/success/call1.java
+file ?= tests/implemented/syntax/success/call1.java
 
 # Default target
 all: $(TARGET)
