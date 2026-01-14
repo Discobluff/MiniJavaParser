@@ -1,4 +1,3 @@
-package tests.implemented.syntax.success;
 class Main {
     public static void main(String args[]) {
         int x = 0;
