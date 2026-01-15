@@ -2,6 +2,7 @@
 #include <ast/displayAst.h>
 #include <error/print_error.h>
 #include <parser/parse.h>
+#include <typeChecker/type_checker.h>
 #include <ast/ast.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -90,6 +91,8 @@ int main(int argc, char** argv)
         AST ast = (AST){ .type = AST_FILE, .data.file = unit };
         mainloop(ast);
     }
+
+    type_check_file(unit);
 
     freeFile(unit);
     free(source);

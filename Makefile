@@ -11,6 +11,7 @@ LEXER_DIR = lexer
 ERROR_DIR = error
 AST_DIR = ast
 PARSER_DIR = parser
+TYPE_CHECKER_DIR = typeChecker
 
 # Source and object files for the lexer module
 LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c
@@ -21,6 +22,10 @@ AST_SRCS = $(AST_DIR)/ast.c
 AST_OBJS = $(AST_SRCS:.c=.o)
 PARSER_SRCS = $(PARSER_DIR)/parse.c $(AST_DIR)/displayAst.c
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
+
+# Sources et objects files for the type_checker
+TYPE_CHECKER_SCRS = typeChecker/type_checker.c
+TYPE_CHECKER_OBJS = $(TYPE_CHECKER_SCRS:.c=.o)
 
 # Valgrind memckeck flags
 MEMCHECK_FLAGS = --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1
@@ -45,8 +50,8 @@ file ?= tests/implemented/syntax/success/call1.java
 all: $(TARGET)
 
 # Build the executable
-$(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
-	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL) 
+$(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TYPE_CHECKER_OBJS) $(MAIN_OBJ)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TYPE_CHECKER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL) 
 
 # Compile main.c
 main.o: main.c
@@ -72,6 +77,10 @@ $(AST_DIR)/%.o: $(AST_DIR)/%.c $(AST_DIR)/%.h
 
 # Generic rule for compiling parser .c -> .o
 $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#Generic rule for compiling type_checker.c -> .o
+$(TYPE_CHECKER_DIR)/%.o: $(TYPE_CHECKER_DIR)/%.c $(TYPE_CHECKER_DIR)/%.h 
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Run the program with a test file
