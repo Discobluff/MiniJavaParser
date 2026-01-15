@@ -14,10 +14,19 @@ static Scope* push_scope(TypeContext* ctx){
     return s;
 }
 
-static void pop_scope(TypeContext* ctx){
-    Scope* s =ctx->scope;
-    ctx->scope = s->parent;
-    free(s);
+Scope* scope_create(Scope* parent){
+    Scope* new_scope = calloc(1, sizeof(Scope));
+    new_scope->parent = parent;
+    new_scope->vars = NULL;
+    return new_scope;
+}
+
+static void scope_pop(Scope** scope){
+    if(*scope){
+        Scope* parent_scope = (*scope)->parent;
+        free(*scope);
+        *scope = parent_scope;
+    }
 }
 
 static void declare_var(TypeContext* ctx,char* name, Type* type){
@@ -53,6 +62,19 @@ int type_equals(Type* a, Type* b){
     return 1;
 }
 
+int is_subclass(File* file, const char* child, const char* parent){
+    while(child){
+        if(strcmp(child,parent)==0){
+            return 1;
+        }
+        ClassDecl* cls = find_class(file,child);
+        if(!cls){
+            break;
+        }
+    }
+    return 0;
+}
+
 int type_compatible(File* file,Type* expected, Type* actual){
     if(!expected || !actual){
         return 0;
@@ -65,19 +87,6 @@ int type_compatible(File* file,Type* expected, Type* actual){
     }
     if(expected->kind == TYPE_CLASS && actual->kind == TYPE_CLASS){
         return is_subclass(file, actual->class_name, expected->class_name);
-    }
-    return 0;
-}
-
-int is_subclass(File* file, const char* child, const char* parent){
-    while(child){
-        if(strcmp(child,parent)==0){
-            return 1;
-        }
-        ClassDecl* cls = find_class(file,child);
-        if(!cls){
-            break;
-        }
     }
     return 0;
 }
@@ -180,6 +189,8 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 return expr->type = create_type(TYPE_STRING);
             case LIT_NULL:
                 return expr->type = create_class_type(NULL);
+            default:
+                return expr->type=type_error();
         }
         case EXPR_VARIABLE:{
             Type* t=lookup_var(ctx, expr->var_name);
@@ -296,7 +307,7 @@ static void type_check_statement(TypeContext* ctx, Statement* stmt){
             }
             type_check_expression(ctx,stmt->for_stmt.increment);
             type_check_statement(ctx, stmt->for_stmt.body);
-            pop_scope(ctx);
+            scope_pop(&ctx->scope);
             break;
 
         case STMT_BLOCK:
@@ -304,7 +315,7 @@ static void type_check_statement(TypeContext* ctx, Statement* stmt){
             for(int i=0; i<stmt->block.count; i++){
                 type_check_statement(ctx, stmt->block.stmts[i]);
             }
-            pop_scope(ctx);
+            scope_pop(&ctx->scope);
             break;
 
         case STMT_BREAK:
@@ -315,13 +326,13 @@ static void type_check_statement(TypeContext* ctx, Statement* stmt){
 
 static void type_check_method(TypeContext* ctx, Method* m){
     ctx->current_method=m;
-    push_scope(ctx);
+    ctx->scope = scope_create(ctx->scope);
 
     for(int i=0; i< m->param_count; i++){
         declare_var(ctx,m->params[i]->name, m->params[i]->type);
     }
     type_check_statement(ctx, m->body);
-    pop_scope(ctx);
+    scope_pop(&ctx->scope);
 }
 
 static void type_check_class(TypeContext* ctx, ClassDecl* cls){

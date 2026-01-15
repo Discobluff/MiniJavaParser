@@ -1,3 +1,4 @@
+package tests.implemented.syntax.success;
 /* ***dfghdfh"sdgsdgsd" # $% &
 
 \n
