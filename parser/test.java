@@ -1,7 +1,20 @@
-public class test {
-    public static void method() { // public static type ident function_tail
-        for (int i = 0; i <= 20 ; i=i+1) {
-            func.call("ok ok;");
-        }
+class A {
+    int a;
+    B b;
+    A() {}
+}
+
+class B extends A {
+    int b;
+    B() {}
+}
+
+class Main {
+    public static void main(String args[]) {
+        A a = new A();
+        boolean ok = (B)a.b == null;
+
+        /*types primitifs*/
+ok = ok && (int)1 == 1 && (int)1 == 1;
     }
 }

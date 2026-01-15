@@ -73,10 +73,21 @@ void skip_whitespace(Lexer* lex)
 	}
 }
 
+void skip_newline(Lexer *lex ) {
+	char c = peek(lex);
+	while (lex->pos < lex->length && c == '\n') {
+		advance(lex);
+		skip_whitespace(lex);
+		c = peek(lex);
+	}
+	skip_whitespace(lex);
+}
+
 // Go to next token and put it in lex->tok
 void lexer_next(Lexer* lex)
 {
-	skip_whitespace(lex);
+	skip_newline(lex);
+
 
 	int start = lex->pos;
 
@@ -244,13 +255,15 @@ void lexer_next(Lexer* lex)
 			case '/' :
 				find_next_newline_or_eof(lex);
 				//lex->tok.type = TOKEN_COMMENT;
-				lexer_next(lex);
+				return lexer_next(lex);
+				//advance(lex);	
+				
 				break ;
 			
 			case '*' : 
 				if (good_comment(lex)) {
 					//lex->tok.type = TOKEN_COMMENT;
-					lexer_next(lex);
+					return lexer_next(lex);
 					break;
 				}
 				else {
