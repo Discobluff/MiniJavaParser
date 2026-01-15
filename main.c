@@ -92,7 +92,7 @@ int main(int argc, char** argv)
         mainloop(ast);
     }
 
-    type_check_file(unit);
+    // type_check_file(unit);
 
     freeFile(unit);
     free(source);

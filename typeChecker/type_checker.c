@@ -224,15 +224,15 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
             }
             return expr->type= expr->new_expr.type;
 
-        case EXPR_INSTOF:
+        case EXPR_INSTOF: {
             Type* t=type_check_expression(ctx, expr->instof.val);
             if(t->kind != TYPE_CLASS){
                 type_error_msg("instanceof sur un non_objet");
                 return expr->type=type_error();
             }
             return expr->type = create_type(TYPE_BOOLEAN);
-        
-        case EXPR_FIELD_ACCESS:
+        }
+        case EXPR_FIELD_ACCESS:{
             Type* obj =type_check_expression(ctx, expr->field_access.object);
             if(obj->kind != TYPE_CLASS){
                 type_error_msg("accès d'un champ sur un non_objet");
@@ -245,7 +245,7 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 return expr->type=type_error();
             }
             return expr->type = f->type;
-
+        }
         case EXPR_CAST:
             type_check_expression(ctx, expr-> cast.expr);
             return expr->type = expr->cast.target_type;
@@ -257,13 +257,13 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
     return NULL;
 }
 
-static void type_check_block(TypeContext* ctx, Block* block){
-    ctx->scope = scope_create(ctx->scope);
-    for(int i=0; i<block->count; i++){
-        type_check_statement(ctx, block->stmts[i]);
-    }
-    scope_pop(&ctx->scope);
-}
+// static void type_check_block(TypeContext* ctx, Block* block){
+//     ctx->scope = scope_create(ctx->scope);
+//     for(int i=0; i<block->count; i++){
+//         type_check_statement(ctx, block->stmts[i]);
+//     }
+//     scope_pop(&ctx->scope);
+// }
 
 static void type_check_statement(TypeContext* ctx, Statement* stmt){
     if(!stmt){
@@ -274,13 +274,13 @@ static void type_check_statement(TypeContext* ctx, Statement* stmt){
             type_check_expression(ctx, stmt->expr);
             break;
 
-        case STMT_RETURN:
+        case STMT_RETURN:{
             Type* t = stmt->return_val ? type_check_expression(ctx, stmt->return_val) : create_type(TYPE_VOID);
             if(! type_compatible(ctx->file, ctx->current_method->return_type,t)){
                 type_error_msg("type de retour ne correspond pas");
             }
             break;
-        
+        }
         case STMT_VAR_DECL:{
             if(stmt->var_decl.initializer){
                 Type* t=type_check_expression(ctx, stmt->var_decl.initializer);
