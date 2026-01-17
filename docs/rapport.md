@@ -13,7 +13,7 @@
 
 ## Grammaire
 
-Voir annexe [Grammaire](./grammar.txt)
+Voir annexe [Grammaire](./grammaire.txt)
 
 ## Lexer
 Le lexer est construit en deux parties : une partie qui reconnaît les opérateurs (+, - , &&,...) et une autre qui lit les chaînes de caractères et reconnaît les expressions réservées (if, else, class, for,...).
