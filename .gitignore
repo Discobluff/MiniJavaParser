@@ -8,3 +8,5 @@
 !*.java
 testsX
 !*.ttf
+!docs/*
+!docs/images/*
