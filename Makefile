@@ -185,23 +185,25 @@ failTests: $(TARGET)
 		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
 	fi
 
-failTodo: $(TARGET)
-	@for file in tests/todo/syntax/fail/*; do \
-		echo "Running $$file"; \
-		if ! make run file=$$file; then \
-			echo "Test $$file failed good"; \
+failTypeTodo: $(TARGET)
+	@status=0; \
+	for file in tests/implemented/type/fail/*; do \
+		printf "%-69s " "$$file"; \
+		if ./main --typechecker $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;196mFAIL\033[0m"; \
+			status=1; \
+		else \
+			echo "\033[38;5;77mOK\033[0m"; \
 		fi; \
-	done
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
+	fi
 
-successTodo: $(TARGET)
-	@for file in tests/todo/*/success/*; do \
-		echo "Running $$file"; \
-		if ./main $$file; then \
-			echo "Test $$file succeeded cool"; \
-		fi; \
-	done
-
-failType: $(TARGET)
+successTypeTodo: $(TARGET)
 	@status=0; \
 	for file in tests/implemented/type/fail/*; do \
 		printf "%-69s " "$$file"; \
