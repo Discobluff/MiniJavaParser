@@ -14,9 +14,35 @@ Lexer* lexer_init(char* src, int len)
 	Lexer* lex = malloc(sizeof(Lexer));
 	lex->source = src;
 	lex->length = len;
+
 	lex->pos = 0;
 	lex->tok.type = TOKEN_EOF;
+
 	lex->tok.position = 0;
+	lex->decl_type_list = malloc(sizeof(int) * MAX_INIT_TYPE_BUFFER);
+	// memset(lex->decl_type_list, 0, sizeof(int) * MAX_INIT_TYPE_BUFFER);
+	lex->decl_type_list_size = 0;
+	lexer_next(lex);
+
+	int pos = 0, size=1;
+	while (lex->tok.type != TOKEN_EOF) {
+		if (pos >= size * MAX_INIT_TYPE_BUFFER) {
+			lex->decl_type_list = realloc(lex->decl_type_list, (size++)*MAX_INIT_TYPE_BUFFER);
+		}
+		if (lex->tok.type == TOKEN_CLASS) {
+			lexer_next(lex);
+			if (lex->tok.type == TOKEN_ID) {
+				lex->decl_type_list[pos++] = lex->tok.position;
+			}
+			
+		}
+		lexer_next(lex);
+	}
+	lex->decl_type_list_size = pos;
+
+	lex->tok.type = TOKEN_EOF;
+	lex->tok.position = 0;
+	lex->pos = 0;
 	lexer_next(lex);
 	return lex;
 }
@@ -258,7 +284,7 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 		while (end < lex->length && isdigit(lex->source[end])) {
 			end++;
 		}
-	} else if (tok.type == TOKEN_NUMBER) {
+	} else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
 		while (end < lex->length && isalnum(lex->source[end])) {
 			end++;
 		}
@@ -276,6 +302,17 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 	buf[len] = '\0';
 }
 
+// Copy identifier from source code into buf
+void token_identifier(Lexer* lex, Token tok, char* buf, int bufsize)
+{
+	if (tok.type != TOKEN_ID && tok.type != TOKEN_ID_TYPE) {
+		buf[0] = '\0';
+		return;
+	}
+	token_text(lex, tok, buf, bufsize);
+}
+
+// return the integer value of a number token
 int token_number(Lexer* lex, Token tok)
 {
 	char buf[32];
@@ -333,7 +370,8 @@ const char* token_type_name(TokenType type)
         case TOKEN_THIS:       return "THIS";
         case TOKEN_TRUE:       return "TRUE";
         case TOKEN_VOID:       return "VOID";
-        case TOKEN_ID: return "IDENTIFIER";
+        case TOKEN_ID:         return "IDENTIFIER";
+		case TOKEN_ID_TYPE:    return "IDENTIFIER_TYPE";
         
 		default: return "UNKNOWN"; // shouldn't ever be used...
 	}
@@ -348,17 +386,22 @@ Token lexer_giveToken(Lexer* lex)
 // Pretty print a token :=)
 void token_pprint(Token tok, Lexer* lex) // mabe source file???
 {
-	printf("Token: %-10s at pos %2d", 
+	printf("Token: %-16s at pos %2d", 
 				token_type_name(tok.type), 
 				tok.position);
 	if (tok.type == TOKEN_NUMBER) {
 			printf(" (value: %d)", token_number(lex, tok));
 	}
+	if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
+		char buf[64];
+		token_identifier(lex, tok, buf, sizeof(buf));
+		printf(" (name: %s)", buf);
+	}
 	printf("\n");
 }
 
 /**
- * this exists because the unop and binop versions of + and - are the "same" thing from a synthax perspective
+ * this exists because the unop and binop versions of + and - are the "same" thing from a syntax perspective
  */
 bool token_type_equality(TokenType tok1, Token tok2)
 {

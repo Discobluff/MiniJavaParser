@@ -64,9 +64,16 @@ int main(int argc, char** argv)
     fclose(file);
     
     // Initialize lexer with file contents
-    
     Lexer* lex = lexer_init(source, bytes_read);
     
+    if (debug_lexer) printf("lexer initialized with %d declared type(s)\n", lex->decl_type_list_size);
+
+    for (int i = 0; i < lex->decl_type_list_size * debug_lexer; i++) {
+        char buf[32];
+        token_identifier(lex, (Token){.type = TOKEN_ID_TYPE, .position = lex->decl_type_list[i]}, buf, 32);
+        printf("Declared type %d: %s\n", i, buf);
+    }
+
     if(debug_lexer) {
         printf("Lexing file: \"%s\"\n\n", filename);
 

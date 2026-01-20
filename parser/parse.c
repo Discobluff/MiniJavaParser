@@ -15,7 +15,7 @@ AST* parse_main(Lexer* lex, int debug)
 	stk = stack_init();
 	astk = ast_stack_init(); 	// the astk is global now deal wif it ...
 
-	stack_push(stk, (NUT){.type = RULE, .rule = ADD});
+	stack_push(stk, (NUT){.type = RULE, .rule = FIL});
 
 
 	while (stk->top > 0) {
@@ -66,10 +66,11 @@ AST* parse_main(Lexer* lex, int debug)
 		}
 	}
 
-	if (astk->top != 1) {
-		parser_error("Parse finished with %lu AST nodes (expected 1)", astk->top);
-		exit(1);
-	}
+	// (remove this comment when done pls) TODO: remove after actions are implemented
+	// if (astk->top != 1) {
+	// 	parser_error("Parse finished with %lu AST nodes (expected 1)", astk->top);
+	// 	exit(1);
+	// }
 
 	AST* result = ast_stack_pop(astk);
 	free(stk); 

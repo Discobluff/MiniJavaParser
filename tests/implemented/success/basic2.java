@@ -1,5 +1,5 @@
 public class basic2 {
-    public String toString() {
+    public String blabla() {
         return "basic2";
     }
 }

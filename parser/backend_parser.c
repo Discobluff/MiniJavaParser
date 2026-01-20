@@ -31,13 +31,120 @@ NUT stack_pop(Stack* stk)
 	}
 }
 
+char* rule_to_string(Rule rule)
+{
+	switch (rule)
+	{
+	case FIL: 
+		return "FIL";
+	case CLASS_LIST: 
+		return "CLASS_LIST";
+	case CLASSE: 
+		return "CLASSE";
+	case PUBLIC_OPT: 
+		return "PUBLIC_OPT";
+	case STATIC_OPT: 
+		return "STATIC_OPT";
+	case EXTENDS_OPT: 
+		return "EXTENDS_OPT";
+	case DECL_LIST: 
+		return "DECL_LIST";
+	case DECLA: 
+		return "DECLA";
+	case DECL_PUBLIC: 
+		return "DECL_PUBLIC";
+	case PARAMS_OPT: 
+		return "PARAMS_OPT";
+	case PARAMS: 
+		return "PARAMS";
+	case TYPE: 
+		return "TYPE";
+	case EXPR_OPT: 
+		return "EXPR_OPT";
+	case EXPR: 
+		return "EXPR";
+	case ASSIGN:
+		return "ASSIGN";
+	case LOR_EXPR:
+		return "LOR_EXPR";
+	case LOR_EXPR_SUITE:
+		return "LOR_EXPR_SUITE";
+	case LAND_EXPR:
+		return "LAND_EXPR";
+	case LAND_EXPR_SUITE:
+		return "LAND_EXPR_SUITE";
+	case EQ_EXPR:
+		return "EQ_EXPR";
+	case EQ_EXPR_SUITE:
+		return "EQ_EXPR_SUITE";
+	case RELATIONAL_EXPR:
+		return "RELATIONAL_EXPR";
+	case RELATIONAL_EXPR_SUITE:
+		return "RELATIONAL_EXPR_SUITE";
+	case ADD:
+		return "ADD";
+	case ADD_SUITE:
+		return "ADD_SUITE";
+	case MULT:
+		return "MULT";
+	case MULT_SUITE:
+		return "MULT_SUITE";
+	case UNARY:
+		return "UNARY";
+	case C_O_P:
+		return "C_O_P";
+	case C_O_P_PAR:
+		return "C_O_P_PAR";
+	case POSTFIX_EXPR:
+		return "POSTFIX_EXPR";
+	case POSTFIX_TAIL:
+		return "POSTFIX_TAIL";
+	case PRIMARY:
+		return "PRIMARY";
+	case PRIMARY_PAR:
+		return "PRIMARY_PAR";
+	case LEXPR_OPT:
+		return "LEXPR_OPT";
+	case LEXPR:
+		return "LEXPR";
+	case LEXPR_EXPR:
+		return "LEXPR_EXPR";
+	case STMT_LIST:
+		return "STMT_LIST";
+	case STMT:
+		return "STMT";
+	case STMT_IF:
+		return "STMT_IF";
+	case BLOCK:
+		return "BLOCK";
+	case CONST_OR_METH:
+		return "CONST_OR_METH";
+	case CRO_OPT:
+		return "CRO_OPT";
+	case CONST_OR_METH_OR_ATTR:
+		return "CONST_OR_METH_OR_ATTR";
+	case FUNCTION_TAIL:
+		return "FUNCTION_TAIL";
+	case METH_OR_ATTR:
+		return "METH_OR_ATTR";
+	case CONST_OR_METH_SOL:
+		return "CONST_OR_METH_SOL";
+	case PARAMS_TAIL:
+		return "PARAMS_TAIL";
+	case STMT_IDENT:
+		return "STMT_IDENT";
+	default:
+		return "UNKNOWN_RULE???? :((((";
+	}
+}
+
 void print_parser(Stack* stk)
 {
 	printf("Parser Stack (top -> bottom):\n");
 	for (int i = stk->top - 1; i >= 0; i--) {
 		NUT nut = stk->items[i];
 		if (nut.type == RULE) {
-			printf("  [RULE] %d\n", nut.rule);
+			printf("  [RULE] %s\n", rule_to_string(nut.rule));
 		} else {
 			printf("  [TOKEN] %s\n", token_type_name(nut.token));
 		}

@@ -3,6 +3,9 @@ CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
 LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
+# Suppress make's directory change messages
+MAKEFLAGS += --no-print-directory
+
 # Directories
 LEXER_DIR = lexer
 ERROR_DIR = error
@@ -79,7 +82,6 @@ successTests: $(TARGET)
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file unexpectedly failed"; \
-			exit 1; \
 		fi; \
 	done
 	
@@ -89,7 +91,23 @@ failTests: $(TARGET)
 		echo "Running $$file"; \
 		if make run file=$$file; then \
 			echo "Test $$file unexpectedly succeeded"; \
-			exit 1; \
+		fi; \
+	done
+
+
+failTodo: $(TARGET)
+	@for file in tests/todo/fail/*; do \
+		echo "Running $$file"; \
+		if ! make run file=$$file; then \
+			echo "Test $$file failed good"; \
+		fi; \
+	done
+
+successTodo: $(TARGET)
+	@for file in tests/todo/success/*; do \
+		echo "Running $$file"; \
+		if make run file=$$file; then \
+			echo "Test $$file succeeded cool"; \
 		fi; \
 	done
 

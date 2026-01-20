@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define MAX_INIT_TYPE_BUFFER	16
+
 typedef enum {
 	TOKEN_NUMBER,
 
@@ -25,7 +27,6 @@ typedef enum {
 	TOKEN_LPAR,
 	TOKEN_RPAR,
     TOKEN_CLASS,
-    TOKEN_KEYWORD,
     TOKEN_ID,
 
 	TOKEN_LACC,
@@ -64,12 +65,13 @@ typedef enum {
 	TOKEN_UNOP_SUB,
 	TOKEN_UNOP_ADD,
 
+	TOKEN_ID_TYPE,		// class names
+
 	// leave at the end
 	TOKENTYPE_SIZE, 
 } TokenType;
 
 
-// TODO: what do we do with identifiers? (put them directely in the symbol table and pass them by index?)
 /**
  * A token is a position of the start of the token and a beginning:
  * The content is recomputed on demand and casted to the right type
@@ -92,6 +94,9 @@ typedef struct Token Token;
 typedef struct {
 	char* source;
 	int length;
+	
+	int* decl_type_list;
+	int decl_type_list_size;
 
 	int pos;
 	Token tok;
@@ -119,6 +124,7 @@ void token_pprint(Token tok, Lexer* lex);
 
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
+void token_identifier(Lexer* lex, Token tok, char* buf, int bufsize);
 bool token_type_equality(TokenType tok1, Token tok2);
 void advancetonextline(Lexer *lex);
 
