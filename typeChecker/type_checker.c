@@ -58,7 +58,7 @@ static Type* lookup_var(TypeContext* ctx, const char* name){
         }
     }
 
-    Field* f = find_field(ctx->current_class, name);
+    Field* f = find_field(ctx->file, ctx->current_class, name);
     if (f) {
         return f->type;
     }
@@ -121,31 +121,31 @@ ClassDecl* find_class(File* file, const char* name){
     return NULL;
 }
 
-Method* find_method(ClassDecl* cls, const char* name){
+Method* find_method(File* file, ClassDecl* cls, const char* name){
     for(int i=0; i<cls->method_count; i++){
         if(strcmp(cls->methods[i]->name,name)==0){
             return cls->methods[i];
         }
     }
     if(cls->super_class){
-        ClassDecl* sup = find_class(NULL, cls->super_class);
+        ClassDecl* sup = find_class(file, cls->super_class);
         if(sup){
-            return find_method(sup,name);
+            return find_method(file, sup, name);
         }
     }
     return NULL;
 }
 
-Field* find_field(ClassDecl* cls, const char* name){
+Field* find_field(File* file, ClassDecl* cls, const char* name){
     for(int i=0; i<cls->field_count; i++){
         if(strcmp(cls->fields[i]->name,name)==0){
             return cls->fields[i];
         }
     }
     if(cls->super_class){
-        ClassDecl* sup=find_class(NULL, cls->super_class);
+        ClassDecl* sup=find_class(file, cls->super_class);
         if(sup){
-            return find_field(sup,name);
+            return find_field(file, sup, name);
         }
     }
     return NULL;
@@ -155,7 +155,8 @@ static Type* type_check_expression(TypeContext* ctx, Expression* exp);
 static void type_check_statement(TypeContext* ctx, Statement* stmt);
 
 static Type* check_binary(TypeContext* ctx, Expression* exp){
-    if (exp->binary.left->kind == EXPR_LITERAL) {
+    
+    if (exp->binary.left->kind == EXPR_LITERAL && exp->binary.op == OP_ASSIGN) {
         type_error_msg("impossible d'assigner à un littéral");
         return exp->type = type_error();
     }
@@ -232,6 +233,18 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 return expr->type=type_error();
         }
         case EXPR_VARIABLE:{
+            // Handle "this" keyword
+            if(strcmp(expr->var_name, "this") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup(ctx->current_class->name);
+                return expr->type = t;
+            }
+            // Skip "System" (builtin, not defined in our language)
+            if(strcmp(expr->var_name, "System") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup("System");
+                return expr->type = t;
+            }
             Type* t=lookup_var(ctx, expr->var_name);
             if(!t){
                 type_error_msg("utilisation d'une variable non déclarée");
@@ -259,6 +272,23 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
             Method* method = NULL;
             ClassDecl* cls = NULL;
             
+            // Skip System.out.print/println calls (not defined in our language)
+            if (callee->kind == EXPR_FIELD_ACCESS) {
+                Expression* obj = callee->field_access.object;
+                // Check for System.out.print pattern
+                if (obj->kind == EXPR_FIELD_ACCESS &&
+                    obj->field_access.object->kind == EXPR_VARIABLE &&
+                    strcmp(obj->field_access.object->var_name, "System") == 0 &&
+                    strcmp(obj->field_access.field_name, "out") == 0) {
+                    // Skip type checking for System.out.* calls
+                    // Still type check the arguments
+                    //for (int i = 0; i < expr->call.arg_count; i++) {
+                    //    type_check_expression(ctx, expr->call.args[i]);
+                    //}
+                    return expr->type = create_type(TYPE_VOID);
+                }
+            }
+            
             if (callee->kind == EXPR_FIELD_ACCESS) {
                 // Cas: obj.method(args)
                 Type* obj_type = type_check_expression(ctx, callee->field_access.object);
@@ -271,7 +301,7 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                     type_error_msg("classe non trouvée");
                     return expr->type = type_error();
                 }
-                method = find_method(cls, callee->field_access.field_name);
+                method = find_method(ctx->file, cls, callee->field_access.field_name);
                 if (!method) {
                     type_error_msg("méthode non trouvée");
                     return expr->type = type_error();
@@ -279,7 +309,7 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
             } else if (callee->kind == EXPR_VARIABLE) {
                 // Cas: method(args) - appel sur this implicite
                 cls = ctx->current_class;
-                method = find_method(cls, callee->var_name);
+                method = find_method(ctx->file, cls, callee->var_name);
                 if (!method) {
                     type_error_msg("méthode non trouvée dans la classe courante");
                     return expr->type = type_error();
@@ -327,8 +357,18 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 type_error_msg("accès d'un champ sur un non_objet");
                 return expr->type = type_error();
             }
+            // Skip System.out (builtin, not defined in our language)
+            if(strcmp(obj->class_name, "System") == 0 && strcmp(expr->field_access.field_name, "out") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup("PrintStream");
+                return expr->type = t;
+            }
             ClassDecl* cls = find_class(ctx->file, obj->class_name);
-            Field* f=find_field(cls, expr->field_access.field_name);
+            if(!cls){
+                type_error_msg("classe non trouvée");
+                return expr->type = type_error();
+            }
+            Field* f=find_field(ctx->file, cls, expr->field_access.field_name);
             if(!f){
                 type_error_msg("champ inconnu");
                 return expr->type=type_error();
