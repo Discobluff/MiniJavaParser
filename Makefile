@@ -207,5 +207,6 @@ clean:
 	rm -f $(MAIN_OBJ) $(TARGET)
 	rm -f $(TESTPARSE_OBJ) $(TESTPARSE_BIN)
 	rm -f $(PRINTAST_OBJ) $(PRINTAST_BIN)
+	rm -f typeChecker/*.o
 
 rebuild: clean all

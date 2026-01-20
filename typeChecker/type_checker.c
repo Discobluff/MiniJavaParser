@@ -42,7 +42,7 @@ static void scope_pop(Scope** scope){
 
 static void declare_var(TypeContext* ctx,char* name, Type* type){
     VarSymbol* v=calloc(1,sizeof(VarSymbol));
-    v->name=name;
+    v->name=strdup(name);
     v->type=type;
     v->next=ctx->scope->vars;
     ctx->scope->vars=v;
@@ -56,6 +56,11 @@ static Type* lookup_var(TypeContext* ctx, const char* name){
                 return v->type;
             }
         }
+    }
+
+    Field* f = find_field(ctx->current_class, name);
+    if (f) {
+        return f->type;
     }
     return NULL;
 }
@@ -150,11 +155,27 @@ static Type* type_check_expression(TypeContext* ctx, Expression* exp);
 static void type_check_statement(TypeContext* ctx, Statement* stmt);
 
 static Type* check_binary(TypeContext* ctx, Expression* exp){
+    if (exp->binary.left->kind == EXPR_LITERAL) {
+        type_error_msg("impossible d'assigner à un littéral");
+        return exp->type = type_error();
+    }
     Type* l= type_check_expression(ctx, exp->binary.left);
     Type* r= type_check_expression(ctx, exp->binary.right);
 
     switch(exp->binary.op){
-        case OP_ADD: case OP_SUB:
+        case OP_ADD: 
+            if(l-> kind == TYPE_INT && r->kind == TYPE_INT){
+                return exp->type = create_type(TYPE_INT);
+            }
+
+            if (l->kind == TYPE_STRING && r->kind == TYPE_STRING) {
+                return exp->type = create_type(TYPE_STRING);
+
+            }
+            type_error_msg("les opérateurs arithmétiques nécessitent des types int");
+            return exp->type=type_error();
+            
+        case OP_SUB:
         case OP_MUL: case OP_DIV : case OP_MOD:
             if(l-> kind != TYPE_INT || r->kind != TYPE_INT){
                         type_error_msg("les opérateurs arithmétiques nécessitent des types int");
@@ -180,6 +201,12 @@ static Type* check_binary(TypeContext* ctx, Expression* exp){
                         return exp->type = type_error();
                     }
             return exp->type = create_type(TYPE_BOOLEAN);
+        case OP_ASSIGN:
+            if(!type_compatible(ctx->file,l,r)){
+                        type_error_msg("types incompatibles pour une assignation");
+                        return exp->type=type_error();
+                    }
+            return exp->type = copy_type(l);
         default:
             return exp->type=type_error();
                     
@@ -210,31 +237,81 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 type_error_msg("utilisation d'une variable non déclarée");
                 return expr->type = type_error();
             }
-            return expr->type = t;
+            return expr->type = copy_type(t);
         }
         case EXPR_BINARY_OP:{
             return check_binary(ctx,expr);
         }
         case EXPR_UNARY_OP:{
             Type* t = type_check_expression(ctx, expr -> unary.operand);
-            if(expr->unary.op == UNARY_NOT && t->kind != TYPE_BOOLEAN){
+            if(expr->unary.op == UNARY_NOT && t->kind == TYPE_BOOLEAN){
                 return expr->type=create_type(TYPE_BOOLEAN);
             }
-            if(expr->unary.op == UNARY_NEG && t->kind != TYPE_INT){
+            if(expr->unary.op == UNARY_NEG && t->kind == TYPE_INT){
                 return expr->type = create_type(TYPE_INT);
             }
             type_error_msg("Opérateur unaire invalide");
             return expr->type = type_error();
         }
         case EXPR_CALL:{
-            type_error("appels de méthode non encpre vérifiés par typage");
-            return expr->type=create_type(TYPE_INT);
+            // L'appelant peut être: obj.method ou method (this implicite)
+            Expression* callee = expr->call.callee;
+            Method* method = NULL;
+            ClassDecl* cls = NULL;
+            
+            if (callee->kind == EXPR_FIELD_ACCESS) {
+                // Cas: obj.method(args)
+                Type* obj_type = type_check_expression(ctx, callee->field_access.object);
+                if (obj_type->kind != TYPE_CLASS) {
+                    type_error_msg("appel de méthode sur un non-objet");
+                    return expr->type = type_error();
+                }
+                cls = find_class(ctx->file, obj_type->class_name);
+                if (!cls) {
+                    type_error_msg("classe non trouvée");
+                    return expr->type = type_error();
+                }
+                method = find_method(cls, callee->field_access.field_name);
+                if (!method) {
+                    type_error_msg("méthode non trouvée");
+                    return expr->type = type_error();
+                }
+            } else if (callee->kind == EXPR_VARIABLE) {
+                // Cas: method(args) - appel sur this implicite
+                cls = ctx->current_class;
+                method = find_method(cls, callee->var_name);
+                if (!method) {
+                    type_error_msg("méthode non trouvée dans la classe courante");
+                    return expr->type = type_error();
+                }
+            } else {
+                type_error_msg("forme d'appel de méthode non supportée");
+                return expr->type = type_error();
+            }
+            
+            // Vérifier le nombre d'arguments
+            if (expr->call.arg_count != method->param_count) {
+                type_error_msg("nombre d'arguments incorrect");
+                return expr->type = type_error();
+            }
+            
+            // Vérifier les types des arguments
+            for (int i = 0; i < expr->call.arg_count; i++) {
+                Type* arg_type = type_check_expression(ctx, expr->call.args[i]);
+                if (!type_compatible(ctx->file, method->params[i]->type, arg_type)) {
+                    type_error_msg("type d'argument incompatible");
+                    return expr->type = type_error();
+                }
+            }
+            
+            // Retourner le type de retour de la méthode
+            return expr->type = copy_type(method->return_type);
         }
         case EXPR_NEW:
             if(expr->new_expr.type->kind != TYPE_CLASS){
                 type_error("new nécessite un type class");
             }
-            return expr->type= expr->new_expr.type;
+            return expr->type= copy_type(expr->new_expr.type);
 
         case EXPR_INSTOF: {
             Type* t=type_check_expression(ctx, expr->instof.val);
@@ -256,11 +333,11 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 type_error_msg("champ inconnu");
                 return expr->type=type_error();
             }
-            return expr->type = f->type;
+            return expr->type = copy_type(f->type);
         }
         case EXPR_CAST:
             type_check_expression(ctx, expr-> cast.expr);
-            return expr->type = expr->cast.target_type;
+            return expr->type = copy_type(expr->cast.target_type);
 
         default:
             return expr->type = type_error();
