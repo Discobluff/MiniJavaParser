@@ -27,7 +27,7 @@ Lexer* lexer_init(char* src, int len)
 	int pos = 0, size=1;
 	while (lex->tok.type != TOKEN_EOF) {
 		if (pos >= size * MAX_INIT_TYPE_BUFFER) {
-			lex->decl_type_list = realloc(lex->decl_type_list, (size++)*MAX_INIT_TYPE_BUFFER);
+			lex->decl_type_list = realloc(lex->decl_type_list, (++size)*MAX_INIT_TYPE_BUFFER * sizeof(int));
 		}
 		if (lex->tok.type == TOKEN_CLASS) {
 			lexer_next(lex);
@@ -48,7 +48,7 @@ Lexer* lexer_init(char* src, int len)
 }
 
 // Peek at current character without consuming
- char peek(Lexer* lex)
+char peek(Lexer* lex)
 {
 	if (lex->pos >= lex->length) {
 		return '\0';
@@ -73,10 +73,20 @@ void skip_whitespace(Lexer* lex)
 	}
 }
 
+void skip_newline(Lexer *lex ) {
+	char c = peek(lex);
+	while (lex->pos < lex->length && c == '\n') {
+		advance(lex);
+		skip_whitespace(lex);
+		c = peek(lex);
+	}
+	skip_whitespace(lex);
+}
+
 // Go to next token and put it in lex->tok
 void lexer_next(Lexer* lex)
 {
-	skip_whitespace(lex);
+	skip_newline(lex);
 
 	int start = lex->pos;
 
@@ -106,10 +116,10 @@ void lexer_next(Lexer* lex)
 	}
 
 	/* ---------On lit un string ---------*/
-	if (c == '\"') {
+	if (c == '"') {
 		if (good_string(lex)) {
 			lex->tok.type = TOKEN_STR;
-			lex->tok.position = start;
+			lex->tok.position = start+1;
 		}
 		else {
 			exit(0); //pour arrêter la fonction main qui lit le code source
@@ -244,13 +254,13 @@ void lexer_next(Lexer* lex)
 			case '/' :
 				find_next_newline_or_eof(lex);
 				//lex->tok.type = TOKEN_COMMENT;
-				lexer_next(lex);
+				return lexer_next(lex);
 				break ;
 			
 			case '*' : 
 				if (good_comment(lex)) {
 					//lex->tok.type = TOKEN_COMMENT;
-					lexer_next(lex);
+					return lexer_next(lex);
 					break;
 				}
 				else {
@@ -284,7 +294,21 @@ void token_text(Lexer* lex, Token tok, char* buf, int bufsize)
 		while (end < lex->length && isdigit(lex->source[end])) {
 			end++;
 		}
-	} else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
+	}
+	else if (tok.type == TOKEN_STR) {
+		while (end < lex->length) {
+			if (lex->source[end] == '\\') {
+				end = end + 2;
+				}
+			else {
+				if (lex->source[end] == '"') {
+					break;
+				}
+				end++;
+			}
+		}
+	}
+	else if (tok.type == TOKEN_ID || tok.type == TOKEN_ID_TYPE) {
 		while (end < lex->length && isalnum(lex->source[end])) {
 			end++;
 		}
@@ -367,7 +391,6 @@ const char* token_type_name(TokenType type)
         case TOKEN_PUBLIC:     return "PUBLIC";
         case TOKEN_RETURN:     return "RETURN";
         case TOKEN_STATIC:     return "STATIC";
-        case TOKEN_THIS:       return "THIS";
         case TOKEN_TRUE:       return "TRUE";
         case TOKEN_VOID:       return "VOID";
         case TOKEN_ID:         return "IDENTIFIER";
@@ -423,4 +446,13 @@ void advancetonextline(Lexer *lex) {
 	}
 	//lex->source[pos] = '\n'
 	lexer_next(lex);
+}
+
+/**
+ * free the list of object decorators and the lexer
+ * Doesn't free the source file
+ */
+void lexerfree(Lexer *lex) {
+	free(lex->decl_type_list);
+	free(lex);
 }

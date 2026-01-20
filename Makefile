@@ -1,6 +1,7 @@
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-missing-braces -std=c99 -g -O0 -I.
-LDFLAGS = -Wall -Wextra -lm # -fsanitize=address
+CFLAGS = -Wall -Wextra -std=c99 -g -O0 -I.
+LDFLAGS = -Wall -Wextra -lm
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages
@@ -11,59 +12,103 @@ LEXER_DIR = lexer
 ERROR_DIR = error
 AST_DIR = ast
 PARSER_DIR = parser
+TYPE_CHECKER_DIR = typeChecker
 
-# Source and object files for the lexer module
+# Source and object files
 LEXER_SRCS = $(LEXER_DIR)/id_kw.c $(LEXER_DIR)/lexer.c $(LEXER_DIR)/string_lex.c
 LEXER_OBJS = $(LEXER_SRCS:.c=.o)
+
 ERROR_SRCS = $(ERROR_DIR)/print_error.c
 ERROR_OBJS = $(ERROR_SRCS:.c=.o)
 AST_SRCS = $(AST_DIR)/ast.c $(AST_DIR)/displayAst.c
 AST_OBJS = $(AST_SRCS:.c=.o)
-PARSER_SRCS = $(PARSER_DIR)/parse.c $(PARSER_DIR)/prod_table.c $(PARSER_DIR)/backend_parser.c $(PARSER_DIR)/actions/actions.c $(PARSER_DIR)/parseerrors.c
+PARSER_SRCS = $(PARSER_DIR)/parse.c 
 PARSER_OBJS = $(PARSER_SRCS:.c=.o)
 
-TARGET = main
+# Sources et objects files for the type_checker
+TYPE_CHECKER_SCRS = typeChecker/type_checker.c
+TYPE_CHECKER_OBJS = $(TYPE_CHECKER_SCRS:.c=.o)
 
+# Valgrind memckeck flags
+MEMCHECK_FLAGS = --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1
+
+TARGET = main
 MAIN_OBJ = main.o
 
-file ?= tests/implemented/success/op.java
+# Test binaries
+TESTPARSE_SRC = parser/testparse.c
+TESTPARSE_OBJ = parser/testparse.o
+TESTPARSE_BIN = testparse
 
-# Default target
+PRINTAST_SRC = ast/print_ast_main.c
+PRINTAST_OBJ = ast/print_ast_main.o
+PRINTAST_BIN = printast
+
+# Default test file
+file ?= tests/implemented/syntax/success/call1.java
+
+# Valgrind flags
+MEMCHECK_FLAGS = --leak-check=full --errors-for-leak-kinds=definite --error-exitcode=1
+
+# ============================================================================
+# Build Targets
+# ============================================================================
+
+.PHONY: all clean rebuild
+
 all: $(TARGET)
 
 # Build the executable
-$(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ)
-	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL)
+$(TARGET): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TYPE_CHECKER_OBJS) $(MAIN_OBJ)
+	$(CC) $(LDFLAGS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TYPE_CHECKER_OBJS) $(MAIN_OBJ) $(ERROR_OBJS) -o $(TARGET) $(LDFLAGS_SDL) 
 
-# Compile main.c
 main.o: main.c
-	$(CC) $(CFLAGS) -c main.c -o main.o
+	$(CC) $(CFLAGS) -c $< -o $@
 
-runDisplayAst: displayAst
-	./displayAst
+$(TESTPARSE_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) $(PARSER_OBJS) $(TESTPARSE_OBJ)
+	$(CC) $(LDFLAGS) $^ -o $@
 
-displayAst: ast/ast.o ast/displayAst.o
-	$(CC) $(LDFLAGS) ast/ast.o ast/displayAst.o -o $@ $(LDFLAGS_SDL)
+$(TESTPARSE_OBJ): $(TESTPARSE_SRC)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Generic rule for compiling lexer .c -> .o
+$(PRINTAST_BIN): $(ERROR_OBJS) $(LEXER_OBJS) $(AST_OBJS) ast/print_ast.o $(PARSER_OBJS) $(PRINTAST_OBJ)
+	$(CC) $(LDFLAGS) $^ -o $@
+
+displayAst: ast/ast.o ast/displayAst.o ast/astExample.o
+	$(CC) $(LDFLAGS) $^ -o $@ $(LDFLAGS_SDL)
+
+# ============================================================================
+# Pattern Rules
+# ============================================================================
+
 $(LEXER_DIR)/%.o: $(LEXER_DIR)/%.c $(LEXER_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Generic rule for compiling errors .c -> .o
 $(ERROR_DIR)/%.o: $(ERROR_DIR)/%.c $(ERROR_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Generic rule for compiling AST .c -> .o
 $(AST_DIR)/%.o: $(AST_DIR)/%.c $(AST_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Generic rule for compiling parser .c -> .o
 $(PARSER_DIR)/%.o: $(PARSER_DIR)/%.c $(PARSER_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+#Generic rule for compiling type_checker.c -> .o
+$(TYPE_CHECKER_DIR)/%.o: $(TYPE_CHECKER_DIR)/%.c $(TYPE_CHECKER_DIR)/%.h 
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Run the program with a test file
+# ============================================================================
+# Run and Debug Targets
+# ============================================================================
+
+.PHONY: run runDisplayAst debugAll debugLexer debugParser showAst
+
 run: $(TARGET)
 	./$(TARGET) $(file)
+
+runDisplayAst: displayAst
+	./displayAst
 
 debugAll: all
 	./$(TARGET) --debug-lexer --debug-parser $(file)
@@ -77,26 +122,68 @@ debugParser: all
 showAst: all
 	./$(TARGET) --show-ast $(file)
 
+# ============================================================================
+# Test Targets
+# ============================================================================
+
+.PHONY: successTests successMemory failTests failTodo successTodo
+
 successTests: $(TARGET)
-	@for file in tests/implemented/success/*; do \
-		echo "Running $$file"; \
-		if ! make run file=$$file; then \
-			echo "Test $$file unexpectedly failed"; \
+	@status=0; \
+	for file in tests/implemented/*/success/*; do \
+		printf "%-56s " "$$file"; \
+		if ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;77mOK\033[0m"; \
+		else \
+			echo "\033[38;5;196mFAIL\033[0m"; \
+			status=1; \
 		fi; \
-	done
-	
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Successes has failed (some files failed)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
+	fi
+
+successMemory: $(TARGET)
+	@status=0; \
+	for file in tests/implemented/*/success/*; do \
+		printf "%-56s " "$$file"; \
+		if valgrind $(MEMCHECK_FLAGS) ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;77mOK\033[0m"; \
+		else \
+			echo "\033[38;5;196mLEAK\033[0m"; \
+			status=1; \
+		fi; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mMemory check failed\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll memory checks passed\033[0m\n"; \
+	fi
 
 failTests: $(TARGET)
-	@for file in tests/implemented/fail/*; do \
-		echo "Running $$file"; \
-		if make run file=$$file; then \
-			echo "Test $$file unexpectedly succeeded"; \
+	@status=0; \
+	for file in tests/implemented/*/fail/*; do \
+		printf "%-69s " "$$file"; \
+		if ./main $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;196mFAIL\033[0m"; \
+			status=1; \
+		else \
+			echo "\033[38;5;77mOK\033[0m"; \
 		fi; \
-	done
-
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
+	fi
 
 failTodo: $(TARGET)
-	@for file in tests/todo/fail/*; do \
+	@for file in tests/todo/syntax/fail/*; do \
 		echo "Running $$file"; \
 		if ! make run file=$$file; then \
 			echo "Test $$file failed good"; \
@@ -104,18 +191,21 @@ failTodo: $(TARGET)
 	done
 
 successTodo: $(TARGET)
-	@for file in tests/todo/success/*; do \
+	@for file in tests/todo/*/success/*; do \
 		echo "Running $$file"; \
-		if make run file=$$file; then \
+		if ./main $$file; then \
 			echo "Test $$file succeeded cool"; \
 		fi; \
 	done
 
-# Clean build artifacts
+# ============================================================================
+# Cleanup
+# ============================================================================
+
 clean:
-	rm -f $(LEXER_DIR)/*.o main.o $(TARGET) $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o $(PARSER_DIR)/actions/*.o
+	rm -f $(LEXER_DIR)/*.o $(ERROR_DIR)/*.o $(AST_DIR)/*.o $(PARSER_DIR)/*.o
+	rm -f $(MAIN_OBJ) $(TARGET)
+	rm -f $(TESTPARSE_OBJ) $(TESTPARSE_BIN)
+	rm -f $(PRINTAST_OBJ) $(PRINTAST_BIN)
 
-# Rebuild everything
 rebuild: clean all
-
-.PHONY: all run clean rebuild

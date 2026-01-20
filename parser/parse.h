@@ -1,16 +1,21 @@
-#ifndef PARSE2_H
-#define PARSE2_H
+#ifndef RECURSIVE_H
+#define RECURSIVE_H
 
-#include <parser/actions/actions.h>
-#include <parser/backend_parser.h>
+#include <lexer/lexer.h>
+#include <ast/ast.h>
 #include <error/print_error.h>
 
-#include <stdio.h>
-#include <stdbool.h>
 
-/**
- * reurns a AST for JURA
-*/
-AST* parse_main(Lexer* lex, int debug);
+File* parse_file(Lexer* lex);
+bool iserr(Token t);
+Token match(Lexer* lex, TokenType* values);
+Token match_nofail(Lexer* lex, TokenType* values, const char* msg, TokenType* error);
+Type* parse_type(Lexer* lex);
+void parse_cro_opt(Lexer* lex);
+bool parse_public_opt(Lexer* lex);
+bool parse_static_opt(Lexer* lex);
+Token parse_extends_opt(Lexer* lex);
+ClassDecl* parse_class(Lexer* lex);
+void parse_decl_list(Lexer* lex, ClassDecl* class);
 
 #endif

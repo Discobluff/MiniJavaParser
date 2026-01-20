@@ -1,8 +1,9 @@
-#include "lexer/lexer.h"
-#include "error/print_error.h"
-#include "parser/parse.h"
-#include "ast/ast.h"
-#include "ast/displayAst.h"
+#include <lexer/lexer.h>
+#include <ast/displayAst.h>
+#include <error/print_error.h>
+#include <parser/parse.h>
+#include <typeChecker/type_checker.h>
+#include <ast/ast.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -84,15 +85,18 @@ int main(int argc, char** argv)
         lex = lexer_init(source, bytes_read);
     }
 
-    AST* ast = parse_main(lex, debug_parser);
+    File* unit = parse_file(lex);
+    //type_check_file(unit); ##### TYPECHECKER DISABLED FOR NOW #####
 
-    if (debug_parser) print_ast(ast, 0);
-    
-    if (show_ast) mainloop(ast);
+    if (show_ast){
+        AST ast = (AST){ .type = AST_FILE, .data.file = unit };
+        mainloop(ast);
+    }
 
-    free_ast(ast);
+    // type_check_file(unit);
 
+    freeFile(unit);
     free(source);
-    free(lex);
+    lexerfree(lex);
     return 0;
 }

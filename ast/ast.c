@@ -1,425 +1,554 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-
 #include <ast/ast.h>
 
+// ======================================= Type Constructors =======================================
 
-AST* create_number_node(size_t value)
+Type* create_type(TypeKind kind)
 {
-	AST *node = malloc(sizeof(AST));
-	node->type = NUMBER;
-	node->data.number = value;
-	return node;
+	Type* t = malloc(sizeof(Type));
+	t->kind = kind;
+	t->class_name = NULL;
+	return t;
 }
 
-AST* create_binary_op_node(TokenType op, AST* left, AST* right)
+Type* create_class_type(char* class_name)
 {
-	AST *node = malloc(sizeof(AST));
-	node->type = BINARY_OP;
-	node->data.binary.op = op;
-	node->data.binary.left = left;
-	node->data.binary.right = right;
-	return node;
+	Type* t = malloc(sizeof(Type));
+	t->kind = TYPE_CLASS;
+	t->class_name = strdup(class_name);
+	return t;
 }
 
-AST* create_unary_op_node(TokenType op, AST* operand)
+Type* create_string_type() {
+	Type* t = malloc(sizeof(Type));
+	t->kind = TYPE_STRING;
+	t->class_name = NULL;
+	return t;
+}
+
+// ======================================= Expression Constructors =======================================
+
+Expression* create_literal_int(int val)
 {
-	AST *node = malloc(sizeof(AST));
-	node->type = UNARY_OP;
-	node->data.unary.op = op;
-	node->data.unary.operand = operand;
-	return node;
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_LITERAL;
+	e->type = create_type(TYPE_INT);
+	e->literal.kind = LIT_INT;
+	e->literal.int_val = val;
+	return e;
 }
 
-// The idea is to pass the name with token_text TODO: TEST THIS!!!!!
-AST* create_variable_node(char* name, int size)
+Expression* create_literal_boolean(int val)
 {
-	AST *node = malloc(sizeof(AST));
-	node->type = VARIABLE;
-	node->data.variable = malloc(size);
-	strncpy(name, node->data.variable, size);
-	return node;
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_LITERAL;
+	e->type = create_type(TYPE_BOOLEAN);
+	e->literal.kind = LIT_BOOLEAN;
+	e->literal.bool_val = val;
+	return e;
 }
 
+Expression* create_literal_string(char* val)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_LITERAL;
+	e->type = create_type(TYPE_STRING);
+	e->literal.kind = LIT_STRING;
+	e->literal.string_val = strdup(val);
 
-AST* create_dot_node (AST* expr, AST* id) {
-	AST *node = malloc(sizeof(AST));
-	node->type = DOT;
-	node->data.dotast.expr = expr;
-	node->data.dotast.id = id;
-	return node;
+	return e;
 }
 
-
-AST* create_affect_node (AST* id, AST* value) {
-	AST *node = malloc(sizeof(AST));
-	node->type = AFFECT;
-	node->data.affectast.id = id;
-	node->data.affectast.value = value;
-	return node;
+Expression* create_literal_null()
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_LITERAL;
+	e->type = NULL;  // null has no specific type
+	e->literal.kind = LIT_NULL;
+	return e;
 }
 
-
-AST* create_funcall_node (AST* id, int nb_arguments) {
-	AST* node = malloc(sizeof(AST));
-	node->type = FUNC_CALL;
-	node->data.funcallast.id = id;
-	node->data.funcallast.nb_arguments = nb_arguments;
-	node->data.funcallast.func_arguments = malloc(nb_arguments * sizeof(AST*));
-	return node;
+Expression* create_variable(char* name)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_VARIABLE;
+	e->type = NULL;  // To be filled during type checking
+	e->var_name = strdup(name);
+	return e;
 }
 
-AST* create_cast_node (Type type, AST* expr) {
-	AST *node = malloc(sizeof(AST));
-	node->type = CAST;
-	node->data.castast.type = type;
-	node->data.castast.expr = expr;
-	return node;
+Expression* create_binary_op(BinaryOp op, Expression* left, Expression* right)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_BINARY_OP;
+	e->type = NULL;  // To be filled during type checking
+	e->binary.op = op;
+	e->binary.left = left;
+	e->binary.right = right;
+	return e;
 }
 
-AST* create_instof_node (Type type, AST* expr) {
-	AST *node = malloc(sizeof(AST));
-	node->type = INSTANCEOF;
-	node->data.instofast.type = type;
-	node->data.instofast.expr = expr;
-	return node;
+Expression* create_unary_op(UnaryOp op, Expression* operand)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_UNARY_OP;
+	e->type = NULL;  // To be filled during type checking
+	e->unary.op = op;
+	e->unary.operand = operand;
+	return e;
 }
 
-AST* create_param_node (Type type, char* id) {
-	AST *node = malloc(sizeof(AST));
-	node->type = PARAM;
-	node->data.paramast.type = type;
-	node->data.paramast.id = id;
-	return node;
+Expression* create_call(Expression* callee, Expression** args, int arg_count)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_CALL;
+	e->type = NULL;  // To be filled during type checking
+	e->call.callee = callee;
+	e->call.args = args;
+	e->call.arg_count = arg_count;
+	return e;
 }
 
-AST* create_declstmt_node (Type type, char* id){
-	AST *node = malloc(sizeof(AST));
-	node-> type = DECLSTMT;
-	node->data.declstmtast.type=type;
-	node->data.declstmtast.id=id;
-	return node;
+Expression* create_instaceof(Expression* val, Type* comp){
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_INSTOF;
+	e->type = create_type(TYPE_BOOLEAN); // Type of a instanceof B is always bool
+	e->instof.comp = comp;
+	e->instof.val = val;
+	return e;
 }
 
-AST* create_def_node(Type type, AST* id, AST* expr){
-	AST *node = malloc(sizeof(AST));
-	node->type = DEF;
-	node->data.defast.type= type;
-	node->data.defast.id = id;
-	node->data.defast.expr = expr;
-	return node;
+Expression* create_new(Type* type, Expression** args, int arg_count)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_NEW;
+	e->type = type;
+	e->new_expr.type = type;
+	e->new_expr.args = args;
+	e->new_expr.arg_count = arg_count;
+	return e;
 }
 
-AST* create_opt_node(AST* expr, int nb_stmt){
-	AST *node= malloc(sizeof(AST));
-	node->type=OPT;
-	node->data.optast.expr =expr;
-	node->data.optast.nb_stmt=nb_stmt;
-	node->data.optast.stmt= malloc(nb_stmt*sizeof(AST)); 
-	return node;
+Expression* create_dot(Expression* object, char* field_name)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_FIELD_ACCESS;
+	e->type = NULL;  // To be filled during type checking
+	e->field_access.object = object;
+	e->field_access.field_name = strdup(field_name);
+	return e;
 }
 
-AST* create_return_node(AST *expr){
-	AST *node=malloc(sizeof(AST));
-	node->type=RETURN;
-	node->data.returnast.expr =expr;
-	return node;
+Expression* create_cast(Type* target_type, Expression* expr)
+{
+	Expression* e = malloc(sizeof(Expression));
+	e->kind = EXPR_CAST;
+	e->type = target_type;
+	e->cast.target_type = target_type;
+	e->cast.expr = expr;
+	return e;
 }
 
-AST* create_for_node(int nb_expr){
-	AST *node=malloc(sizeof(AST));
-	node->type=FOR;
-	node->data.forast.nb_expr=nb_expr;
-	node->data.forast.forexpr=malloc(nb_expr* sizeof(AST));
-	return node;
+// ======================================= Statement Constructors =======================================
+
+Statement* create_expr_stmt(Expression* expr)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_EXPR;
+	s->expr = expr;
+	return s;
 }
 
-AST* create_method_node(Type type, AST* id, int nb_param, int nb_stmt){
-	AST *node=malloc(sizeof(AST));
-	node->type=METHOD;
-	node->data.methodast.type=type;
-	node->data.methodast.id= id;
-	node->data.methodast.nb_param=nb_param;
-	node->data.methodast.methodparam=malloc(nb_param *sizeof(AST));
-	node->data.methodast.nb_stmt=nb_stmt;
-	node->data.methodast.methodstmt=malloc(nb_stmt *sizeof(AST));
-	return node;
+Statement* create_return_stmt(Expression* val)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_RETURN;
+	s->return_val = val;
+	return s;
 }
 
-AST* create_cons_node(AST *id, int nb_param, int nb_stmt){
-	AST *node=malloc(sizeof(AST));
-	node->type=CONS;
-	node->data.consast.id= id;
-	node->data.consast.nb_param=nb_param;
-	node->data.consast.consparam=malloc(nb_param *sizeof(AST));
-	node->data.consast.nb_stmt=nb_stmt;
-	node->data.consast.consstmt=malloc(nb_stmt *sizeof(AST));
-	return node;
+Statement* create_if_stmt(Expression* condition, Statement* then_branch, Statement* else_branch)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_IF;
+	s->if_stmt.condition = condition;
+	s->if_stmt.then_branch = then_branch;
+	s->if_stmt.else_branch = else_branch;
+	return s;
 }
 
-AST* create_decl_node(Type type, char* id){
-	AST *node=malloc(sizeof(AST));
-	node->type=DECL;
-	node->data.declast.type=type;
-	node->data.declast.id=id;
-	return node;
+Statement* create_for_stmt(Statement* init, Expression* condition, Expression* increment, Statement* body)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_FOR;
+	s->for_stmt.init = init;
+	s->for_stmt.condition = condition;
+	s->for_stmt.increment = increment;
+	s->for_stmt.body = body;
+	return s;
 }
 
-AST* create_class_node(char *id, char *id1, int nb_decl){
-	AST *node=malloc(sizeof(AST));
-	node->type=CLASS;
-	node->data.classast.id=id;
-	node->data.classast.id1=id1;
-	node->data.classast.nb_decl=nb_decl;
-	node->data.classast.classdecl=malloc(nb_decl *sizeof(AST));
-	return node;
+Statement* create_block(Statement** stmts, int count)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_BLOCK;
+	s->block.stmts = stmts;
+	s->block.count = count;
+	return s;
 }
 
-AST* create_file_node( int nb_class, AST* class_main){
-	AST *node=malloc(sizeof(AST));
-	node->type=FILES;
-	node->data.fileast.nb_class=nb_class;
-	node->data.fileast.fileclass=malloc(nb_class *sizeof(AST));
-	node->data.fileast.class_main=class_main;
-	return node;
+Statement* create_var_decl(Type* type, char* name, Expression* init)
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_VAR_DECL;
+	s->var_decl.type = type;
+	s->var_decl.name = strdup(name);
+	s->var_decl.initializer = init;
+	return s;
 }
 
-int max(int a, int b){
-	return a > b ? a : b;
+Statement* create_break_stmt()
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_BREAK;
+	return s;
 }
 
-int maxList(AST **astList, int len){
-	int res = -1;
-	for (int i=0; i<len; i++){
-		res = max(res, depth(astList[i]));
+Statement* create_continue_stmt()
+{
+	Statement* s = malloc(sizeof(Statement));
+	s->kind = STMT_CONTINUE;
+	return s;
+}
+
+// ======================================= Parameter Constructor =======================================
+
+Parameter* create_parameter(Type* type, char* name)
+{
+	Parameter* p = malloc(sizeof(Parameter));
+	p->type = type;
+	p->name = strdup(name);
+	return p;
+}
+
+// ======================================= Field Constructor =======================================
+
+Field* create_field(int modifiers, Type* type, char* name, Expression* initializer)
+{
+	Field* f = malloc(sizeof(Field));
+	f->modifiers = modifiers;
+	f->type = type;
+	f->name = strdup(name);
+	f->initializer = initializer;
+	return f;
+}
+
+// ======================================= Method Constructor =======================================
+
+Method* create_method(int modifiers, Type* return_type, char* name, Parameter** params, int param_count, Statement* body)
+{
+	Method* m = malloc(sizeof(Method));
+	m->modifiers = modifiers;
+	m->return_type = return_type;
+	m->name = strdup(name);
+	m->params = params;
+	m->param_count = param_count;
+	m->body = body;
+	return m;
+}
+
+// ======================================= Constructor Constructor =======================================
+
+Constructor* create_constructor(int modifiers, Type* type, Parameter** params, int param_count, Statement* body)
+{
+	Constructor* c = malloc(sizeof(Constructor));
+	c->modifiers = modifiers;
+	c->type = type;
+	c->params = params;
+	c->param_count = param_count;
+	c->body = body;
+	return c;
+}
+
+// ======================================= Class Constructor =======================================
+
+ClassDecl* create_class(char* name)
+{
+	ClassDecl* c = malloc(sizeof(ClassDecl));
+	c->modifiers = MOD_PUBLIC;
+	c->name = strdup(name);
+	c->super_class = NULL;
+	c->fields = NULL;
+	c->field_count = 0;
+	c->constructors = NULL;
+	c->constructor_count = 0;
+	c->methods = NULL;
+	c->method_count = 0;
+	return c;
+}
+
+void class_set_superclass(ClassDecl* cls, char* super_class)
+{
+	cls->super_class = strdup(super_class);
+}
+
+void class_set_modifiers(ClassDecl* class, int modifiers)
+{
+	class->modifiers = modifiers;
+}
+
+void class_add_field(ClassDecl* cls, Field* field)
+{
+	cls->fields = realloc(cls->fields, (cls->field_count + 1) * sizeof(Field*));
+	cls->fields[cls->field_count] = field;
+	cls->field_count++;
+}
+
+void class_add_constructor(ClassDecl* cls, Constructor* constructor)
+{
+	cls->constructors = realloc(cls->constructors, (cls->constructor_count + 1) * sizeof(Constructor*));
+	cls->constructors[cls->constructor_count] = constructor;
+	cls->constructor_count++;
+}
+
+void class_add_method(ClassDecl* cls, Method* method)
+{
+	cls->methods = realloc(cls->methods, (cls->method_count + 1) * sizeof(Method*));
+	cls->methods[cls->method_count] = method;
+	cls->method_count++;
+}
+
+// ======================================= Compilation Unit Constructor =======================================
+
+File* create_file()
+{
+	File* f = malloc(sizeof(File));
+	f->classes = NULL;
+	f->class_count = 0;
+	return f;
+}
+
+void file_add_class(File* file, ClassDecl* cls)
+{
+	file->classes = realloc(file->classes, (file->class_count + 1) * sizeof(ClassDecl*));
+	file->classes[file->class_count] = cls;
+	file->class_count++;
+}
+
+// ======================================= Freeing =======================================
+
+void freeType(Type* type)
+{
+	if (type == NULL) return;
+	switch (type->kind)
+	{
+	case TYPE_CLASS:
+		free(type->class_name);
+		break;
+	default:
+		break;
 	}
-	return res;
+	free(type);
 }
 
-int depth(AST *ast){
-	if (ast == NULL)
-		return 0;
-
-	switch (ast->type){
-		case NUMBER:
-		case VARIABLE:
-		case PARAM:
-		case DECLSTMT:
-		case DECL:
-			return 0;
-		case UNARY_OP:
-			return 1 + depth(ast->data.unary.operand);
-		case BINARY_OP:
-			return 1 + max(depth(ast->data.binary.left),depth(ast->data.binary.right));
-		case DOT:
-			return 1 + max(depth(ast->data.dotast.id),depth(ast->data.dotast.expr));
-		case AFFECT:
-			return 1 + max(depth(ast->data.affectast.id),depth(ast->data.affectast.value));
-		case FUNC_CALL:
-			return 1 + max(depth(ast->data.funcallast.id),maxList(ast->data.funcallast.func_arguments, ast->data.funcallast.nb_arguments));
-		case CAST:
-			return 1 + depth(ast->data.castast.expr);
-		case INSTANCEOF:
-			return 1 + depth(ast->data.instofast.expr);
-		case DEF:
-			return 1 + max(depth(ast->data.defast.expr),depth(ast->data.defast.id));
-		case OPT:
-			return 1 + max(depth(ast->data.optast.expr),maxList(ast->data.optast.stmt, ast->data.optast.nb_stmt));
-		case RETURN:
-			return 1 + depth(ast->data.returnast.expr);
-		case FOR:
-			return 1 + maxList(ast->data.forast.forexpr, ast->data.forast.nb_expr);
-		case METHOD:
-			return 1 + max(max(depth(ast->data.methodast.id),maxList(ast->data.methodast.methodparam, ast->data.methodast.nb_param)),maxList(ast->data.methodast.methodstmt, ast->data.methodast.nb_stmt));
-		case CONS:
-			return 1 + max(max(depth(ast->data.consast.id),maxList(ast->data.consast.consparam, ast->data.consast.nb_param)),maxList(ast->data.consast.consstmt, ast->data.consast.nb_stmt));
-		case CLASS:
-		return 1 + maxList(ast->data.classast.classdecl, ast->data.classast.nb_decl);
-		case FILES:
-			return 1 + max(depth(ast->data.fileast.class_main),maxList(ast->data.fileast.fileclass, ast->data.fileast.nb_class));
-		default:
-			return -1;
-	}
-}
-
-// Evaluate
-size_t evaluate(AST *node) 
+void freeLiteral(Literal l)
 {
-	switch (node->type) {
-		case NUMBER:
-			return node->data.number;
-		
-		case BINARY_OP: {
-			size_t left = evaluate(node->data.binary.left);
-			size_t right = evaluate(node->data.binary.right);
-			switch (node->data.binary.op) {
-				case TOKEN_BINOP_ADD: return left + right;
-				case TOKEN_BINOP_SUB: return left - right;
-				case TOKEN_BINOP_MULT: return left * right;
-				case TOKEN_BINOP_DIV: return left / right;
-				default: return 0;
-			}
-		}
-		
-		case UNARY_OP: {
-			size_t operand = evaluate(node->data.unary.operand);
-			switch (node->data.unary.op) {
-				case TOKEN_BINOP_SUB: return -operand;
-				case TOKEN_OPP: return !operand;
-				default: return operand;
-			}
-		}
-		
-		default:
-			printf("Other lookup not pertinent\n");
-			return 0;
-	}
-	return 0;
+	if (l.kind == LIT_STRING) free(l.string_val);
+	return;
 }
 
-// Print the AST (parcours en profondeur)
-void print_ast(AST *node, int depth) 
+void freeCallExpr(CallExpr);
+void freeExpression(Expression* expr)
 {
-	if (!node) return;
+	if (expr == NULL) return;
 
-	for (int i = 0; i < depth; i++) printf("  ");
-
-	switch (node->type) {
-		case NUMBER:
-			printf("Number: %ld\n", node->data.number);
-			break;
-		
-		case BINARY_OP:
-			printf("BinaryOp: %s\n", token_type_name(node->data.binary.op));
-			print_ast(node->data.binary.left, depth + 1);
-			print_ast(node->data.binary.right, depth + 1);
-			break;
-		
-		case UNARY_OP:
-			printf("UnaryOp: %s\n", token_type_name(node->data.unary.op));
-			print_ast(node->data.unary.operand, depth + 1);
-			break;
-		
-		case VARIABLE:
-			printf("Variable: %s\n", node->data.variable);
-			break;
-		
-		default:
-			break;
+	switch (expr->kind)
+	{
+	case EXPR_LITERAL:
+		freeLiteral(expr->literal);
+		freeType(expr->type);
+		break;
+	case EXPR_VARIABLE:
+		free(expr->var_name);
+		freeType(expr->type);
+		break;
+	case EXPR_BINARY_OP:
+		freeExpression(expr->binary.left);
+		freeExpression(expr->binary.right);
+		freeType(expr->type);
+		break;
+	case EXPR_UNARY_OP:
+		freeExpression(expr->unary.operand);
+		freeType(expr->type);
+		break;
+	case EXPR_CALL:
+		freeCallExpr(expr->call);
+		freeType(expr->type);
+		break;
+	case EXPR_INSTOF:
+		freeExpression(expr->instof.val);
+		freeType(expr->instof.comp);
+		freeType(expr->type);
+		break;
+	case EXPR_NEW:
+		freeNew(expr->new_expr);
+		freeType(expr->type);
+		break;
+	case EXPR_FIELD_ACCESS:
+		free(expr->field_access.field_name);
+		freeExpression(expr->field_access.object);
+		freeType(expr->type);
+		break;
+	case EXPR_CAST:
+		freeType(expr->cast.target_type);
+		freeExpression(expr->cast.expr);
+		break;
 	}
+	free(expr);
 }
 
-// Free the AST
-void free_ast(AST *node)
+void freeNew(NewExpr n)
 {
-	if (!node) return;
-	
-	switch (node->type) {
-		case BINARY_OP:
-			free_ast(node->data.binary.left);
-			free_ast(node->data.binary.right);
-			break;
-		
-		case UNARY_OP:
-			free_ast(node->data.unary.operand);
-			break;
-		
-		case VARIABLE:
-			free(node->data.variable);
-			break;
-		
-		case DOT:
-			free_ast(node->data.dotast.expr);
-			free_ast(node->data.dotast.id);
-			break;
-
-		case AFFECT:	
-			free_ast(node->data.affectast.id);
-			free_ast(node->data.affectast.value);	
-			break;
-
-		case FUNC_CALL :
-			free_ast(node->data.funcallast.id);
-			for (int i=0; i < node->data.funcallast.nb_arguments ; i++) 
-				free_ast(node->data.funcallast.func_arguments[i]);
-			break;
-
-		case CAST :
-			free_ast(node->data.castast.expr);
-			break;
-
-		case INSTANCEOF :
-			free_ast(node->data.instofast.expr);	
-			break;
-	
-		case PARAM :
-			free(node->data.paramast.id);
-			break;
-
-		case NUMBER:
-		default:
-			break;
-
-		case DECLSTMT:
-			free(node->data.declstmtast.id);
-			break;
-
-		case DEF:
-			free_ast(node->data.defast.id);
-			free_ast(node->data.defast.expr);
-			break;
-		
-		case OPT:
-			free_ast(node->data.optast.expr);
-			for (int i=0; i < node->data.optast.nb_stmt; i++) 
-				free_ast(node->data.optast.stmt[i]);
-			break;
-
-		case RETURN:
-			free_ast(node->data.returnast.expr);
-			break;
-		
-		case FOR:
-			for (int i=0; i < node->data.forast.nb_expr; i++) 
-				free_ast(node->data.forast.forexpr[i]);
-			break;
-
-		case METHOD:
-			free_ast(node->data.methodast.id);
-			for (int i=0; i < node->data.methodast.nb_param; i++) 
-				free_ast(node->data.methodast.methodparam[i]);
-			for (int i=0; i < node -> data.methodast.nb_stmt; i++)
-				free_ast(node->data.methodast.methodstmt[i]);
-			break;
-		
-		case CONS:
-			free_ast(node->data.consast.id);
-			for (int i=0; i < node->data.consast.nb_param; i++) 
-				free_ast(node->data.consast.consparam[i]);
-			for (int i=0; i < node -> data.consast.nb_stmt; i++)
-				free_ast(node->data.consast.consstmt[i]);
-			break;
-		
-		case DECL:
-			free(node->data.declast.id);
-			break;
-
-		case CLASS:
-			free(node->data.classast.id);
-			// free_ast(node->data.classast.id1);
-			for (int i=0; i < node->data.classast.nb_decl; i++) 
-				free_ast(node->data.classast.classdecl[i]);
-			break;
-
-		case FILES:
-			free_ast(node->data.fileast.class_main);
-			for (int i=0; i < node->data.fileast.nb_class; i++) 
-				free_ast(node->data.fileast.fileclass[i]);
-			break;
-
-	}
-	free(node);
+	while(n.arg_count-- > 0)
+		freeExpression(n.args[n.arg_count]);
+	if (n.args) free(n.args);
 }
 
+void freeCallExpr(CallExpr cexpr)
+{
+	freeExpression(cexpr.callee);
+	while(cexpr.arg_count-- > 0)
+		freeExpression(cexpr.args[cexpr.arg_count]);
+	if (cexpr.args) free(cexpr.args);
+}
+
+void freeStatement(Statement*);
+
+void freeBlock(Block blk)
+{
+	while (blk.count-- > 0)
+		freeStatement(blk.stmts[blk.count]);	
+	if (blk.stmts) free(blk.stmts);
+}
+
+void freeFor(ForStmt forstmt)
+{
+	freeStatement(forstmt.init);
+	freeExpression(forstmt.condition);
+	freeExpression(forstmt.increment);
+	freeStatement(forstmt.body);
+}
+
+void freeIf(IfStmt ifstmt)
+{
+	freeExpression(ifstmt.condition);
+	freeStatement(ifstmt.then_branch);
+	freeStatement(ifstmt.else_branch);
+}
+
+void freeVarDecl(VarDecl var)
+{
+	freeType(var.type);
+	free(var.name);
+	freeExpression(var.initializer);
+}
+
+void freeStatement(Statement* state)
+{
+	if (state == NULL) return;
+	switch (state->kind)
+	{
+	case STMT_BLOCK:
+		freeBlock(state->block);
+		break;
+	case STMT_EXPR:
+		freeExpression(state->expr);
+		break;
+	case STMT_RETURN:
+		freeExpression(state->return_val);
+		break;
+	case STMT_FOR:
+		freeFor(state->for_stmt);
+		break;
+	case STMT_IF:
+		freeIf(state->if_stmt);
+		break;
+	case STMT_VAR_DECL:
+		freeVarDecl(state->var_decl);
+		break;
+	case STMT_BREAK:
+	case STMT_CONTINUE:
+	default:
+		break;
+	}
+	free(state);
+}
+
+void freeParameter(Parameter* param)
+{
+	free(param->name);
+	freeType(param->type);
+	free(param);
+}
+
+
+void freeField(Field* field)
+{
+	free(field->name);
+	freeType(field->type);
+	freeExpression(field->initializer);
+	free(field);
+}
+
+void freeConstructor(Constructor* constr)
+{
+	freeType(constr->type);
+
+	while (constr->param_count-- > 0)
+		freeParameter(constr->params[constr->param_count]);
+	if (constr->params) free(constr->params);
+	freeStatement(constr->body);
+	free(constr);
+}
+
+
+void freeMethod(Method* meth)
+{
+	free(meth->name);
+
+	freeType(meth->return_type);
+	while (meth->param_count-- > 0)
+		freeParameter(meth->params[meth->param_count]);
+	if (meth->params) free(meth->params);
+
+	freeStatement(meth->body);
+	free(meth);
+}
+
+void freeClass(ClassDecl* class)
+{
+	free(class->name);
+	if (class->super_class) free(class->super_class);
+
+	while (class->field_count-- > 0)
+		freeField(class->fields[class->field_count]);
+	if (class->fields) free(class->fields);
+
+	while (class->constructor_count-- > 0)
+		freeConstructor(class->constructors[class->constructor_count]);
+	if (class->constructors) free(class->constructors);
+
+	while (class->method_count-- > 0)
+		freeMethod(class->methods[class->method_count]);
+	if (class->methods) free(class->methods);
+
+	free(class);
+}
+
+void freeFile(File* file)
+{
+	while (file->class_count-- > 0)
+		freeClass(file->classes[file->class_count]);
+	if (file->classes) free(file->classes);
+
+	free(file);
+}

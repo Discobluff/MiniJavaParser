@@ -8,3 +8,8 @@
 !*.java
 testsX
 !*.ttf
+!docs/*
+!docs/images/*
+*.html
+
+parser/test.java

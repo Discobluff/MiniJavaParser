@@ -58,7 +58,6 @@ typedef enum {
     TOKEN_PUBLIC,
     TOKEN_RETURN,
     TOKEN_STATIC,
-    TOKEN_THIS,
     TOKEN_TRUE,
     TOKEN_VOID,
 
@@ -121,7 +120,9 @@ Lexer* lexer_init(char* src, int len);
 void lexer_next(Lexer* lex);
 Token lexer_giveToken(Lexer* lex);
 void token_pprint(Token tok, Lexer* lex);
+void lexerfree(Lexer *lex);
 
+const char* token_type_name(TokenType type);
 void token_text(Lexer* lex, Token tok, char* buf, int bufsize);
 int token_number(Lexer* lex, Token tok);
 void token_identifier(Lexer* lex, Token tok, char* buf, int bufsize);

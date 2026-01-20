@@ -11,51 +11,63 @@
 
 
 bool good_string(Lexer* lex) {
-    //on vient de lire " dans le lexeur
-
-
-    advance(lex);
-    char c; 
-
-    while(lex->pos < lex->length) {
-        c = peek(lex);
-        if (c == '\\') {
-            if (lex->pos == lex->length - 1) {
-                char msg[46];
-                sprintf(msg, "End of file before end of string");
-                error_print(lex, msg);
-                return false;
-            }
-
-            advance(lex); 
-            c = peek(lex);
-            if (strchr("n\\\"r\'0", c) == NULL) {
-
-                //c n'est pas dans [n, \, ", ', 0]
-                char msg[46];
-                sprintf(msg, "Undefined escape character : %c \n", c);
-                error_print(lex, msg);
-                return false;
-            }
-            
+    // We just read " in the lexer
+    lex->pos++;
+    
+    while (lex->pos < lex->length) {
+        char c = lex->source[lex->pos];
+        
+        if (c == '\n') {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "Newline in string literal");
+            lex->tok.position = lex->pos;
+            error_print(lex, msg); 
+            exit(1);
+            return false;
         }
-
-        // on n'a pas lu antislash
-        if (c == '\"') {
-            advance(lex);
+        
+        if (c == '\\') {
+            /* backslash: consume it and the escaped character, ignoring escaped quotes */
+            if (lex->pos == lex->length - 1) {
+                char msg[64];
+                snprintf(msg, sizeof(msg), "End of file before end of string");
+                lex->tok.position = lex->pos;
+                error_print(lex, msg); 
+                exit(1);
+                return false;
+            }
+            /* consume backslash */
+            lex->pos++;
+            
+            /* get escaped char if present */
+            c = lex->source[lex->pos];
+            
+            /* optional: validate escape characters */
+            if (strchr("ntr\\\"0", c) == NULL) {
+                char msg[80];
+                snprintf(msg, sizeof(msg), "Undefined escape character: %c", c);
+                lex->tok.position = lex->pos;
+                error_print(lex, msg); 
+                exit(1);
+                return false;
+            }
+            lex->pos++;
+            continue;
+        }
+        
+        if (c == '"') {
+            lex->pos++;
             return true;
         }
-
-        else { advance(lex); }
-
-
+        
+        lex->pos++;
     }
-    char msg[46];
-    sprintf(msg, "End of file before end of string");
-    error_print(lex, msg);
+    
+    char msg[64];
+    snprintf(msg, sizeof(msg), "End of file before end of string");
     lex->tok.position = lex->pos;
-
-
+    error_print(lex, msg); 
+    exit(1);
     return false;
 }
 
@@ -67,7 +79,7 @@ bool good_comment(Lexer* lex) {
         if (!end) {
             char msg[46];
             sprintf(msg, "End of file before end of comment");
-            error_print(lex, msg);
+            error_print(lex, msg); exit(1);
             return false;
         } else {
 

@@ -1,0 +1,153 @@
+fichier -> class_list
+
+class_list -> classe class_list
+class_list -> ε
+
+classe -> public_opt static_opt "class" "ident_type" extends_opt "{" decl_list "}"
+
+public_opt -> "public"
+public_opt -> ε
+
+static_opt -> "static"
+static_opt -> ε
+
+extends_opt -> "extends" "ident_type"
+extends_opt -> ε
+
+decl_list -> decl decl_list
+decl_list -> ε
+
+decl -> "public" decl_public
+decl -> "static" const_or_meth
+decl -> type const_or_meth_or_attr
+
+decl_public -> const_or_meth
+decl_public -> "static" const_or_meth
+
+
+const_or_meth_or_attr -> "ident" meth_or_attr
+const_or_meth_or_attr -> function_tail
+
+
+meth_or_attr -> function_tail
+meth_or_attr -> "=" expr ";"
+meth_or_attr -> ";"
+
+function_tail -> "(" params_opt ")" "{" stmt_list "}"
+
+const_or_meth -> type const_or_meth_sol
+
+
+const_or_meth_sol -> function_tail
+const_or_meth_sol -> "ident" function_tail
+
+params_opt -> params
+params_opt -> ε
+
+params -> type "ident" cro_opt params_tail
+
+cro_opt -> "[" "]"
+cro_opt -> ε
+
+params_tail -> ε
+params_tail -> "," params
+
+type -> "ident_type"
+type -> "boolean"
+type -> "int"
+type -> "void"
+
+stmt_list -> stmt stmt_list
+stmt_list -> ε
+
+stmt -> type "ident" "=" expr ";"
+stmt -> type "ident" ";"
+stmt -> expr_opt ";"
+stmt -> "if" "(" expr ")" stmt stmt_if
+stmt -> "for" "(" expr_opt ";" expr_opt ";" expr_opt ")" stmt
+stmt -> block
+stmt -> "return" expr_opt ";"
+
+stmt_if -> "else" stmt
+stmt_if -> ε
+
+block -> "{" stmt_list "}"
+
+expr_opt -> expr
+expr_opt -> ε
+
+expr -> ass_expr
+
+ass_expr -> lor_expr ass_expr_suite
+ass_expr_suite -> "=" ass_expr
+ass_expr_suite -> ε
+
+lor_expr -> land_expr lor_expr_suite
+lor_expr_suite -> "||" land_expr lor_expr_suite
+lor_expr_suite -> ε
+
+land_expr -> equality_expr land_expr_suite
+land_expr_suite -> "&&" equality_expr land_expr_suite
+land_expr_suite -> ε
+
+equality_expr -> relational_expr equality_expr_suite
+equality_expr_suite -> "==" relational_expr equality_expr_suite
+equality_expr_suite -> "!=" relational_expr equality_expr_suite
+equality_expr_suite -> ε
+
+relational_expr -> add relational_expr_suite
+relational_expr_suite -> "<" add relational_expr_suite
+relational_expr_suite -> "<=" add relational_expr_suite
+relational_expr_suite -> ">" add relational_expr_suite
+relational_expr_suite -> ">=" add relational_expr_suite
+relational_expr_suite -> "instanceof" type relational_expr_suite
+relational_expr_suite -> ε
+
+add -> mult_expr add_suite
+add_suite -> "+" mult_expr add_suite
+add_suite -> "-" mult_expr add_suite
+add_suite -> ε
+
+mult_expr -> unary mult_suite
+mult_suite -> "*" unary mult_suite
+mult_suite -> "/" unary mult_suite
+mult_suite -> "%" unary mult_suite
+mult_suite -> ε
+
+unary -> "!" unary
+unary -> "-" unary
+unary -> "+" unary
+unary -> cast_or_postfix
+
+cast_or_postfix -> "(" cast_or_postfix_par
+cast_or_postfix -> postfix_expr
+
+cast_or_postfix_par -> type ")" cast_or_postfix
+cast_or_postfix_par -> expr ")" postfix_tail
+
+postfix_expr -> primary_with_prefix postfix_tail
+
+postfix_tail -> "." "ident" postfix_tail
+postfix_tail -> "(" lexpr_opt ")" postfix_tail
+postfix_tail -> ε
+
+primary_with_prefix -> "!" primary_with_prefix
+primary_with_prefix -> "-" primary_with_prefix
+primary_with_prefix -> "+" primary_with_prefix
+primary_with_prefix -> primary
+
+
+primary -> "integer"
+primary -> "string"
+primary -> "true"
+primary -> "false"
+primary -> "null"
+primary -> "ident"
+primary -> "new" "ident_type" "(" lexpr_opt ")"
+primary -> "(" expr ")"
+
+lexpr_opt -> lexpr
+lexpr_opt -> ε
+lexpr -> expr lexpr_expr
+lexpr_expr -> ε
+lexpr_expr -> "," lexpr
