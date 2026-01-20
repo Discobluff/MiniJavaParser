@@ -31,7 +31,7 @@ compile:
     paths:
       - main
 
-positive_tests_lexer:
+positive_tests_syntax:
   allow_failure: false
   needs:
     - job: compile
@@ -41,7 +41,7 @@ positive_tests_lexer:
   script:
     - make successTests
 
-negative_tests_lexer:
+negative_tests_syntax:
   allow_failure: false
   needs:
     - job: compile
