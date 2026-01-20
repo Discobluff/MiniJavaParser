@@ -131,11 +131,11 @@ typeChecker: all
 
 .PHONY: successTests successMemory failTests failTodo successTodo
 
-successTests: $(TARGET)
+define successTemplate
 	@status=0; \
-	for file in tests/implemented/*/success/*; do \
+	for file in $(1); do \
 		printf "%-56s " "$$file"; \
-		if ./main $$file > /dev/null 2>&1; then \
+		if make $(2) file=$$file > /dev/null 2>&1; then \
 			echo "\033[38;5;77mOK\033[0m"; \
 		else \
 			echo "\033[38;5;196mFAIL\033[0m"; \
@@ -148,6 +148,41 @@ successTests: $(TARGET)
 	else \
 		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
 	fi
+endef
+
+define failTemplate
+	@status=0; \
+	for file in $(1); do \
+		printf "%-69s " "$$file"; \
+		if make $(2) file=$$file > /dev/null 2>&1; then \
+			echo "\033[38;5;196mFAIL\033[0m"; \
+			status=1; \
+		else \
+			echo "\033[38;5;77mOK\033[0m"; \
+		fi; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
+	fi
+endef
+
+successTests: $(TARGET)
+	$(call successTemplate,tests/implemented/*/success/*,run)
+
+failTests: $(TARGET)
+	$(call failTemplate,tests/implemented/syntax/fail/*,run)
+
+successTypeChecker: $(TARGET)
+	$(call successTemplate,tests/implemented/type/success/*,typeChecker)
+
+failTypeChecker: $(TARGET)
+	$(call failTemplate,tests/implemented/type/fail/*,typeChecker)
+
+failTypeCheckerTodo: $(TARGET)
+	$(call failTemplate,tests/todo/type/fail/*,typeChecker)
 
 successMemory: $(TARGET)
 	@status=0; \
@@ -165,60 +200,6 @@ successMemory: $(TARGET)
 		exit 1; \
 	else \
 		echo "\t\t\033[38;5;77mAll memory checks passed\033[0m\n"; \
-	fi
-
-failTests: $(TARGET)
-	@status=0; \
-	for file in tests/implemented/*/fail/*; do \
-		printf "%-69s " "$$file"; \
-		if ./main $$file > /dev/null 2>&1; then \
-			echo "\033[38;5;196mFAIL\033[0m"; \
-			status=1; \
-		else \
-			echo "\033[38;5;77mOK\033[0m"; \
-		fi; \
-	done; \
-	if [ $$status -ne 0 ]; then \
-		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
-		exit 1; \
-	else \
-		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
-	fi
-
-failTypeTodo: $(TARGET)
-	@status=0; \
-	for file in tests/implemented/type/fail/*; do \
-		printf "%-69s " "$$file"; \
-		if ./main --typechecker $$file > /dev/null 2>&1; then \
-			echo "\033[38;5;196mFAIL\033[0m"; \
-			status=1; \
-		else \
-			echo "\033[38;5;77mOK\033[0m"; \
-		fi; \
-	done; \
-	if [ $$status -ne 0 ]; then \
-		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
-		exit 1; \
-	else \
-		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
-	fi
-
-successTypeTodo: $(TARGET)
-	@status=0; \
-	for file in tests/implemented/type/fail/*; do \
-		printf "%-69s " "$$file"; \
-		if ./main --typechecker $$file > /dev/null 2>&1; then \
-			echo "\033[38;5;196mFAIL\033[0m"; \
-			status=1; \
-		else \
-			echo "\033[38;5;77mOK\033[0m"; \
-		fi; \
-	done; \
-	if [ $$status -ne 0 ]; then \
-		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
-		exit 1; \
-	else \
-		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
 	fi
 
 # ============================================================================

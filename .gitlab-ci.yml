@@ -50,3 +50,24 @@ negative_tests_syntax:
   stage: test  
   script:
     - make failTests
+
+positive_tests_type:
+  allow_failure: false
+  needs:
+    - job: compile
+  rules:
+    - if: $BUILD == "false"
+  stage: test  
+  script:
+    - make successTestsType
+
+negative_tests_type:
+  allow_failure: false
+  needs:
+    - job: compile
+  rules:
+    - if: $BUILD == "false"
+  stage: test  
+  script:
+    - make failTestsType
+
