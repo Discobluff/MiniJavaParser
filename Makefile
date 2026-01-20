@@ -1,7 +1,7 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g -O0 -I.
-LDFLAGS = -Wall -Wextra -lm
+CFLAGS = -Wall -Wextra -std=c99 -g -O0 -I. 
+LDFLAGS = -Wall -Wextra -lm 
 LDFLAGS_SDL = $(shell pkg-config --libs sdl2 SDL2_ttf)
 
 # Suppress make's directory change messages

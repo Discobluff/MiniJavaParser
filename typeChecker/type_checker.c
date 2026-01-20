@@ -3,9 +3,20 @@
 #include <stdlib.h>
 
 static Type* type_error(){
-    static Type err = {TYPE_ERROR, NULL};
-    return &err;
+    static Type* err = NULL;
+    if (!err) {
+        err = malloc(sizeof(Type));
+        err->kind = TYPE_ERROR;
+        err->class_name = NULL;
+    }
+    return err;
 }
+
+
+static void type_error_msg(const char* msg){
+    fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
+}
+
 
 static Scope* push_scope(TypeContext* ctx){
     Scope* s=calloc(1,sizeof(Scope));
@@ -34,6 +45,7 @@ static void declare_var(TypeContext* ctx,char* name, Type* type){
     v->name=name;
     v->type=type;
     v->next=ctx->scope->vars;
+    ctx->scope->vars=v;
 }
 
 
@@ -71,6 +83,7 @@ int is_subclass(File* file, const char* child, const char* parent){
         if(!cls){
             break;
         }
+        child=cls->super_class; 
     }
     return 0;
 }
@@ -88,11 +101,10 @@ int type_compatible(File* file,Type* expected, Type* actual){
     if(expected->kind == TYPE_CLASS && actual->kind == TYPE_CLASS){
         return is_subclass(file, actual->class_name, expected->class_name);
     }
+    if (expected->kind == TYPE_CLASS && actual->kind == TYPE_NULL){
+        return 1;
+    }
     return 0;
-}
-
-static void type_error_msg(const char* msg){
-    fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
 }
 
 ClassDecl* find_class(File* file, const char* name){
@@ -188,7 +200,7 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
             case LIT_STRING:
                 return expr->type = create_type(TYPE_STRING);
             case LIT_NULL:
-                return expr->type = create_class_type(NULL);
+                return expr->type = create_type(TYPE_NULL);
             default:
                 return expr->type=type_error();
         }
