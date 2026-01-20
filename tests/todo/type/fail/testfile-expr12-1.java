@@ -1,4 +1,2 @@
-
-class A {}
-class B extends A { A m(B b) { return b; } }
+class A { void m() { int x = 0 = 1; } }
 class Main { public static void main(String args[]) { } }

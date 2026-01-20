@@ -10,6 +10,15 @@ Type* create_type(TypeKind kind)
 	return t;
 }
 
+Type* copy_type(Type* type)
+{
+	if (type == NULL) return NULL;
+	if (type->kind == TYPE_CLASS) {
+		return create_class_type(type->class_name);
+	}
+	return create_type(type->kind);
+}
+
 Type* create_class_type(char* class_name)
 {
 	Type* t = malloc(sizeof(Type));

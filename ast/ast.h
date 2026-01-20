@@ -17,6 +17,7 @@ typedef enum {
 	TYPE_STRING,
 	TYPE_VOID,
 	TYPE_CLASS,
+	TYPE_NULL,
 	TYPE_ERROR,
 } TypeKind;
 
@@ -296,6 +297,7 @@ typedef struct{
 
 Type* create_type(TypeKind kind);
 Type* create_class_type(char* class_name);
+Type* copy_type(Type* type);
 
 Expression* create_literal_int(int val);
 Expression* create_literal_boolean(int val);

@@ -45,8 +45,8 @@ int type_equals(Type* a, Type* b);
 int type_compatible(File* file,Type* expected, Type* actual);
 
 ClassDecl* find_class(File* file, const char* name);
-Method* find_method(ClassDecl* cls, const char* name);
-Field* find_field(ClassDecl* cls, const char* name);
+Method* find_method(File* file, ClassDecl* cls, const char* name);
+Field* find_field(File* file, ClassDecl* cls, const char* name);
 int is_subclass(File* file, const char* child, const char* parent);
 
 #endif

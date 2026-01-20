@@ -3,9 +3,18 @@
 #include <stdlib.h>
 
 static Type* type_error(){
-    static Type err = {TYPE_ERROR, NULL};
-    return &err;
+    Type* err;
+    err = malloc(sizeof(Type));
+    err->kind = TYPE_ERROR;
+    err->class_name = NULL;
+    return err;
 }
+
+
+static void type_error_msg(const char* msg){
+    fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
+}
+
 
 static Scope* push_scope(TypeContext* ctx){
     Scope* s=calloc(1,sizeof(Scope));
@@ -31,9 +40,10 @@ static void scope_pop(Scope** scope){
 
 static void declare_var(TypeContext* ctx,char* name, Type* type){
     VarSymbol* v=calloc(1,sizeof(VarSymbol));
-    v->name=name;
+    v->name=strdup(name);
     v->type=type;
     v->next=ctx->scope->vars;
+    ctx->scope->vars=v;
 }
 
 
@@ -44,6 +54,11 @@ static Type* lookup_var(TypeContext* ctx, const char* name){
                 return v->type;
             }
         }
+    }
+
+    Field* f = find_field(ctx->file, ctx->current_class, name);
+    if (f) {
+        return f->type;
     }
     return NULL;
 }
@@ -71,6 +86,7 @@ int is_subclass(File* file, const char* child, const char* parent){
         if(!cls){
             break;
         }
+        child=cls->super_class; 
     }
     return 0;
 }
@@ -88,11 +104,10 @@ int type_compatible(File* file,Type* expected, Type* actual){
     if(expected->kind == TYPE_CLASS && actual->kind == TYPE_CLASS){
         return is_subclass(file, actual->class_name, expected->class_name);
     }
+    if (expected->kind == TYPE_CLASS && actual->kind == TYPE_NULL){
+        return 1;
+    }
     return 0;
-}
-
-static void type_error_msg(const char* msg){
-    fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
 }
 
 ClassDecl* find_class(File* file, const char* name){
@@ -104,31 +119,31 @@ ClassDecl* find_class(File* file, const char* name){
     return NULL;
 }
 
-Method* find_method(ClassDecl* cls, const char* name){
+Method* find_method(File* file, ClassDecl* cls, const char* name){
     for(int i=0; i<cls->method_count; i++){
         if(strcmp(cls->methods[i]->name,name)==0){
             return cls->methods[i];
         }
     }
     if(cls->super_class){
-        ClassDecl* sup = find_class(NULL, cls->super_class);
+        ClassDecl* sup = find_class(file, cls->super_class);
         if(sup){
-            return find_method(sup,name);
+            return find_method(file, sup, name);
         }
     }
     return NULL;
 }
 
-Field* find_field(ClassDecl* cls, const char* name){
+Field* find_field(File* file, ClassDecl* cls, const char* name){
     for(int i=0; i<cls->field_count; i++){
         if(strcmp(cls->fields[i]->name,name)==0){
             return cls->fields[i];
         }
     }
     if(cls->super_class){
-        ClassDecl* sup=find_class(NULL, cls->super_class);
+        ClassDecl* sup=find_class(file, cls->super_class);
         if(sup){
-            return find_field(sup,name);
+            return find_field(file, sup, name);
         }
     }
     return NULL;
@@ -138,11 +153,28 @@ static Type* type_check_expression(TypeContext* ctx, Expression* exp);
 static void type_check_statement(TypeContext* ctx, Statement* stmt);
 
 static Type* check_binary(TypeContext* ctx, Expression* exp){
+    
+    if (exp->binary.left->kind == EXPR_LITERAL && exp->binary.op == OP_ASSIGN) {
+        type_error_msg("impossible d'assigner à un littéral");
+        return exp->type = type_error();
+    }
     Type* l= type_check_expression(ctx, exp->binary.left);
     Type* r= type_check_expression(ctx, exp->binary.right);
 
     switch(exp->binary.op){
-        case OP_ADD: case OP_SUB:
+        case OP_ADD: 
+            if(l-> kind == TYPE_INT && r->kind == TYPE_INT){
+                return exp->type = create_type(TYPE_INT);
+            }
+
+            if (l->kind == TYPE_STRING && r->kind == TYPE_STRING) {
+                return exp->type = create_type(TYPE_STRING);
+
+            }
+            type_error_msg("les opérateurs arithmétiques nécessitent des types int");
+            return exp->type=type_error();
+            
+        case OP_SUB:
         case OP_MUL: case OP_DIV : case OP_MOD:
             if(l-> kind != TYPE_INT || r->kind != TYPE_INT){
                         type_error_msg("les opérateurs arithmétiques nécessitent des types int");
@@ -168,6 +200,12 @@ static Type* check_binary(TypeContext* ctx, Expression* exp){
                         return exp->type = type_error();
                     }
             return exp->type = create_type(TYPE_BOOLEAN);
+        case OP_ASSIGN:
+            if(!type_compatible(ctx->file,l,r)){
+                        type_error_msg("types incompatibles pour une assignation");
+                        return exp->type=type_error();
+                    }
+            return exp->type = copy_type(l);
         default:
             return exp->type=type_error();
                     
@@ -188,41 +226,120 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
             case LIT_STRING:
                 return expr->type = create_type(TYPE_STRING);
             case LIT_NULL:
-                return expr->type = create_class_type(NULL);
+                return expr->type = create_type(TYPE_NULL);
             default:
                 return expr->type=type_error();
         }
         case EXPR_VARIABLE:{
+            // Handle "this" keyword
+            if(strcmp(expr->var_name, "this") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup(ctx->current_class->name);
+                return expr->type = t;
+            }
+            // Skip "System" (builtin, not defined in our language)
+            if(strcmp(expr->var_name, "System") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup("System");
+                return expr->type = t;
+            }
             Type* t=lookup_var(ctx, expr->var_name);
             if(!t){
                 type_error_msg("utilisation d'une variable non déclarée");
                 return expr->type = type_error();
             }
-            return expr->type = t;
+            return expr->type = copy_type(t);
         }
         case EXPR_BINARY_OP:{
             return check_binary(ctx,expr);
         }
         case EXPR_UNARY_OP:{
             Type* t = type_check_expression(ctx, expr -> unary.operand);
-            if(expr->unary.op == UNARY_NOT && t->kind != TYPE_BOOLEAN){
+            if(expr->unary.op == UNARY_NOT && t->kind == TYPE_BOOLEAN){
                 return expr->type=create_type(TYPE_BOOLEAN);
             }
-            if(expr->unary.op == UNARY_NEG && t->kind != TYPE_INT){
+            if(expr->unary.op == UNARY_NEG && t->kind == TYPE_INT){
                 return expr->type = create_type(TYPE_INT);
             }
             type_error_msg("Opérateur unaire invalide");
             return expr->type = type_error();
         }
         case EXPR_CALL:{
-            type_error("appels de méthode non encpre vérifiés par typage");
-            return expr->type=create_type(TYPE_INT);
+            // L'appelant peut être: obj.method ou method (this implicite)
+            Expression* callee = expr->call.callee;
+            Method* method = NULL;
+            ClassDecl* cls = NULL;
+            
+            // Skip System.out.print/println calls (not defined in our language)
+            if (callee->kind == EXPR_FIELD_ACCESS) {
+                Expression* obj = callee->field_access.object;
+                // Check for System.out.print pattern
+                if (obj->kind == EXPR_FIELD_ACCESS &&
+                    obj->field_access.object->kind == EXPR_VARIABLE &&
+                    strcmp(obj->field_access.object->var_name, "System") == 0 &&
+                    strcmp(obj->field_access.field_name, "out") == 0) {
+                    // Skip type checking for System.out.* calls
+                    // Still type check the arguments
+                    //for (int i = 0; i < expr->call.arg_count; i++) {
+                    //    type_check_expression(ctx, expr->call.args[i]);
+                    //}
+                    return expr->type = create_type(TYPE_VOID);
+                }
+            }
+            
+            if (callee->kind == EXPR_FIELD_ACCESS) {
+                // Cas: obj.method(args)
+                Type* obj_type = type_check_expression(ctx, callee->field_access.object);
+                if (obj_type->kind != TYPE_CLASS) {
+                    type_error_msg("appel de méthode sur un non-objet");
+                    return expr->type = type_error();
+                }
+                cls = find_class(ctx->file, obj_type->class_name);
+                if (!cls) {
+                    type_error_msg("classe non trouvée");
+                    return expr->type = type_error();
+                }
+                method = find_method(ctx->file, cls, callee->field_access.field_name);
+                if (!method) {
+                    type_error_msg("méthode non trouvée");
+                    return expr->type = type_error();
+                }
+            } else if (callee->kind == EXPR_VARIABLE) {
+                // Cas: method(args) - appel sur this implicite
+                cls = ctx->current_class;
+                method = find_method(ctx->file, cls, callee->var_name);
+                if (!method) {
+                    type_error_msg("méthode non trouvée dans la classe courante");
+                    return expr->type = type_error();
+                }
+            } else {
+                type_error_msg("forme d'appel de méthode non supportée");
+                return expr->type = type_error();
+            }
+            
+            // Vérifier le nombre d'arguments
+            if (expr->call.arg_count != method->param_count) {
+                type_error_msg("nombre d'arguments incorrect");
+                return expr->type = type_error();
+            }
+            
+            // Vérifier les types des arguments
+            for (int i = 0; i < expr->call.arg_count; i++) {
+                Type* arg_type = type_check_expression(ctx, expr->call.args[i]);
+                if (!type_compatible(ctx->file, method->params[i]->type, arg_type)) {
+                    type_error_msg("type d'argument incompatible");
+                    return expr->type = type_error();
+                }
+            }
+            
+            // Retourner le type de retour de la méthode
+            return expr->type = copy_type(method->return_type);
         }
         case EXPR_NEW:
             if(expr->new_expr.type->kind != TYPE_CLASS){
                 type_error("new nécessite un type class");
             }
-            return expr->type= expr->new_expr.type;
+            return expr->type= copy_type(expr->new_expr.type);
 
         case EXPR_INSTOF: {
             Type* t=type_check_expression(ctx, expr->instof.val);
@@ -238,17 +355,27 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 type_error_msg("accès d'un champ sur un non_objet");
                 return expr->type = type_error();
             }
+            // Skip System.out (builtin, not defined in our language)
+            if(strcmp(obj->class_name, "System") == 0 && strcmp(expr->field_access.field_name, "out") == 0){
+                Type* t = create_type(TYPE_CLASS);
+                t->class_name = strdup("PrintStream");
+                return expr->type = t;
+            }
             ClassDecl* cls = find_class(ctx->file, obj->class_name);
-            Field* f=find_field(cls, expr->field_access.field_name);
+            if(!cls){
+                type_error_msg("classe non trouvée");
+                return expr->type = type_error();
+            }
+            Field* f=find_field(ctx->file, cls, expr->field_access.field_name);
             if(!f){
                 type_error_msg("champ inconnu");
                 return expr->type=type_error();
             }
-            return expr->type = f->type;
+            return expr->type = copy_type(f->type);
         }
         case EXPR_CAST:
             type_check_expression(ctx, expr-> cast.expr);
-            return expr->type = expr->cast.target_type;
+            return expr->type = copy_type(expr->cast.target_type);
 
         default:
             return expr->type = type_error();
