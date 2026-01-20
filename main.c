@@ -92,7 +92,7 @@ int main(int argc, char** argv)
         mainloop(ast);
     }
 
-    type_check_file(unit); //##### TYPECHECKER DISABLED FOR NOW #####
+    //type_check_file(unit); //##### TYPECHECKER DISABLED FOR NOW #####
 
     freeFile(unit);
     free(source);
