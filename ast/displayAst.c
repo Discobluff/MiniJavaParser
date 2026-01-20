@@ -7,8 +7,8 @@
 SDL_Window *win;
 SDL_Renderer *ren;
 
-#define WIDTH 2000
-#define HEIGHT 1000
+#define WIDTH 1800
+#define HEIGHT 900
 #define GAP_HOR 2
 #define GAP_VER 100
 #define MOVE_ARROW 25
@@ -406,7 +406,12 @@ void displayAST(AST ast, TTF_Font *font, double scale, int offsetX, int offsetY,
                         if (changeFocus){ (*newOffsetX) = DEFAULT_OFFSET_X - xCurrent; (*newOffsetY) = DEFAULT_OFFSET_Y - yCurrent; (*newScale) = depth + 1;}
                     }
                     int xBody = calculateXChildren(xMin, xMax, nbChildren, 3);
-                    displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.body}, font, scale, offsetX, offsetY, xBody - gap/2, xBody + gap/2, xBody, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    if (ast.data.statement->for_stmt.body == NULL){
+                        displayNode("NIL", xBody + offsetX, newY + offsetY, color, font, xCurrent + offsetX, newYPere, true, mouseX, mouseY, &changeFocus);
+                    }
+                    else{
+                        displayAST((AST){.type = AST_STATEMENT, .data.statement = ast.data.statement->for_stmt.body}, font, scale, offsetX, offsetY, xBody - gap/2, xBody + gap/2, xBody, newY, xCurrent + offsetX, newYPere, true, newOffsetX, newOffsetY, newScale, depth+1);
+                    }
                     break;
                 }
                 case (STMT_IF):{

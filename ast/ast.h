@@ -154,7 +154,7 @@ typedef struct {
 	Statement* init;  		// Can be NULL
 	Expression* condition;	// Can be NULL
 	Expression* increment;	// Can be NULL
-	Statement* body;
+	Statement* body;		// Can be NULL
 } ForStmt;
 
 /**
