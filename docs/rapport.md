@@ -1,5 +1,6 @@
 # Rapport d'activité - FISE Groupe 10
 
+
 ## Sommaire
   - [Grammaire](#grammaire)
   - [Lexer](#lexer)
@@ -13,18 +14,34 @@
 
 ## Grammaire
 
-Voir annexe [Grammaire](./grammaire.txt)
+Voir annexe [Grammaire](./grammar.txt)
 
 ## Lexer
 Le lexer est construit en deux parties : une partie qui reconnaît les opérateurs (+, - , &&,...) et une autre qui lit les chaînes de caractères et reconnaît les expressions réservées (if, else, class, for,...).
 ## Parser V1
 
-Version avec stack des NUT. 
-Problème : impossible de stocker le nom d’une variable ou d’une classe par exemple, ce qui rend la construction des AST impossible.
+Version avec stack des NUT, en reprenant la table SD avec des actions sémantiques dans chacune des cases valides.\
+Problème rencontré : impossible de stocker le nom d’une variable ou d’une classe par exemple, ce qui rend la construction des AST impossible.
 
 ## Parser V2
 
-Ecrire une fonction de parsing par règle => fonctions imbriquées. 
+Ecrire une fonction de parsing par règle => fonctions imbriquées.\
+Squelette d'une fonction pour la règle classe :
+```
+classe -> public_opt static_opt "class" "ident_type" extends_opt "{" decl_list "}" .
+parse_classe():
+    pub = parse_public()
+    stat = parse_static()
+    match("class")
+    class_name = match(id)
+    extended_class = parse_extends_opt()
+    match("{")
+    declarations = parse_decl_list()
+    match("}")
+```
+
+En cas de rencontre d'erreur syntaxique, le parser utilise la méthode panicmode :\
+le lexer avance jusqu'au prochain `;`ou `}` ou `{`, puis continue le parsing à cet endroit.
 
 ## Structure AST
 
@@ -42,6 +59,8 @@ Affichage dans une fenêtre SDL de l’AST construit. Possibilité de naviguer d
 
 - Rendre la grammaire LL(1) : factorisations, récursivités gauches… conflits à gérer => timing serré
 - Première implémentation du parser incompatible avec la construction des AST
+- Panicmode : conflits ponctuels dans plusieurs fonctions parse_X() lorsque le panicmode s'active. Le Lexeur avance par exemple à un `;` alors que la prochaine ligne de la fonction parse_X() doit lire `)`.
+Entre autres, il était complexe de trouver une méthode qui marche pour chacune des fonctions parse_X()    
 
 ## Exemples
 

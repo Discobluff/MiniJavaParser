@@ -7,7 +7,7 @@
 SDL_Window *win;
 SDL_Renderer *ren;
 
-#define WIDTH 1400
+#define WIDTH 2000
 #define HEIGHT 1000
 #define GAP_HOR 2
 #define GAP_VER 100
@@ -17,7 +17,6 @@ SDL_Renderer *ren;
 #define ZOOM_OUT_MAX 0.00001
 #define DEFAULT_FONT_SIZE 16
 #define FONT_PATH "ast/font.ttf"
-#define FONT_SIZE_MIN 8
 #define DEFAULT_OFFSET_X WIDTH/2
 #define DEFAULT_OFFSET_Y 25
 
