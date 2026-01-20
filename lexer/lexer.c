@@ -83,7 +83,6 @@ void skip_newline(Lexer *lex ) {
 	skip_whitespace(lex);
 }
 
-
 // Go to next token and put it in lex->tok
 void lexer_next(Lexer* lex)
 {

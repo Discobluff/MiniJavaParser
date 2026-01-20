@@ -86,6 +86,7 @@ int main(int argc, char** argv)
     }
 
     File* unit = parse_file(lex);
+    type_check_file(unit);
 
     if (show_ast){
         AST ast = (AST){ .type = AST_FILE, .data.file = unit };

@@ -11,3 +11,5 @@ testsX
 !docs/*
 !docs/images/*
 *.html
+
+parser/test.java
