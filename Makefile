@@ -122,6 +122,9 @@ debugParser: all
 showAst: all
 	./$(TARGET) --show-ast $(file)
 
+typeChecker: all
+	./$(TARGET) --typechecker $(file)
+
 # ============================================================================
 # Test Targets
 # ============================================================================
@@ -197,6 +200,24 @@ successTodo: $(TARGET)
 			echo "Test $$file succeeded cool"; \
 		fi; \
 	done
+
+failType: $(TARGET)
+	@status=0; \
+	for file in tests/implemented/type/fail/*; do \
+		printf "%-69s " "$$file"; \
+		if ./main --typechecker $$file > /dev/null 2>&1; then \
+			echo "\033[38;5;196mFAIL\033[0m"; \
+			status=1; \
+		else \
+			echo "\033[38;5;77mOK\033[0m"; \
+		fi; \
+	done; \
+	if [ $$status -ne 0 ]; then \
+		echo "\n\t\t\033[38;5;196mTest Failures has failed (some file(s) succeeded)\033[0m\n"; \
+		exit 1; \
+	else \
+		echo "\t\t\033[38;5;77mAll tests passed\033[0m\n"; \
+	fi
 
 # ============================================================================
 # Cleanup
