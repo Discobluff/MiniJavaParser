@@ -17,6 +17,7 @@ make run [file=<source-file>]           # Run with default file or with source f
 make debugLexer [file=<source-file>] 
 make debugParser [file=<source-file>]
 make debugAll [file=<source-file>]
+make showAst [file=<source-file>]
 ```
 
 **Arguments:**
