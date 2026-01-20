@@ -10,7 +10,8 @@
 
 int debug_lexer = 0,
     debug_parser = 0,
-    show_ast = 0;
+    show_ast = 0,
+    typechecker = 0;
 
 int main(int argc, char** argv)
 {
@@ -29,7 +30,11 @@ int main(int argc, char** argv)
             debug_parser = 1;
         } else if (strcmp(argv[i], "--show-ast") == 0) {
             show_ast = 1;
-        } else if (argv[i][0] != '-') {
+        } 
+        else if (strcmp(argv[i], "--typechecker") == 0) {
+            typechecker = 1;
+        }
+        else if (argv[i][0] != '-') {
             filename = argv[i];
         }
     }
@@ -92,10 +97,13 @@ int main(int argc, char** argv)
         mainloop(ast);
     }
 
-    //type_check_file(unit); //##### TYPECHECKER DISABLED FOR NOW #####
+    if (typechecker) {
+        type_check_file(unit);
+    }
 
     freeFile(unit);
     free(source);
     lexerfree(lex);
     return 0;
 }
+
