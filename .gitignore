@@ -10,3 +10,4 @@ testsX
 !*.ttf
 !docs/*
 !docs/images/*
+*.html

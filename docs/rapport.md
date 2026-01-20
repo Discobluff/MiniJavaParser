@@ -1,5 +1,8 @@
 # Rapport d'activité - FISE Groupe 10
-
+- Anaé DESIGAUX
+- Hugo DARTOY
+- Noah ANDRIAMAMPIANINA
+- Paul-Alexandre DEGUILHEN
 
 ## Sommaire
   - [Grammaire](#grammaire)
