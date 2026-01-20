@@ -3,12 +3,10 @@
 #include <stdlib.h>
 
 static Type* type_error(){
-    static Type* err = NULL;
-    if (!err) {
-        err = malloc(sizeof(Type));
-        err->kind = TYPE_ERROR;
-        err->class_name = NULL;
-    }
+    Type* err;
+    err = malloc(sizeof(Type));
+    err->kind = TYPE_ERROR;
+    err->class_name = NULL;
     return err;
 }
 
