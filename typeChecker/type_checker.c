@@ -79,6 +79,9 @@ int type_equals(Type* a, Type* b){
 
 int is_subclass(File* file, const char* child, const char* parent){
     while(child){
+        if (strcmp(parent, "Object") == 0) {
+            return 1; // Tout est sous-classe de Object
+        }
         if(strcmp(child,parent)==0){
             return 1;
         }

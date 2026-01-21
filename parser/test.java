@@ -1,20 +1,5 @@
-class A {
-    int a;
-    B b;
+class A { 
     A() {}
+    void m() { Object x = (new A()); }
 }
-
-class B extends A {
-    int b;
-    B() {}
-}
-
-class Main {
-    public static void main(String args[]) {
-        A a = new A();
-        boolean ok = (B)a.b == null;
-
-        // types primitifs
-        ok = ok && (int)1 == 1 && (int)1 == 1;
-    }
-}
+class Main { public static void main(String args[]) { } }
