@@ -1,2 +1,2 @@
-class M { void m() { System.out.println(1); } }
+class M { void m() { System.out.print(1); } }
 class Main { public static void main(String args[]) { } }
