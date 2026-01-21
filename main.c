@@ -9,14 +9,13 @@
 #include <string.h>
 
 int debug_lexer = 0,
-    debug_parser = 0,
     show_ast = 0,
     typechecker = 0;
 
 int main(int argc, char** argv)
 {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <source-file> [--debug-lexer] [--debug-parser]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <source-file> [--debug-lexer] [--show-ast] [--typechecker]\n", argv[0]);
         return 1;
     }
 
@@ -26,8 +25,6 @@ int main(int argc, char** argv)
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--debug-lexer") == 0) {
             debug_lexer = 1;
-        } else if (strcmp(argv[i], "--debug-parser") == 0) {
-            debug_parser = 1;
         } else if (strcmp(argv[i], "--show-ast") == 0) {
             show_ast = 1;
         } 
@@ -97,13 +94,14 @@ int main(int argc, char** argv)
         mainloop(ast);
     }
 
+    int result = 0;
     if (typechecker) {
-        type_check_file(unit);
+        result = type_check_file(unit);
     }
 
     freeFile(unit);
     free(source);
     lexerfree(lex);
-    return 0;
+    return result;
 }
 

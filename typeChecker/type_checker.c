@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int error_flag = 0;
+
 static Type* type_error(){
     Type* err;
     err = malloc(sizeof(Type));
@@ -13,6 +15,7 @@ static Type* type_error(){
 
 static void type_error_msg(const char* msg){
     fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
+    error_flag = 1;
 }
 
 
@@ -110,6 +113,9 @@ int type_compatible(File* file,Type* expected, Type* actual){
     if (expected->kind == TYPE_CLASS && actual->kind == TYPE_NULL){
         return 1;
     }
+    if(expected->kind == TYPE_CLASS && strcmp(expected->class_name, "Object")==0){
+        return 1;
+    }
     return 0;
 }
 
@@ -170,7 +176,7 @@ static Type* check_binary(TypeContext* ctx, Expression* exp){
                 return exp->type = create_type(TYPE_INT);
             }
 
-            if (l->kind == TYPE_STRING && r->kind == TYPE_STRING) {
+            if ((l->kind == TYPE_STRING || l->kind== TYPE_INT)&& (r->kind == TYPE_STRING || r->kind==TYPE_INT)) {
                 return exp->type = create_type(TYPE_STRING);
 
             }
@@ -191,6 +197,9 @@ static Type* check_binary(TypeContext* ctx, Expression* exp){
                     }
             return exp->type = create_type(TYPE_BOOLEAN);
         case OP_EQ: case OP_NEQ:
+            if((l->kind == TYPE_CLASS || l->kind==TYPE_NULL || l->kind== TYPE_STRING) && (r->kind==TYPE_NULL || r->kind == TYPE_CLASS || r->kind == TYPE_STRING)){
+                return exp->type = create_type(TYPE_BOOLEAN);
+            }
             if(!type_compatible(ctx->file,l,r)){
                     type_error_msg("types incompatibles pour une comparaison");
                     return exp->type=type_error();
@@ -350,6 +359,7 @@ static Type* type_check_expression(TypeContext* ctx, Expression* expr){
                 type_error_msg("instanceof sur un non_objet");
                 return expr->type=type_error();
             }
+            
             return expr->type = create_type(TYPE_BOOLEAN);
         }
         case EXPR_FIELD_ACCESS:{
@@ -473,10 +483,11 @@ static void type_check_class(TypeContext* ctx, ClassDecl* cls){
     }
 }
 
-void type_check_file(File* file){
+int type_check_file(File* file){
     TypeContext ctx = {0};
     ctx.file = file;
     for(int i=0; i< file->class_count; i++){
         type_check_class(&ctx, file->classes[i]);
     }
+    return error_flag;
 }
