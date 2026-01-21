@@ -102,7 +102,7 @@ $(TYPE_CHECKER_DIR)/%.o: $(TYPE_CHECKER_DIR)/%.c $(TYPE_CHECKER_DIR)/%.h
 # Run and Debug Targets
 # ============================================================================
 
-.PHONY: run runDisplayAst debugAll debugLexer debugParser showAst
+.PHONY: run runDisplayAst debugLexer showAst typeChecker
 
 run: $(TARGET)
 	./$(TARGET) $(file)
@@ -110,14 +110,8 @@ run: $(TARGET)
 runDisplayAst: displayAst
 	./displayAst
 
-debugAll: all
-	./$(TARGET) --debug-lexer --debug-parser $(file)
-
 debugLexer: all
 	./$(TARGET) --debug-lexer $(file)
-
-debugParser: all
-	./$(TARGET) --debug-parser $(file)
 
 showAst: all
 	./$(TARGET) --show-ast $(file)
