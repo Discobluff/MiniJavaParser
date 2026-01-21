@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int error_flag = 0;
+
 static Type* type_error(){
     Type* err;
     err = malloc(sizeof(Type));
@@ -13,6 +15,7 @@ static Type* type_error(){
 
 static void type_error_msg(const char* msg){
     fprintf(stderr, "[TYPE_ERROR] %s\n", msg);
+    error_flag = 1;
 }
 
 
@@ -477,10 +480,11 @@ static void type_check_class(TypeContext* ctx, ClassDecl* cls){
     }
 }
 
-void type_check_file(File* file){
+int type_check_file(File* file){
     TypeContext ctx = {0};
     ctx.file = file;
     for(int i=0; i< file->class_count; i++){
         type_check_class(&ctx, file->classes[i]);
     }
+    return error_flag;
 }

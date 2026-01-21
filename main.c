@@ -97,13 +97,14 @@ int main(int argc, char** argv)
         mainloop(ast);
     }
 
+    int result = 0;
     if (typechecker) {
-        type_check_file(unit);
+        result = type_check_file(unit);
     }
 
     freeFile(unit);
     free(source);
     lexerfree(lex);
-    return 0;
+    return result;
 }
 

@@ -39,7 +39,7 @@ typedef struct{
 }TypeContext;
 
 
-void type_check_file(File* file);
+int type_check_file(File* file);
 
 int type_equals(Type* a, Type* b);
 int type_compatible(File* file,Type* expected, Type* actual);
